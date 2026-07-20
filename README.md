@@ -14,7 +14,7 @@
 
 | Member | Role |
 |--------|------|
-| Atharvh Shende | Lead Developer |
+| Atharvh Shende | Lead Developer|
 | Member 2 | Data Scientist |
 | Member 3 | ML Engineer |
 | Member 4 | Data Analyst |
