@@ -1,6 +1,5 @@
 # 🚀 ML-Project-Quad
 
-> A collaborative machine learning project developed by a team of four passionate data scientists and ML engineers.
 
 ---
 
@@ -12,12 +11,12 @@
 
 ## 👥 Team Members
 
-| Member | Role |
-|--------|------|
-| Atharvh Shende | Lead Developer|
-| Member 2 | Data Scientist |
-| Member 3 | ML Engineer |
-| Member 4 | Data Analyst |
+| Member |
+|--------|
+| Atharvh Shende |
+| Aryan Konde |
+| Swaraj Garud |
+| Suraj Ban | 
 
 ---
 
