@@ -176,7 +176,7 @@ elif menu == "🔐 Admin Panel":
     username=st.text_input("Enter User Name",type="password")
 
     if st.button("Login", use_container_width=True):
-        if username=='Admin'
+        if username=='Admin':
             if password.strip() == "admin123":
                 st.session_state.attempts = 0
                 st.success("✅ Access Granted")
