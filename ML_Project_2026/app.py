@@ -140,7 +140,7 @@ elif menu == "🔐 Admin Panel":
     if st.session_state.blocked:
         st.error("🚫 Too many wrong attempts. Access blocked.")
 
-        email = "atharavshende999@gmail.com"
+        email = "adminpanel@gmail.com"
         subject = "Access Request for CLV App"
 
         gmail_link = f"https://mail.google.com/mail/?view=cm&fs=1&to={email}&su={subject}"
@@ -173,40 +173,41 @@ elif menu == "🔐 Admin Panel":
 
     # -------- LOGIN --------
     password = st.text_input("Enter Password", type="password")
+    username=st.text_input("Enter User Name",type="password")
 
     if st.button("Login", use_container_width=True):
-
-        if password.strip() == "admin123":
-            st.session_state.attempts = 0
-            st.success("✅ Access Granted")
-
-            st.subheader("📂 Server Files")
-            st.write(os.listdir())
-
-            try:
-                df = pd.read_excel("user_inputs.xlsx")
-                st.subheader("📄 Stored User Data")
-                st.dataframe(df)
-            except:
-                st.warning("No data found")
-
-            try:
-                with open("user_inputs.xlsx", "rb") as f:
-                    st.download_button(
-                        "📥 Download Excel",
-                        f,
-                        file_name="user_inputs.xlsx"
-                    )
-            except:
-                pass
-
-        else:
-            st.session_state.attempts += 1
-            remaining = 3 - st.session_state.attempts
-
-            if remaining > 0:
-                st.error(f"❌ Wrong password! Attempts left: {remaining}")
+        if username=='Admin'
+            if password.strip() == "admin123":
+                st.session_state.attempts = 0
+                st.success("✅ Access Granted")
+    
+                st.subheader("📂 Server Files")
+                st.write(os.listdir())
+    
+                try:
+                    df = pd.read_excel("user_inputs.xlsx")
+                    st.subheader("📄 Stored User Data")
+                    st.dataframe(df)
+                except:
+                    st.warning("No data found")
+    
+                try:
+                    with open("user_inputs.xlsx", "rb") as f:
+                        st.download_button(
+                            "📥 Download Excel",
+                            f,
+                            file_name="user_inputs.xlsx"
+                        )
+                except:
+                    pass
+    
             else:
-                st.session_state.blocked = True
-                st.error("🚫 You are blocked after 3 wrong attempts")
-                st.rerun()
+                st.session_state.attempts += 1
+                remaining = 3 - st.session_state.attempts
+    
+                if remaining > 0:
+                    st.error(f"❌ Wrong password! Attempts left: {remaining}")
+                else:
+                    st.session_state.blocked = True
+                    st.error("🚫 You are blocked after 3 wrong attempts")
+                    st.rerun()
