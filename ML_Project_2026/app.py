@@ -137,7 +137,7 @@ elif menu == "🔐 Admin Panel":
     username=st.test_input("Enter User Name",type="password")
     password = st.text_input("Enter Password", type="password")
 
-    if username="atharv" or username="aryan" or  username="swaraj" or username="suraj" and  password == "admin123":
+    if username=="atharv" or username=="aryan" or  username=="swaraj" or username=="suraj" and  password == "admin123":
 
         st.success("Access Granted")
     
