@@ -15,6 +15,29 @@ st.title("📊 Customer Lifetime Value (CLV) App")
 
 
 # ---------------- SIDEBAR ----------------
+st.markdown(
+"""
+<style>
+
+body{
+background:#f8fafc;
+}
+
+
+/* Sidebar */
+
+[data-testid="stSidebar"]{
+
+background-color:#0b1f4d;
+
+}
+
+
+[data-testid="stSidebar"] *{
+
+color:white;
+
+}
 menu = st.sidebar.radio(
     "Select Mode",
     [
