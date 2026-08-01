@@ -140,7 +140,7 @@ elif menu == "🔐 Admin Panel":
     if st.session_state.blocked:
         st.error("🚫 Too many wrong attempts. Access blocked.")
 
-        email = "atharavshende999@gmail.com"
+        email = "adminpanel@gmail.com"
         subject = "Access Request for CLV App"
 
         gmail_link = f"https://mail.google.com/mail/?view=cm&fs=1&to={email}&su={subject}"
@@ -167,7 +167,7 @@ elif menu == "🔐 Admin Panel":
             unsafe_allow_html=True
         )
 
-        st.info("Or email manually: atharavshende999@gmail.com")
+        st.info("Or email manually: adminpanel@gmail.com")
 
         st.stop()
 
