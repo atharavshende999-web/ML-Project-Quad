@@ -10,13 +10,11 @@ from sklearn.model_selection import train_test_split
 
 
 # ---------------- PAGE CONFIG ----------------
-
 st.set_page_config(page_title="CLV Dashboard", layout="wide")
 st.title("📊 Customer Lifetime Value (CLV) App")
 
 
 # ---------------- SIDEBAR ----------------
-
 menu = st.sidebar.radio(
     "Select Mode",
     [
@@ -29,7 +27,6 @@ menu = st.sidebar.radio(
 
 
 # ---------------- HOME ----------------
-
 if menu == "🏠 Home":
 
     st.header("Project Overview")
@@ -37,12 +34,11 @@ if menu == "🏠 Home":
     ✔ Predict CLV using ML  
     ✔ Store user data (hidden)  
     ✔ Customer segmentation  
-    ✔ Admin-only data access  
+    ✔ Admin-only access  
     """)
 
 
 # ---------------- CLV PREDICTOR ----------------
-
 elif menu == "🔮 CLV Predictor":
 
     st.header("🔮 Predict Customer Lifetime Value")
@@ -83,7 +79,6 @@ elif menu == "🔮 CLV Predictor":
         user_data["Predicted_CLV"] = prediction[0]
 
         # -------- SAVE TO EXCEL --------
-
         file_name = "user_inputs.xlsx"
 
         try:
@@ -97,7 +92,6 @@ elif menu == "🔮 CLV Predictor":
 
 
 # ---------------- SEGMENTATION ----------------
-
 elif menu == "📊 Segmentation Dashboard":
 
     st.header("📊 Customer Segmentation")
@@ -126,76 +120,54 @@ elif menu == "📊 Segmentation Dashboard":
 
             fig, ax = plt.subplots()
             ax.scatter(df[r], df[m], c=df["Cluster"])
+            ax.set_xlabel("Recency")
+            ax.set_ylabel("Monetary")
+            ax.set_title("Customer Segmentation")
+
             st.pyplot(fig)
 
 
 # ---------------- ADMIN PANEL ----------------
-
 elif menu == "🔐 Admin Panel":
 
     st.header("🔐 Admin Access")
 
-    password = st.text_input("Enter Password", type="password")
-
-    if password == "admin123":
-
-        st.success("Access Granted")
-
-        # Show files in server
-        st.subheader("📂 Server Files")
-        st.write(os.listdir())
-
-        # Show Excel data
-        try:
-            df = pd.read_excel("user_inputs.xlsx")
-            st.subheader("📄 Stored User Data")
-            st.dataframe(df)
-        except:
-            st.warning("No data found")
-
-        # Download file
-        try:
-            with open("user_inputs.xlsx", "rb") as f:
-                st.download_button(
-                    "📥 Download Excel",
-                    f,
-                    file_name="user_inputs.xlsx"
-                )
-        except:
-            pass
-
-    # ---------------- ADMIN PANEL ----------------
-
-elif menu == "🔐 Admin Panel":
-
-    st.header("🔐 Admin Access")
-
-    # Initialize session state
+    # -------- SESSION STATE --------
     if "attempts" not in st.session_state:
         st.session_state.attempts = 0
 
     if "blocked" not in st.session_state:
         st.session_state.blocked = False
 
-    # If blocked
+    # -------- BLOCKED USER --------
     if st.session_state.blocked:
         st.error("🚫 Too many wrong attempts. Access blocked.")
+
+        email = "atharavshende999@gmail.com"
+        subject = "Access Request for CLV App"
+
+        st.markdown("### 📩 Contact Admin")
+        st.markdown(
+            f'<a href="mailto:{email}?subject={subject}">'
+            f'<button>📧 Contact Admin</button></a>',
+            unsafe_allow_html=True
+        )
+
         st.stop()
 
+    # -------- LOGIN --------
     password = st.text_input("Enter Password", type="password")
 
-    if st.button("Login"):
+    if st.button("Login", use_container_width=True):
 
-        if password == "admin123":
-            st.session_state.attempts = 0  # reset
+        if password.strip() == "admin123":
+            st.session_state.attempts = 0
             st.success("✅ Access Granted")
 
-            # ---- ADMIN CONTENT ----
-            import os
+            # -------- ADMIN CONTENT --------
             st.subheader("📂 Server Files")
             st.write(os.listdir())
 
-            import pandas as pd
             try:
                 df = pd.read_excel("user_inputs.xlsx")
                 st.subheader("📄 Stored User Data")
@@ -223,3 +195,4 @@ elif menu == "🔐 Admin Panel":
             else:
                 st.session_state.blocked = True
                 st.error("🚫 You are blocked after 3 wrong attempts")
+                st.rerun()
