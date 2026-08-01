@@ -6,3 +6,4 @@ scikit-learn
 seaborn
 plotly
 joblib
+openpyxl
