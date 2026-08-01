@@ -24,7 +24,6 @@ background:#f8fafc;
 }
 
 
-/* Sidebar */
 
 [data-testid="stSidebar"]{
 
@@ -38,6 +37,7 @@ background-color:#0b1f4d;
 color:white;
 
 }
+</style>
 menu = st.sidebar.radio(
     "Select Mode",
     [
