@@ -4,11 +4,11 @@ import matplotlib.pyplot as plt
 import os
 import json
 import random
+import smtplib
 
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.model_selection import train_test_split
 
 
 # ---------------- CONFIG ----------------
@@ -30,9 +30,25 @@ def save_password(new_pass):
         json.dump({"password": new_pass}, f)
 
 
-# ---------------- OTP FUNCTION ----------------
-def generate_otp():
-    return random.randint(100000, 999999)
+# ---------------- EMAIL OTP FUNCTION ----------------
+def send_email_otp(receiver_email):
+    otp = random.randint(100000, 999999)
+
+    sender_email = "your_email@gmail.com"
+    app_password = "your_app_password"  # Gmail App Password
+
+    subject = "Your OTP Code"
+    body = f"Your OTP is {otp}"
+
+    message = f"Subject: {subject}\n\n{body}"
+
+    server = smtplib.SMTP("smtp.gmail.com", 587)
+    server.starttls()
+    server.login(sender_email, app_password)
+    server.sendmail(sender_email, receiver_email, message)
+    server.quit()
+
+    return otp
 
 
 # ---------------- SIDEBAR ----------------
@@ -47,9 +63,8 @@ if menu == "🏠 Home":
     st.header("Project Overview")
     st.write("""
     ✔ CLV Prediction using ML  
-    ✔ Store user data  
     ✔ Customer segmentation  
-    ✔ OTP-based password reset  
+    ✔ Secure login with Email OTP reset  
     """)
 
 
@@ -183,22 +198,27 @@ elif menu == "🔐 Admin Panel":
                     st.error("🚫 Too many attempts. Reset required.")
                     st.rerun()
 
-    # -------- RESET PASSWORD FLOW --------
+    # -------- RESET FLOW --------
     if st.session_state.reset_mode:
 
-        st.warning("🔑 Password Reset")
+        st.warning("🔑 Password Reset via Email OTP")
 
-        phone = st.text_input("Enter Mobile Number")
+        email = st.text_input("Enter your Email ID")
 
         if st.button("Send OTP"):
 
-            otp = generate_otp()
-            st.session_state.otp = otp
-            st.session_state.otp_sent = True
+            try:
+                otp = send_email_otp(email)
 
-            # Demo OTP display
-            st.success(f"📲 OTP Sent: {otp}")
+                st.session_state.otp = otp
+                st.session_state.otp_sent = True
 
+                st.success("📧 OTP sent to your email")
+
+            except Exception as e:
+                st.error(f"Error sending OTP: {e}")
+
+        # -------- VERIFY OTP --------
         if st.session_state.otp_sent:
 
             user_otp = st.text_input("Enter OTP")
@@ -210,10 +230,11 @@ elif menu == "🔐 Admin Panel":
                     st.success("✅ OTP Verified")
 
                     new_pass = st.text_input("Create New Password", type="password")
+                    confirm_pass = st.text_input("Confirm Password", type="password")
 
                     if st.button("Save Password"):
 
-                        if new_pass.strip() != "":
+                        if new_pass == confirm_pass and new_pass.strip() != "":
                             save_password(new_pass)
 
                             st.session_state.blocked = False
@@ -225,7 +246,7 @@ elif menu == "🔐 Admin Panel":
                             st.rerun()
 
                         else:
-                            st.warning("Enter valid password")
+                            st.error("❌ Passwords do not match or empty")
 
                 else:
                     st.error("❌ Invalid OTP")
