@@ -134,7 +134,7 @@ elif menu == "📊 Segmentation Dashboard":
 elif menu == "🔐 Admin Panel":
 
     st.header("🔐 Admin Access")
-    username=st.test_input("Enter User Name",type="password")
+    username=st.text_input("Enter User Name",type="password")
     password = st.text_input("Enter Password", type="password")
 
     if username=="atharv" or username=="aryan" or  username=="swaraj" or username=="suraj" and  password == "admin123":
