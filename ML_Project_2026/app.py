@@ -34,7 +34,7 @@ if menu == "🏠 Home":
     ✔ Predict CLV using ML  
     ✔ Store user data (hidden)  
     ✔ Customer segmentation  
-    ✔ Admin chatbot login  
+    ✔ Admin-only access  
     """)
 
 
@@ -125,66 +125,67 @@ elif menu == "📊 Segmentation Dashboard":
             st.pyplot(fig)
 
 
-# ---------------- ADMIN PANEL (CHATBOT LOGIN) ----------------
+# ---------------- ADMIN PANEL ----------------
 elif menu == "🔐 Admin Panel":
 
-    st.header("🔐 Admin Access (Chatbot Login)")
+    st.header("🔐 Admin Access")
 
-    # -------- SESSION STATE --------
     if "attempts" not in st.session_state:
         st.session_state.attempts = 0
 
     if "blocked" not in st.session_state:
         st.session_state.blocked = False
 
-    if "chat_history" not in st.session_state:
-        st.session_state.chat_history = []
-
-    # -------- BLOCK CHECK --------
+    # -------- BLOCKED --------
     if st.session_state.blocked:
         st.error("🚫 Too many wrong attempts. Access blocked.")
 
         email = "atharavshende999@gmail.com"
         subject = "Access Request for CLV App"
 
+        gmail_link = f"https://mail.google.com/mail/?view=cm&fs=1&to={email}&su={subject}"
+
         st.markdown("### 📩 Contact Admin")
+
+        # ✅ WORKING BUTTON STYLE
         st.markdown(
-            f"[📧 Contact Admin](mailto:{email}?subject={subject})"
+            f"""
+            <a href="{gmail_link}" target="_blank">
+                <div style="
+                    display:inline-block;
+                    padding:12px 25px;
+                    background-color:#ff4b4b;
+                    color:white;
+                    font-weight:bold;
+                    border-radius:8px;
+                    text-align:center;
+                ">
+                    📧 Contact Admin
+                </div>
+            </a>
+            """,
+            unsafe_allow_html=True
         )
+
+        st.info("Or email manually: atharavshende999@gmail.com")
+
         st.stop()
 
-    # -------- CHAT DISPLAY --------
-    st.subheader("💬 Chat Login")
+    # -------- LOGIN --------
+    password = st.text_input("Enter Password", type="password")
 
-    for msg in st.session_state.chat_history:
-        st.write(msg)
+    if st.button("Login", use_container_width=True):
 
-    # -------- USER INPUT --------
-    user_input = st.text_input("Type password here...")
-
-    if st.button("Send"):
-
-        if user_input.strip() == "":
-            st.warning("Please enter password")
-            st.stop()
-
-        st.session_state.chat_history.append(f"👤 You: {user_input}")
-
-        # -------- CHECK PASSWORD --------
-        if user_input.strip() == "admin123":
-
-            st.session_state.chat_history.append("🤖 Bot: ✅ Access Granted")
+        if password.strip() == "admin123":
             st.session_state.attempts = 0
+            st.success("✅ Access Granted")
 
-            st.success("Welcome Admin 🎉")
-
-            # -------- ADMIN CONTENT --------
             st.subheader("📂 Server Files")
             st.write(os.listdir())
 
             try:
                 df = pd.read_excel("user_inputs.xlsx")
-                st.subheader("📄 Stored Data")
+                st.subheader("📄 Stored User Data")
                 st.dataframe(df)
             except:
                 st.warning("No data found")
@@ -204,13 +205,8 @@ elif menu == "🔐 Admin Panel":
             remaining = 3 - st.session_state.attempts
 
             if remaining > 0:
-                st.session_state.chat_history.append(
-                    f"🤖 Bot: ❌ Wrong password! Attempts left: {remaining}"
-                )
+                st.error(f"❌ Wrong password! Attempts left: {remaining}")
             else:
-                st.session_state.chat_history.append(
-                    "🤖 Bot: 🚫 You are blocked after 3 attempts"
-                )
                 st.session_state.blocked = True
-
-        st.rerun()
+                st.error("🚫 You are blocked after 3 wrong attempts")
+                st.rerun()
