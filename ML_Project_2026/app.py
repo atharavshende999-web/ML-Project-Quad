@@ -141,9 +141,7 @@ elif menu == "🔐 Admin Panel":
 
                 st.success("✅ Access Granted")
 
-                # Show files
-                st.subheader("📂 Server Files")
-                st.write(os.listdir())
+                #
 
                 # Show Excel data
                 try:
