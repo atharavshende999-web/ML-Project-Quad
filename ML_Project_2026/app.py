@@ -137,22 +137,23 @@ elif menu == "🔐 Admin Panel":
     username=st.text_input("Enter User Name",type="password")
     password = st.text_input("Enter Password", type="password")
 
-    if username=="atharv" or username=="aryan" or  username=="swaraj" or username=="suraj" and  password == "admin123":
+    if username=="atharv" or username=="aryan" or  username=="swaraj" or username=="suraj"
+        if password == "admin123":
 
-        st.success("Access Granted")
+            st.success("Access Granted")
+        
     
-
-        # Show files in server
-        st.subheader("📂 Server Files")
-        st.write(os.listdir())
-
-        # Show Excel data
-        try:
-            df = pd.read_excel("user_inputs.xlsx")
-            st.subheader("📄 Stored User Data")
-            st.dataframe(df)
-        except:
-            st.warning("No data found")
+            # Show files in server
+            st.subheader("📂 Server Files")
+            st.write(os.listdir())
+    
+            # Show Excel data
+            try:
+                df = pd.read_excel("user_inputs.xlsx")
+                st.subheader("📄 Stored User Data")
+                st.dataframe(df)
+            except:
+                st.warning("No data found")
 
         # Download file
         try:
