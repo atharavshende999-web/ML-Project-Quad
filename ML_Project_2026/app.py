@@ -99,21 +99,31 @@ elif menu == "🔮 CLV Predictor":
         # Add prediction
         user_data["Predicted_CLV"] = prediction[0]
 
-        # -------- SAVE DATA (HIDDEN FROM USER) --------
+        # -------- SAVE DATA IN EXCEL (HIDDEN FROM USER) --------
+
+        file_name = "user_inputs.xlsx"
+
         try:
-            old_data = pd.read_csv("user_inputs.csv")
+            old_data = pd.read_excel(file_name)
 
             final_data = pd.concat(
                 [old_data, user_data],
                 ignore_index=True
             )
 
-            final_data.to_csv("user_inputs.csv", index=False)
+            final_data.to_excel(
+                file_name,
+                index=False
+            )
 
-        except:
-            user_data.to_csv("user_inputs.csv", index=False)
+        except FileNotFoundError:
+            user_data.to_excel(
+                file_name,
+                index=False
+            )
 
         # -------- SHOW ONLY RESULT --------
+
         st.success(f"💰 Predicted CLV: ${prediction[0]:.2f}")
         st.success("✅ Prediction completed successfully")
 
