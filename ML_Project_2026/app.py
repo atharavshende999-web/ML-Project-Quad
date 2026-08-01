@@ -167,8 +167,6 @@ elif menu == "🔐 Admin Panel":
             unsafe_allow_html=True
         )
 
-        st.info("Or email manually: atharavshende999@gmail.com")
-
         st.stop()
 
     # -------- LOGIN --------
