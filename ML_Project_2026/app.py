@@ -85,36 +85,6 @@ unsafe_allow_html=True
 # ================= SIDEBAR =================
 
 
-with st.sidebar:
-
-
-    if os.path.exists("robot.png"):
-
-        st.image(
-            "robot.png",
-            width=120
-        )
-
-    else:
-
-        st.write("🤖")
-
-
-    st.title(
-        "🤖 CLV Assistant"
-    )
-
-
-    menu = st.radio(
-        "Select Mode",
-        [
-            "🏠 Home",
-            "🔮 CLV Predictor",
-            "📊 Segmentation Dashboard",
-            "🔐 Admin Panel"
-        ]
-    )
-
 
 
 
@@ -158,137 +128,54 @@ if menu=="🏠 Home":
 # ================= CLV PREDICTOR =================
 
 
-elif menu=="🔮 CLV Predictor":
+if menu == "🔮 CLV Predictor":
 
+    st.header("🔮 Predict Customer Lifetime Value")
 
-    st.header(
-        "🔮 Predict Customer Lifetime Value"
-    )
+    recency = st.number_input("Recency (Days)", 0, 365, 30)
+    frequency = st.number_input("Frequency", 1, 100, 5)
+    monetary = st.number_input("Monetary Value", 0.0, 10000.0, 500.0)
 
-
-    col1,col2,col3 = st.columns(3)
-
-
-    with col1:
-
-        recency = st.number_input(
-            "📅 Recency Days",
-            0,
-            365,
-            30
-        )
-
-
-    with col2:
-
-        frequency = st.number_input(
-            "🛒 Frequency",
-            1,
-            100,
-            5
-        )
-
-
-    with col3:
-
-        monetary = st.number_input(
-            "💰 Monetary Value",
-            0.0,
-            10000.0,
-            500.0
-        )
-
-
-
-
-    if st.button(
-        "🚀 Predict CLV",
-        use_container_width=True
-    ):
-
-
+    if st.button("Predict CLV"):
 
         data = {
-
-            "Recency":[10,20,5,30,15,40,25,8],
-
-            "Frequency":[5,3,10,2,7,1,4,12],
-
-            "Monetary":[500,300,1000,200,700,100,400,1500],
-
-            "CLV":[1200,700,2500,400,1600,200,900,3000]
-
+            "Recency":[10,20,5,30,15,40,25,8,60,12,35,18],
+            "Frequency":[5,3,10,2,7,1,4,12,2,8,3,6],
+            "Monetary":[500,300,1000,200,700,100,400,1500,250,900,350,650],
+            "CLV":[1200,700,2500,400,1600,200,900,3000,500,2000,800,1400]
         }
 
+        df = pd.DataFrame(data)
 
+        X = df[["Recency","Frequency","Monetary"]]
+        y = df["CLV"]
 
-        df=pd.DataFrame(data)
-
-
-
-        X=df[
-            [
-            "Recency",
-            "Frequency",
-            "Monetary"
-            ]
-        ]
-
-
-        y=df["CLV"]
-
-
-
-        X_train,X_test,y_train,y_test=train_test_split(
-            X,
-            y,
-            test_size=0.2,
-            random_state=42
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42
         )
 
+        model = GradientBoostingRegressor(random_state=42)
+        model.fit(X_train, y_train)
 
-
-        model=GradientBoostingRegressor(
-            random_state=42
-        )
-
-
-
-        model.fit(
-            X_train,
-            y_train
-        )
-
-
-
-        user_data=pd.DataFrame({
-
+        user_data = pd.DataFrame({
             "Recency":[recency],
-
             "Frequency":[frequency],
-
             "Monetary":[monetary]
-
         })
 
+        prediction = model.predict(user_data)
+        user_data["Predicted_CLV"] = prediction[0]
 
+        file_name = "user_inputs.xlsx"
 
-        prediction=model.predict(
-            user_data
-        )
+        try:
+            old = pd.read_excel(file_name)
+            new = pd.concat([old, user_data], ignore_index=True)
+            new.to_excel(file_name, index=False)
+        except:
+            user_data.to_excel(file_name, index=False)
 
-
-
-        user_data["Predicted_CLV"]=prediction[0]
-
-
-
-        st.success(
-            f"💰 Predicted CLV : ${prediction[0]:.2f}"
-        )
-
-
-
+        st.success(f"💰 Predicted CLV: ${prediction[0]:.2f}")
         # SAVE EXCEL
 
 
