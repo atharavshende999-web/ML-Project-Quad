@@ -9,126 +9,37 @@ from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.model_selection import train_test_split
 
 
+# ---------------- PAGE CONFIG ----------------
+st.set_page_config(page_title="CLV Dashboard", layout="wide")
+st.title("📊 Customer Lifetime Value (CLV) App")
 
-# ================= PAGE CONFIG =================
 
-st.set_page_config(
-    page_title="CLV Dashboard",
-    page_icon="📊",
-    layout="wide"
+# ---------------- SIDEBAR ----------------
+menu = st.sidebar.radio(
+    "Select Mode",
+    [
+        "🏠 Home",
+        "🔮 CLV Predictor",
+        "📊 Segmentation Dashboard",
+        "🔐 Admin Panel"
+    ]
 )
 
 
+# ---------------- HOME ----------------
+if menu == "🏠 Home":
 
-# ================= CUSTOM CSS =================
-
-st.markdown(
-"""
-<style>
-
-body{
-background:#f8fafc;
-}
-
-
-[data-testid="stSidebar"]{
-
-background-color:#0b1f4d;
-
-}
+    st.header("Project Overview")
+    st.write("""
+    ✔ Predict CLV using ML  
+    ✔ Store user data (hidden)  
+    ✔ Customer segmentation  
+    ✔ Admin-only data access  
+    """)
 
 
-[data-testid="stSidebar"] *{
-
-color:white;
-
-}
-
-
-.card{
-
-background:white;
-padding:20px;
-border-radius:15px;
-box-shadow:0px 5px 15px #dddddd;
-
-}
-
-
-</style>
-
-""",
-unsafe_allow_html=True
-)
-
-
-
-# ================= TITLE =================
-
-st.markdown(
-"""
-<h1 style="text-align:center;">
-📊 Customer Lifetime Value Dashboard
-</h1>
-
-<p style="text-align:center;">
-AI Powered Customer Prediction and Segmentation System
-</p>
-
-""",
-unsafe_allow_html=True
-)
-
-
-
-
-# ================= SIDEBAR =================
-
-
-
-
-
-
-# ================= HOME =================
-
-
-if menu=="🏠 Home":
-
-
-    st.markdown(
-    """
-    <div class="card">
-
-
-    ## 🚀 Project Overview
-
-
-    ✔ Predict Customer Lifetime Value using ML  
-
-
-    ✔ Customer segmentation using KMeans  
-
-
-    ✔ Store prediction history securely  
-
-
-    ✔ Admin controlled data access  
-
-
-    </div>
-
-    """,
-    unsafe_allow_html=True
-    )
-
-
-
-
-
-# ================= CLV PREDICTOR =================
-
-
-if menu == "🔮 CLV Predictor":
+# ---------------- CLV PREDICTOR ----------------
+elif menu == "🔮 CLV Predictor":
 
     st.header("🔮 Predict Customer Lifetime Value")
 
@@ -138,6 +49,7 @@ if menu == "🔮 CLV Predictor":
 
     if st.button("Predict CLV"):
 
+        # Sample dataset
         data = {
             "Recency":[10,20,5,30,15,40,25,8,60,12,35,18],
             "Frequency":[5,3,10,2,7,1,4,12,2,8,3,6],
@@ -166,6 +78,7 @@ if menu == "🔮 CLV Predictor":
         prediction = model.predict(user_data)
         user_data["Predicted_CLV"] = prediction[0]
 
+        # -------- SAVE TO EXCEL --------
         file_name = "user_inputs.xlsx"
 
         try:
@@ -176,287 +89,81 @@ if menu == "🔮 CLV Predictor":
             user_data.to_excel(file_name, index=False)
 
         st.success(f"💰 Predicted CLV: ${prediction[0]:.2f}")
-        # SAVE EXCEL
 
 
-        file="user_inputs.xlsx"
+# ---------------- SEGMENTATION ----------------
+elif menu == "📊 Segmentation Dashboard":
 
+    st.header("📊 Customer Segmentation")
 
-
-        if os.path.exists(file):
-
-
-            old=pd.read_excel(file)
-
-
-            final=pd.concat(
-                [
-                old,
-                user_data
-                ],
-                ignore_index=True
-            )
-
-
-            final.to_excel(
-                file,
-                index=False
-            )
-
-
-        else:
-
-
-            user_data.to_excel(
-                file,
-                index=False
-            )
-
-
-
-        st.success(
-            "✅ Customer data stored"
-        )
-
-
-
-
-
-# ================= SEGMENTATION =================
-
-
-elif menu=="📊 Segmentation Dashboard":
-
-
-    st.header(
-        "📊 Customer Segmentation"
-    )
-
-
-    file=st.file_uploader(
-        "Upload Customer CSV",
-        type=["csv"]
-    )
-
-
+    file = st.file_uploader("Upload CSV", type=["csv"])
 
     if file:
+        df = pd.read_csv(file)
+        st.dataframe(df.head())
 
+        r = st.selectbox("Recency column", df.columns)
+        f = st.selectbox("Frequency column", df.columns)
+        m = st.selectbox("Monetary column", df.columns)
 
-        df=pd.read_csv(file)
+        if st.button("Run Segmentation"):
 
+            X = df[[r,f,m]]
 
-        st.dataframe(
-            df.head()
-        )
+            scaler = StandardScaler()
+            X_scaled = scaler.fit_transform(X)
 
+            kmeans = KMeans(n_clusters=3, random_state=42)
+            df["Cluster"] = kmeans.fit_predict(X_scaled)
 
+            st.dataframe(df.head())
 
-        r=st.selectbox(
-            "Select Recency Column",
-            df.columns
-        )
-
-
-        f=st.selectbox(
-            "Select Frequency Column",
-            df.columns
-        )
-
-
-        m=st.selectbox(
-            "Select Monetary Column",
-            df.columns
-        )
-
-
-
-        if st.button(
-            "Create Segments"
-        ):
-
-
-
-            X=df[
-                [
-                r,
-                f,
-                m
-                ]
-            ]
-
-
-
-            scaler=StandardScaler()
-
-
-            X_scaled=scaler.fit_transform(
-                X
-            )
-
-
-
-            kmeans=KMeans(
-                n_clusters=3,
-                random_state=42
-            )
-
-
-
-            df["Cluster"]=kmeans.fit_predict(
-                X_scaled
-            )
-
-
-
-            st.dataframe(
-                df
-            )
-
-
-
-            fig,ax=plt.subplots()
-
-
-            ax.scatter(
-                df[r],
-                df[m],
-                c=df["Cluster"]
-            )
-
-
-            ax.set_xlabel(
-                "Recency"
-            )
-
-
-            ax.set_ylabel(
-                "Monetary"
-            )
-
-
-            ax.set_title(
-                "Customer Segmentation"
-            )
-
-
+            fig, ax = plt.subplots()
+            ax.scatter(df[r], df[m], c=df["Cluster"])
             st.pyplot(fig)
 
 
+# ---------------- ADMIN PANEL ----------------
+elif menu == "🔐 Admin Panel":
 
+    st.header("🔐 Admin Access")
 
+    username = st.text_input("Enter User Name")
+    password = st.text_input("Enter Password", type="password")
 
-# ================= ADMIN PANEL =================
+    if st.button("Login"):
 
+        valid_users = ["atharv", "aryan", "swaraj", "suraj"]
 
-elif menu=="🔐 Admin Panel":
+        if username.lower() in valid_users:
 
+            if password == "admin123":
 
-    st.header(
-        "🔐 Admin Login"
-    )
+                st.success("✅ Access Granted")
 
+                # Show files
+                st.subheader("📂 Server Files")
+                st.write(os.listdir())
 
-
-    users={
-
-        "atharv":"Pass@123",
-
-        "suraj":"Pass@123",
-
-        "aryan":"Pass@123",
-
-        "swaraj":"Pass@123"
-
-    }
-
-
-
-    username=st.text_input(
-        "Enter Username"
-    )
-
-
-    password=st.text_input(
-        "Enter Password",
-        type="password"
-    )
-
-
-
-    if st.button(
-        "Login"
-    ):
-
-
-        if username.lower() in users:
-
-
-            if users[username.lower()] == password:
-
-
-                st.success(
-                    "✅ Login Successful"
-                )
-
-
-
+                # Show Excel data
                 try:
+                    df = pd.read_excel("user_inputs.xlsx")
+                    st.subheader("📄 Stored User Data")
+                    st.dataframe(df)
 
-
-                    df=pd.read_excel(
-                        "user_inputs.xlsx"
-                    )
-
-
-                    st.subheader(
-                        "📄 Stored Customer Data"
-                    )
-
-
-                    st.dataframe(
-                        df
-                    )
-
-
-
-                    with open(
-                        "user_inputs.xlsx",
-                        "rb"
-                    ) as f:
-
-
+                    # Download button
+                    with open("user_inputs.xlsx", "rb") as f:
                         st.download_button(
-
                             "📥 Download Excel",
-
                             f,
-
                             file_name="user_inputs.xlsx"
-
                         )
 
-
                 except:
-
-
-                    st.warning(
-                        "No data available"
-                    )
-
-
+                    st.warning("No data found")
 
             else:
-
-                st.error(
-                    "❌ Password is wrong"
-                )
-
-
+                st.error("❌ Password is wrong")
 
         else:
-
-
-            st.error(
-                "❌ Username not found"
-            )
+            st.error("❌ Invalid Username")
