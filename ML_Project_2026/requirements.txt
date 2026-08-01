@@ -1,5 +1,8 @@
-streamlit 
-pandas 
-numpy 
-matplotlib.pyplot
-sklearn
+streamlit
+pandas
+numpy
+matplotlib
+scikit-learn
+seaborn
+plotly
+joblib
