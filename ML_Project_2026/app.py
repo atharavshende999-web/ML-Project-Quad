@@ -6,334 +6,164 @@ import os
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.model_selection import train_test_split
 
 
-# ================= PAGE CONFIG =================
-
-st.set_page_config(
-    page_title="CLV Analytics Dashboard",
-    page_icon="📊",
-    layout="wide"
-)
+# ---------------- PAGE CONFIG ----------------
+st.set_page_config(page_title="CLV Dashboard", layout="wide")
+st.title("📊 Customer Lifetime Value (CLV) App")
 
 
-# ================= CSS DESIGN =================
-
-st.markdown("""
-<style>
-
-.main{
-background-color:#f8fafc;
-}
-
-
-[data-testid="stSidebar"]{
-background:#111827;
-}
-
-
-[data-testid="stSidebar"] *{
-color:white;
-}
-
-
-.card{
-
-background:white;
-padding:25px;
-border-radius:15px;
-box-shadow:0px 4px 15px #dddddd;
-
-}
-
-
-.title{
-
-text-align:center;
-font-size:40px;
-font-weight:bold;
-
-}
-
-
-.subtitle{
-
-text-align:center;
-color:gray;
-font-size:18px;
-
-}
-
-
-</style>
-
-""",unsafe_allow_html=True)
-
-
-
-# ================= TITLE =================
-
-
-st.markdown(
-"""
-<div class="title">
-📊 Customer Lifetime Value Analytics
-</div>
-
-<div class="subtitle">
-AI Based Customer Prediction and Segmentation System
-</div>
-
-<br>
-""",
-
-unsafe_allow_html=True
-)
-
-
-
-# ================= SIDEBAR =================
-
-
-st.sidebar.title("Navigation")
-
-
+# ---------------- SIDEBAR ----------------
 menu = st.sidebar.radio(
-"",
-[
-"🏠 Home",
-"🔮 CLV Prediction",
-"📊 Customer Segmentation",
-"🔐 Admin Panel"
-]
+    "Select Mode",
+    [
+        "🏠 Home",
+        "🔮 CLV Predictor",
+        "📊 Segmentation Dashboard",
+        "🔐 Admin Panel"
+    ]
 )
 
 
+# ---------------- HOME ----------------
+if menu == "🏠 Home":
 
-# ================= HOME =================
-
-
-if menu=="🏠 Home":
-
-
-    st.markdown(
-    """
-    <div class="card">
-
-    ## 🚀 Project Overview
+    st.header("Project Overview")
+    st.write("""
+    ✔ Predict CLV using ML  
+    ✔ Store user data (hidden)  
+    ✔ Customer segmentation  
+    ✔ Admin-only data access  
+    """)
 
 
-    This application performs:
+# ---------------- CLV PREDICTOR ----------------
+elif menu == "🔮 CLV Predictor":
 
+    st.header("🔮 Predict Customer Lifetime Value")
 
-    ✔ Customer Lifetime Value Prediction  
+    recency = st.number_input("Recency (Days)", 0, 365, 30)
+    frequency = st.number_input("Frequency", 1, 100, 5)
+    monetary = st.number_input("Monetary Value", 0.0, 10000.0, 500.0)
 
+    if st.button("Predict CLV"):
 
-    ✔ Machine Learning based Revenue Forecasting  
+        # Sample dataset
+        data = {
+            "Recency":[10,20,5,30,15,40,25,8,60,12,35,18],
+            "Frequency":[5,3,10,2,7,1,4,12,2,8,3,6],
+            "Monetary":[500,300,1000,200,700,100,400,1500,250,900,350,650],
+            "CLV":[1200,700,2500,400,1600,200,900,3000,500,2000,800,1400]
+        }
 
+        df = pd.DataFrame(data)
 
-    ✔ Customer Segmentation using KMeans  
+        X = df[["Recency","Frequency","Monetary"]]
+        y = df["CLV"]
 
-
-    ✔ Secure Admin Data Management  
-
-
-    </div>
-
-    """,
-    unsafe_allow_html=True
-    )
-
-
-    st.write("")
-
-
-    col1,col2,col3=st.columns(3)
-
-
-    with col1:
-
-        st.info(
-        """
-        🤖
-
-        **Machine Learning**
-
-        Gradient Boosting
-        """
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42
         )
 
+        model = GradientBoostingRegressor(random_state=42)
+        model.fit(X_train, y_train)
 
-    with col2:
-
-        st.info(
-        """
-        📈
-
-        **Prediction**
-
-        Future CLV
-        """
-        )
-
-
-    with col3:
-
-        st.info(
-        """
-        👥
-
-        **Segmentation**
-
-        KMeans Clustering
-        """
-        )
-
-
-
-# ================= CLV PREDICTION =================
-
-
-elif menu=="🔮 CLV Prediction":
-
-
-    st.header("🔮 Customer Lifetime Value Prediction")
-
-
-    col1,col2,col3=st.columns(3)
-
-
-
-    with col1:
-
-        recency=st.number_input(
-        "📅 Recency Days",
-        0,
-        365,
-        30
-        )
-
-
-    with col2:
-
-        frequency=st.number_input(
-        "🛒 Frequency",
-        1,
-        100,
-        5
-        )
-
-
-    with col3:
-
-        monetary=st.number_input(
-        "💰 Monetary Value",
-        0.0,
-        10000.0,
-        500.0
-        )
-
-
-
-    if st.button(
-    "🚀 Predict CLV",
-    use_container_width=True
-    ):
-
-
-
-        training=pd.DataFrame({
-
-        "Recency":[10,20,5,30,15,40],
-
-        "Frequency":[5,3,10,2,7,1],
-
-        "Monetary":[500,300,1000,200,700,100],
-
-        "CLV":[1200,700,2500,400,1600,200]
-
+        user_data = pd.DataFrame({
+            "Recency":[recency],
+            "Frequency":[frequency],
+            "Monetary":[monetary]
         })
 
+        prediction = model.predict(user_data)
+        user_data["Predicted_CLV"] = prediction[0]
+
+        # -------- SAVE TO EXCEL --------
+        file_name = "user_inputs.xlsx"
+
+        try:
+            old = pd.read_excel(file_name)
+            new = pd.concat([old, user_data], ignore_index=True)
+            new.to_excel(file_name, index=False)
+        except:
+            user_data.to_excel(file_name, index=False)
+
+        st.success(f"💰 Predicted CLV: ${prediction[0]:.2f}")
 
 
-        model=GradientBoostingRegressor(
-        random_state=42
-        )
+# ---------------- SEGMENTATION ----------------
+elif menu == "📊 Segmentation Dashboard":
+
+    st.header("📊 Customer Segmentation")
+
+    file = st.file_uploader("Upload CSV", type=["csv"])
+
+    if file:
+        df = pd.read_csv(file)
+        st.dataframe(df.head())
+
+        r = st.selectbox("Recency column", df.columns)
+        f = st.selectbox("Frequency column", df.columns)
+        m = st.selectbox("Monetary column", df.columns)
+
+        if st.button("Run Segmentation"):
+
+            X = df[[r,f,m]]
+
+            scaler = StandardScaler()
+            X_scaled = scaler.fit_transform(X)
+
+            kmeans = KMeans(n_clusters=3, random_state=42)
+            df["Cluster"] = kmeans.fit_predict(X_scaled)
+
+            st.dataframe(df.head())
+
+            fig, ax = plt.subplots()
+            ax.scatter(df[r], df[m], c=df["Cluster"])
+            st.pyplot(fig)
 
 
-        model.fit(
+# ---------------- ADMIN PANEL ----------------
+elif menu == "🔐 Admin Panel":
 
-        training[
-        [
-        "Recency",
-        "Frequency",
-        "Monetary"
-        ]
-        ],
+    st.header("🔐 Admin Access")
 
-        training["CLV"]
+    username = st.text_input("Enter User Name")
+    password = st.text_input("Enter Password", type="password")
 
-        )
+    if st.button("Login"):
 
+        valid_users = ["atharv", "aryan", "swaraj", "suraj"]
 
+        if username.lower() in valid_users:
 
-        customer=pd.DataFrame({
+            if password == "admin123":
 
-        "Recency":[recency],
+                st.success("✅ Access Granted")
 
-        "Frequency":[frequency],
+                # Show files
+                st.subheader("📂 Server Files")
+                st.write(os.listdir())
 
-        "Monetary":[monetary]
+                # Show Excel data
+                try:
+                    df = pd.read_excel("user_inputs.xlsx")
+                    st.subheader("📄 Stored User Data")
+                    st.dataframe(df)
 
-        })
+                    # Download button
+                    with open("user_inputs.xlsx", "rb") as f:
+                        st.download_button(
+                            "📥 Download Excel",
+                            f,
+                            file_name="user_inputs.xlsx"
+                        )
 
+                except:
+                    st.warning("No data found")
 
-
-        prediction=model.predict(customer)
-
-
-
-        customer["Predicted_CLV"]=prediction[0]
-
-
-
-        st.success(
-        f"💰 Predicted CLV : ${prediction[0]:.2f}"
-        )
-
-
-
-        # SAVE EXCEL
-
-
-        file="user_inputs.xlsx"
-
-
-
-        if os.path.exists(file):
-
-            old=pd.read_excel(file)
-
-            new=pd.concat(
-            [old,customer],
-            ignore_index=True
-            )
-
-            new.to_excel(
-            file,
-            index=False
-            )
-
+            else:
+                st.error("❌ Password is wrong")
 
         else:
-
-            customer.to_excel(
-            file,
-            index=False
-            )
-
-
-
-        st.success(
-        "✅ Customer prediction saved"
-        )
+            st.error("❌ Invalid Username")
