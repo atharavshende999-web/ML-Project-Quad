@@ -15,7 +15,6 @@ st.set_page_config(
     layout="wide"
 )
 
-
 st.title("📊 Customer Lifetime Value (CLV) App")
 
 
@@ -31,107 +30,53 @@ menu = st.sidebar.radio(
 )
 
 
-
 # ---------------- HOME ----------------
 
 if menu == "🏠 Home":
 
     st.header("Project Overview")
 
-    st.write(
-    """
+    st.write("""
     This application performs Customer Lifetime Value Prediction 
     and Customer Segmentation.
 
-    Features:
-
-    ✔ Predict future customer revenue using Gradient Boosting  
-    ✔ Store customer prediction history  
+    ✔ Predict CLV using Machine Learning  
+    ✔ Store user prediction data (hidden from users)  
     ✔ Segment customers using KMeans  
-    ✔ Visualize customer groups
-    """
-    )
-
+    ✔ Visualize clusters  
+    """)
 
 
 # ---------------- CLV PREDICTOR ----------------
 
 elif menu == "🔮 CLV Predictor":
 
-
     st.header("🔮 Predict Customer Lifetime Value")
-
 
     st.subheader("Enter Customer RFM Values")
 
-
-    recency = st.number_input(
-        "Recency (Days)",
-        min_value=0,
-        max_value=365,
-        value=30
-    )
-
-
-    frequency = st.number_input(
-        "Frequency (Purchases)",
-        min_value=1,
-        max_value=100,
-        value=5
-    )
-
-
-    monetary = st.number_input(
-        "Monetary Value ($)",
-        min_value=0.0,
-        max_value=10000.0,
-        value=500.0
-    )
-
-
+    recency = st.number_input("Recency (Days)", 0, 365, 30)
+    frequency = st.number_input("Frequency (Purchases)", 1, 100, 5)
+    monetary = st.number_input("Monetary Value ($)", 0.0, 10000.0, 500.0)
 
     if st.button("Predict CLV"):
 
-
-        # Sample training dataset
-
+        # Sample dataset
         data = {
-
             "Recency":[10,20,5,30,15,40,25,8,60,12,35,18],
-
             "Frequency":[5,3,10,2,7,1,4,12,2,8,3,6],
-
             "Monetary":[500,300,1000,200,700,100,400,1500,250,900,350,650],
-
             "CLV":[1200,700,2500,400,1600,200,900,3000,500,2000,800,1400]
-
         }
-
 
         df = pd.DataFrame(data)
 
-
-
-        X = df[
-            [
-                "Recency",
-                "Frequency",
-                "Monetary"
-            ]
-        ]
-
-
+        X = df[["Recency","Frequency","Monetary"]]
         y = df["CLV"]
 
-
-
         X_train, X_test, y_train, y_test = train_test_split(
-            X,
-            y,
-            test_size=0.2,
-            random_state=42
+            X, y, test_size=0.2, random_state=42
         )
-
 
         model = GradientBoostingRegressor(
             n_estimators=100,
@@ -140,197 +85,72 @@ elif menu == "🔮 CLV Predictor":
             random_state=42
         )
 
+        model.fit(X_train, y_train)
 
-        model.fit(
-            X_train,
-            y_train
-        )
-
-
-
-        # User input dataframe
-
-        user_data = pd.DataFrame(
-
-            {
-                "Recency":[recency],
-                "Frequency":[frequency],
-                "Monetary":[monetary]
-            }
-
-        )
-
-
+        # User input
+        user_data = pd.DataFrame({
+            "Recency":[recency],
+            "Frequency":[frequency],
+            "Monetary":[monetary]
+        })
 
         prediction = model.predict(user_data)
 
-
-
         # Add prediction
-
         user_data["Predicted_CLV"] = prediction[0]
 
-
-
-        # Show user input
-
-        st.subheader("👤 Customer Input")
-
-        st.dataframe(user_data)
-
-
-
-        # Save data
-
+        # -------- SAVE DATA (HIDDEN FROM USER) --------
         try:
-
-            old_data = pd.read_csv(
-                "user_inputs.csv"
-            )
-
+            old_data = pd.read_csv("user_inputs.csv")
 
             final_data = pd.concat(
-                [
-                    old_data,
-                    user_data
-                ],
+                [old_data, user_data],
                 ignore_index=True
             )
 
-
-            final_data.to_csv(
-                "user_inputs.csv",
-                index=False
-            )
-
+            final_data.to_csv("user_inputs.csv", index=False)
 
         except:
+            user_data.to_csv("user_inputs.csv", index=False)
 
-            user_data.to_csv(
-                "user_inputs.csv",
-                index=False
-            )
-
-
-
-        st.success(
-            f"💰 Predicted CLV : ${prediction[0]:.2f}"
-        )
-
-
-        st.success(
-            "✅ Customer data saved successfully"
-        )
-
-
+        # -------- SHOW ONLY RESULT --------
+        st.success(f"💰 Predicted CLV: ${prediction[0]:.2f}")
+        st.success("✅ Prediction completed successfully")
 
 
 # ---------------- SEGMENTATION ----------------
 
-
 elif menu == "📊 Segmentation Dashboard":
 
+    st.header("📊 Customer Segmentation Dashboard")
 
-    st.header(
-        "📊 Customer Segmentation Dashboard"
-    )
-
-
-
-    file = st.file_uploader(
-        "Upload Customer CSV",
-        type=["csv"]
-    )
-
-
+    file = st.file_uploader("Upload Customer CSV", type=["csv"])
 
     if file:
 
-
         df = pd.read_csv(file)
 
+        st.subheader("Dataset Preview")
+        st.dataframe(df.head())
 
+        r_col = st.selectbox("Select Recency Column", df.columns)
+        f_col = st.selectbox("Select Frequency Column", df.columns)
+        m_col = st.selectbox("Select Monetary Column", df.columns)
 
-        st.subheader(
-            "Dataset Preview"
-        )
+        if st.button("Run Segmentation"):
 
-
-        st.dataframe(
-            df.head()
-        )
-
-
-
-        r_col = st.selectbox(
-            "Select Recency Column",
-            df.columns
-        )
-
-
-        f_col = st.selectbox(
-            "Select Frequency Column",
-            df.columns
-        )
-
-
-        m_col = st.selectbox(
-            "Select Monetary Column",
-            df.columns
-        )
-
-
-
-        if st.button(
-            "Run Segmentation"
-        ):
-
-
-
-            X = df[
-                [
-                    r_col,
-                    f_col,
-                    m_col
-                ]
-            ]
-
-
+            X = df[[r_col, f_col, m_col]]
 
             scaler = StandardScaler()
+            X_scaled = scaler.fit_transform(X)
 
+            kmeans = KMeans(n_clusters=3, random_state=42)
+            df["Cluster"] = kmeans.fit_predict(X_scaled)
 
-            X_scaled = scaler.fit_transform(
-                X
-            )
+            st.subheader("Clustered Customers")
+            st.dataframe(df.head())
 
-
-
-            kmeans = KMeans(
-                n_clusters=3,
-                random_state=42
-            )
-
-
-            df["Cluster"] = kmeans.fit_predict(
-                X_scaled
-            )
-
-
-
-            st.subheader(
-                "Clustered Customers"
-            )
-
-
-            st.dataframe(
-                df.head()
-            )
-
-
-
-            fig,ax = plt.subplots()
-
+            fig, ax = plt.subplots()
 
             ax.scatter(
                 df[r_col],
@@ -338,27 +158,10 @@ elif menu == "📊 Segmentation Dashboard":
                 c=df["Cluster"]
             )
 
+            ax.set_xlabel("Recency")
+            ax.set_ylabel("Monetary")
+            ax.set_title("Customer Segmentation")
 
-            ax.set_xlabel(
-                "Recency"
-            )
+            st.pyplot(fig)
 
-
-            ax.set_ylabel(
-                "Monetary"
-            )
-
-
-            ax.set_title(
-                "Customer Segmentation"
-            )
-
-
-            st.pyplot(
-                fig
-            )
-
-
-            st.success(
-                "✅ Segmentation Completed"
-            )
+            st.success("✅ Segmentation Completed")
