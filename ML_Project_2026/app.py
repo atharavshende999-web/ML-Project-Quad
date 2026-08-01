@@ -1,6 +1,8 @@
+
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import os
 
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
@@ -10,11 +12,7 @@ from sklearn.model_selection import train_test_split
 
 # ---------------- PAGE CONFIG ----------------
 
-st.set_page_config(
-    page_title="CLV Dashboard",
-    layout="wide"
-)
-
+st.set_page_config(page_title="CLV Dashboard", layout="wide")
 st.title("📊 Customer Lifetime Value (CLV) App")
 
 
@@ -25,7 +23,8 @@ menu = st.sidebar.radio(
     [
         "🏠 Home",
         "🔮 CLV Predictor",
-        "📊 Segmentation Dashboard"
+        "📊 Segmentation Dashboard",
+        "🔐 Admin Panel"
     ]
 )
 
@@ -35,15 +34,11 @@ menu = st.sidebar.radio(
 if menu == "🏠 Home":
 
     st.header("Project Overview")
-
     st.write("""
-    This application performs Customer Lifetime Value Prediction 
-    and Customer Segmentation.
-
-    ✔ Predict CLV using Machine Learning  
-    ✔ Store user prediction data (hidden from users)  
-    ✔ Segment customers using KMeans  
-    ✔ Visualize clusters  
+    ✔ Predict CLV using ML  
+    ✔ Store user data (hidden)  
+    ✔ Customer segmentation  
+    ✔ Admin-only data access  
     """)
 
 
@@ -53,11 +48,9 @@ elif menu == "🔮 CLV Predictor":
 
     st.header("🔮 Predict Customer Lifetime Value")
 
-    st.subheader("Enter Customer RFM Values")
-
     recency = st.number_input("Recency (Days)", 0, 365, 30)
-    frequency = st.number_input("Frequency (Purchases)", 1, 100, 5)
-    monetary = st.number_input("Monetary Value ($)", 0.0, 10000.0, 500.0)
+    frequency = st.number_input("Frequency", 1, 100, 5)
+    monetary = st.number_input("Monetary Value", 0.0, 10000.0, 500.0)
 
     if st.button("Predict CLV"):
 
@@ -78,16 +71,9 @@ elif menu == "🔮 CLV Predictor":
             X, y, test_size=0.2, random_state=42
         )
 
-        model = GradientBoostingRegressor(
-            n_estimators=100,
-            learning_rate=0.05,
-            max_depth=3,
-            random_state=42
-        )
-
+        model = GradientBoostingRegressor(random_state=42)
         model.fit(X_train, y_train)
 
-        # User input
         user_data = pd.DataFrame({
             "Recency":[recency],
             "Frequency":[frequency],
@@ -95,61 +81,41 @@ elif menu == "🔮 CLV Predictor":
         })
 
         prediction = model.predict(user_data)
-
-        # Add prediction
         user_data["Predicted_CLV"] = prediction[0]
 
-        # -------- SAVE DATA IN EXCEL (HIDDEN FROM USER) --------
+        # -------- SAVE TO EXCEL --------
 
         file_name = "user_inputs.xlsx"
 
         try:
-            old_data = pd.read_excel(file_name)
-
-            final_data = pd.concat(
-                [old_data, user_data],
-                ignore_index=True
-            )
-
-            final_data.to_excel(
-                file_name,
-                index=False
-            )
-
-        except FileNotFoundError:
-            user_data.to_excel(
-                file_name,
-                index=False
-            )
-
-        # -------- SHOW ONLY RESULT --------
+            old = pd.read_excel(file_name)
+            new = pd.concat([old, user_data], ignore_index=True)
+            new.to_excel(file_name, index=False)
+        except:
+            user_data.to_excel(file_name, index=False)
 
         st.success(f"💰 Predicted CLV: ${prediction[0]:.2f}")
-        st.success("✅ Prediction completed successfully")
 
 
 # ---------------- SEGMENTATION ----------------
 
 elif menu == "📊 Segmentation Dashboard":
 
-    st.header("📊 Customer Segmentation Dashboard")
+    st.header("📊 Customer Segmentation")
 
-    file = st.file_uploader("Upload Customer CSV", type=["csv"])
+    file = st.file_uploader("Upload CSV", type=["csv"])
 
     if file:
-
         df = pd.read_csv(file)
-
-        st.subheader("Dataset Preview")
         st.dataframe(df.head())
 
-        r_col = st.selectbox("Select Recency Column", df.columns)
-        f_col = st.selectbox("Select Frequency Column", df.columns)
-        m_col = st.selectbox("Select Monetary Column", df.columns)
+        r = st.selectbox("Recency column", df.columns)
+        f = st.selectbox("Frequency column", df.columns)
+        m = st.selectbox("Monetary column", df.columns)
 
         if st.button("Run Segmentation"):
 
-            X = df[[r_col, f_col, m_col]]
+            X = df[[r,f,m]]
 
             scaler = StandardScaler()
             X_scaled = scaler.fit_transform(X)
@@ -157,21 +123,47 @@ elif menu == "📊 Segmentation Dashboard":
             kmeans = KMeans(n_clusters=3, random_state=42)
             df["Cluster"] = kmeans.fit_predict(X_scaled)
 
-            st.subheader("Clustered Customers")
             st.dataframe(df.head())
 
             fig, ax = plt.subplots()
-
-            ax.scatter(
-                df[r_col],
-                df[m_col],
-                c=df["Cluster"]
-            )
-
-            ax.set_xlabel("Recency")
-            ax.set_ylabel("Monetary")
-            ax.set_title("Customer Segmentation")
-
+            ax.scatter(df[r], df[m], c=df["Cluster"])
             st.pyplot(fig)
 
-            st.success("✅ Segmentation Completed")
+
+# ---------------- ADMIN PANEL ----------------
+
+elif menu == "🔐 Admin Panel":
+
+    st.header("🔐 Admin Access")
+
+    password = st.text_input("Enter Password", type="password")
+
+    if password == "admin123":
+
+        st.success("Access Granted")
+
+        # Show files in server
+        st.subheader("📂 Server Files")
+        st.write(os.listdir())
+
+        # Show Excel data
+        try:
+            df = pd.read_excel("user_inputs.xlsx")
+            st.subheader("📄 Stored User Data")
+            st.dataframe(df)
+        except:
+            st.warning("No data found")
+
+        # Download file
+        try:
+            with open("user_inputs.xlsx", "rb") as f:
+                st.download_button(
+                    "📥 Download Excel",
+                    f,
+                    file_name="user_inputs.xlsx"
+                )
+        except:
+            pass
+
+    elif password != "":
+        st.error("Wrong Password")
