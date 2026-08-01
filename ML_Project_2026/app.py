@@ -10,13 +10,11 @@ from sklearn.model_selection import train_test_split
 
 
 # ---------------- PAGE CONFIG ----------------
-
 st.set_page_config(page_title="CLV Dashboard", layout="wide")
 st.title("📊 Customer Lifetime Value (CLV) App")
 
 
 # ---------------- SIDEBAR ----------------
-
 menu = st.sidebar.radio(
     "Select Mode",
     [
@@ -29,7 +27,6 @@ menu = st.sidebar.radio(
 
 
 # ---------------- HOME ----------------
-
 if menu == "🏠 Home":
 
     st.header("Project Overview")
@@ -42,7 +39,6 @@ if menu == "🏠 Home":
 
 
 # ---------------- CLV PREDICTOR ----------------
-
 elif menu == "🔮 CLV Predictor":
 
     st.header("🔮 Predict Customer Lifetime Value")
@@ -83,7 +79,6 @@ elif menu == "🔮 CLV Predictor":
         user_data["Predicted_CLV"] = prediction[0]
 
         # -------- SAVE TO EXCEL --------
-
         file_name = "user_inputs.xlsx"
 
         try:
@@ -97,7 +92,6 @@ elif menu == "🔮 CLV Predictor":
 
 
 # ---------------- SEGMENTATION ----------------
-
 elif menu == "📊 Segmentation Dashboard":
 
     st.header("📊 Customer Segmentation")
@@ -130,41 +124,46 @@ elif menu == "📊 Segmentation Dashboard":
 
 
 # ---------------- ADMIN PANEL ----------------
-
 elif menu == "🔐 Admin Panel":
 
     st.header("🔐 Admin Access")
-    username=st.text_input("Enter User Name",type="password")
+
+    username = st.text_input("Enter User Name")
     password = st.text_input("Enter Password", type="password")
 
-    if username=="atharv" or username=="aryan" or  username=="swaraj" or username=="suraj"
-        if password == "admin123":
+    if st.button("Login"):
 
-            st.success("Access Granted")
-        
-    
-            # Show files in server
-            st.subheader("📂 Server Files")
-            st.write(os.listdir())
-    
-            # Show Excel data
-            try:
-                df = pd.read_excel("user_inputs.xlsx")
-                st.subheader("📄 Stored User Data")
-                st.dataframe(df)
-            except:
-                st.warning("No data found")
+        valid_users = ["atharv", "aryan", "swaraj", "suraj"]
 
-        # Download file
-        try:
-            with open("user_inputs.xlsx", "rb") as f:
-                st.download_button(
-                    "📥 Download Excel",
-                    f,
-                    file_name="user_inputs.xlsx"
-                )
-        except:
-            pass
+        if username.lower() in valid_users:
 
-    elif password != "":
-        st.error("Wrong Password")
+            if password == "admin123":
+
+                st.success("✅ Access Granted")
+
+                # Show files
+                st.subheader("📂 Server Files")
+                st.write(os.listdir())
+
+                # Show Excel data
+                try:
+                    df = pd.read_excel("user_inputs.xlsx")
+                    st.subheader("📄 Stored User Data")
+                    st.dataframe(df)
+
+                    # Download button
+                    with open("user_inputs.xlsx", "rb") as f:
+                        st.download_button(
+                            "📥 Download Excel",
+                            f,
+                            file_name="user_inputs.xlsx"
+                        )
+
+                except:
+                    st.warning("No data found")
+
+            else:
+                st.error("❌ Password is wrong")
+
+        else:
+            st.error("❌ Invalid Username")
