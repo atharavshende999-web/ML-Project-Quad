@@ -6,7 +6,6 @@ import os
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.model_selection import train_test_split
 
 
 # ================= PAGE CONFIG =================
@@ -18,28 +17,23 @@ st.set_page_config(
 )
 
 
-# ================= CUSTOM CSS =================
+# ================= CSS DESIGN =================
 
 st.markdown("""
 <style>
 
 .main{
-    background-color:#f5f7fb;
+background-color:#f8fafc;
 }
 
 
 [data-testid="stSidebar"]{
-    background-color:#111827;
+background:#111827;
 }
 
 
 [data-testid="stSidebar"] *{
-    color:white;
-}
-
-
-h1{
-    color:#1f2937;
+color:white;
 }
 
 
@@ -48,30 +42,31 @@ h1{
 background:white;
 padding:25px;
 border-radius:15px;
-box-shadow:0px 5px 20px #ddd;
+box-shadow:0px 4px 15px #dddddd;
 
 }
 
 
-.metric-card{
+.title{
 
-background:#2563eb;
-color:white;
-padding:20px;
-border-radius:15px;
 text-align:center;
+font-size:40px;
+font-weight:bold;
 
 }
 
 
-button{
+.subtitle{
 
-border-radius:10px !important;
+text-align:center;
+color:gray;
+font-size:18px;
 
 }
 
 
 </style>
+
 """,unsafe_allow_html=True)
 
 
@@ -81,14 +76,17 @@ border-radius:10px !important;
 
 st.markdown(
 """
-<h1 style='text-align:center'>
+<div class="title">
 📊 Customer Lifetime Value Analytics
-</h1>
+</div>
 
-<p style='text-align:center'>
-AI Powered Customer Prediction & Segmentation System
-</p>
+<div class="subtitle">
+AI Based Customer Prediction and Segmentation System
+</div>
+
+<br>
 """,
+
 unsafe_allow_html=True
 )
 
@@ -97,21 +95,13 @@ unsafe_allow_html=True
 # ================= SIDEBAR =================
 
 
-st.sidebar.image(
-"https://cdn-icons-png.flaticon.com/512/4712/4712027.png",
-width=100
-)
-
-
-st.sidebar.title(
-"Navigation"
-)
+st.sidebar.title("Navigation")
 
 
 menu = st.sidebar.radio(
 "",
 [
-"🏠 Dashboard",
+"🏠 Home",
 "🔮 CLV Prediction",
 "📊 Customer Segmentation",
 "🔐 Admin Panel"
@@ -123,7 +113,7 @@ menu = st.sidebar.radio(
 # ================= HOME =================
 
 
-if menu=="🏠 Dashboard":
+if menu=="🏠 Home":
 
 
     st.markdown(
@@ -132,12 +122,21 @@ if menu=="🏠 Dashboard":
 
     ## 🚀 Project Overview
 
-    This application uses Machine Learning to:
 
-    ✔ Predict Customer Lifetime Value  
-    ✔ Analyze customer behaviour  
-    ✔ Segment customers using KMeans  
-    ✔ Store prediction history securely  
+    This application performs:
+
+
+    ✔ Customer Lifetime Value Prediction  
+
+
+    ✔ Machine Learning based Revenue Forecasting  
+
+
+    ✔ Customer Segmentation using KMeans  
+
+
+    ✔ Secure Admin Data Management  
+
 
     </div>
 
@@ -146,59 +145,48 @@ if menu=="🏠 Dashboard":
     )
 
 
-    col1,col2,col3 = st.columns(3)
+    st.write("")
+
+
+    col1,col2,col3=st.columns(3)
 
 
     with col1:
-        st.markdown(
-        """
-        <div class="metric-card">
 
+        st.info(
+        """
         🤖
-        
-        <h3>ML Model</h3>
+
+        **Machine Learning**
 
         Gradient Boosting
-
-        </div>
-        """,
-        unsafe_allow_html=True
+        """
         )
 
 
     with col2:
 
-        st.markdown(
+        st.info(
         """
-        <div class="metric-card">
-
         📈
 
-        <h3>Prediction</h3>
+        **Prediction**
 
-        CLV Forecast
-
-        </div>
-        """,
-        unsafe_allow_html=True
+        Future CLV
+        """
         )
 
 
     with col3:
 
-        st.markdown(
+        st.info(
         """
-        <div class="metric-card">
-
         👥
 
-        <h3>Segmentation</h3>
+        **Segmentation**
 
-        KMeans
-
-        </div>
-        """,
-        unsafe_allow_html=True
+        KMeans Clustering
+        """
         )
 
 
@@ -215,9 +203,11 @@ elif menu=="🔮 CLV Prediction":
     col1,col2,col3=st.columns(3)
 
 
+
     with col1:
+
         recency=st.number_input(
-        "📅 Recency",
+        "📅 Recency Days",
         0,
         365,
         30
@@ -225,6 +215,7 @@ elif menu=="🔮 CLV Prediction":
 
 
     with col2:
+
         frequency=st.number_input(
         "🛒 Frequency",
         1,
@@ -234,8 +225,9 @@ elif menu=="🔮 CLV Prediction":
 
 
     with col3:
+
         monetary=st.number_input(
-        "💰 Monetary",
+        "💰 Monetary Value",
         0.0,
         10000.0,
         500.0
@@ -244,78 +236,86 @@ elif menu=="🔮 CLV Prediction":
 
 
     if st.button(
-        "🚀 Predict CLV",
-        use_container_width=True
+    "🚀 Predict CLV",
+    use_container_width=True
     ):
 
 
-        data=pd.DataFrame({
 
-        "Recency":[10,20,5,30],
-        "Frequency":[5,3,10,2],
-        "Monetary":[500,300,1000,200],
-        "CLV":[1200,700,2500,400]
+        training=pd.DataFrame({
+
+        "Recency":[10,20,5,30,15,40],
+
+        "Frequency":[5,3,10,2,7,1],
+
+        "Monetary":[500,300,1000,200,700,100],
+
+        "CLV":[1200,700,2500,400,1600,200]
 
         })
 
 
-        model=GradientBoostingRegressor()
+
+        model=GradientBoostingRegressor(
+        random_state=42
+        )
+
 
         model.fit(
-        data[
+
+        training[
         [
         "Recency",
         "Frequency",
         "Monetary"
         ]
         ],
-        data["CLV"]
+
+        training["CLV"]
+
         )
 
 
-        user=pd.DataFrame({
+
+        customer=pd.DataFrame({
 
         "Recency":[recency],
+
         "Frequency":[frequency],
+
         "Monetary":[monetary]
 
         })
 
 
-        result=model.predict(user)
+
+        prediction=model.predict(customer)
 
 
-        st.markdown(
-        f"""
-        <div class="metric-card">
 
-        <h2>
-        💰 Predicted CLV
-        </h2>
+        customer["Predicted_CLV"]=prediction[0]
 
-        <h1>
-        ${result[0]:.2f}
-        </h1>
 
-        </div>
-        """,
-        unsafe_allow_html=True
+
+        st.success(
+        f"💰 Predicted CLV : ${prediction[0]:.2f}"
         )
 
 
 
-        user["Predicted_CLV"]=result[0]
+        # SAVE EXCEL
 
 
         file="user_inputs.xlsx"
 
 
-        try:
+
+        if os.path.exists(file):
 
             old=pd.read_excel(file)
 
             new=pd.concat(
-            [old,user],
+            [old,customer],
             ignore_index=True
             )
 
@@ -324,9 +324,10 @@ elif menu=="🔮 CLV Prediction":
             index=False
             )
 
-        except:
 
-            user.to_excel(
+        else:
+
+            customer.to_excel(
             file,
             index=False
             )
@@ -334,182 +335,5 @@ elif menu=="🔮 CLV Prediction":
 
 
         st.success(
-        "Customer data saved securely"
+        "✅ Customer prediction saved"
         )
-
-
-
-# ================= SEGMENTATION =================
-
-
-elif menu=="📊 Customer Segmentation":
-
-
-    st.header(
-    "📊 Customer Segmentation"
-    )
-
-
-    file=st.file_uploader(
-    "Upload Customer Dataset",
-    type="csv"
-    )
-
-
-    if file:
-
-
-        df=pd.read_csv(file)
-
-
-        st.dataframe(
-        df.head(),
-        use_container_width=True
-        )
-
-
-        r=st.selectbox(
-        "Recency Column",
-        df.columns
-        )
-
-
-        f=st.selectbox(
-        "Frequency Column",
-        df.columns
-        )
-
-
-        m=st.selectbox(
-        "Monetary Column",
-        df.columns
-        )
-
-
-
-        if st.button(
-        "Create Segments"
-        ):
-
-
-            X=df[
-            [
-            r,f,m
-            ]
-            ]
-
-
-            scaler=StandardScaler()
-
-            X_scaled=scaler.fit_transform(X)
-
-
-            model=KMeans(
-            n_clusters=3,
-            random_state=42
-            )
-
-
-            df["Cluster"]=model.fit_predict(
-            X_scaled
-            )
-
-
-            st.dataframe(
-            df,
-            use_container_width=True
-            )
-
-
-            fig,ax=plt.subplots()
-
-            ax.scatter(
-            df[r],
-            df[m],
-            c=df["Cluster"]
-            )
-
-
-            ax.set_xlabel(
-            "Recency"
-            )
-
-            ax.set_ylabel(
-            "Monetary"
-            )
-
-
-            st.pyplot(fig)
-
-
-
-# ================= ADMIN =================
-
-
-elif menu=="🔐 Admin Panel":
-
-
-    st.header(
-    "🔐 Secure Admin Login"
-    )
-
-
-    username=st.text_input(
-    "Username"
-    )
-
-
-    password=st.text_input(
-    "Password",
-    type="password"
-    )
-
-
-    users={
-    "Atharv":"Pass@123",
-    "Suraj":"Pass@123",
-    "Aryan":"Pass@123",
-    "Swaraj":"Pass@123"
-    }
-
-
-
-    if st.button(
-    "Login",
-    use_container_width=True
-    ):
-
-
-        if username in users and users[username]==password:
-
-
-            st.success(
-            "Welcome Admin"
-            )
-
-
-            try:
-
-                df=pd.read_excel(
-                "user_inputs.xlsx"
-                )
-
-
-                st.dataframe(
-                df,
-                use_container_width=True
-                )
-
-
-            except:
-
-                st.warning(
-                "No user data found"
-                )
-
-
-        else:
-
-            st.error(
-            "❌ Wrong Username or Password"
-            )
