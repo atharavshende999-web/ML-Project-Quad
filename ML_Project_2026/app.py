@@ -2,164 +2,95 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
-import json
-import random
-import smtplib
 
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.model_selection import train_test_split
 
 
-# ---------------- CONFIG ----------------
+# ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="CLV Dashboard", layout="wide")
 st.title("📊 Customer Lifetime Value (CLV) App")
-
-PASSWORD_FILE = "password.json"
-REQUEST_FILE = "requests.json"
-
-
-# ---------------- INIT FILES ----------------
-def init_files():
-    if not os.path.exists(PASSWORD_FILE):
-        with open(PASSWORD_FILE, "w") as f:
-            json.dump({
-                "host_password": "admin123",
-                "guest_password": "guest123"
-            }, f)
-
-    if not os.path.exists(REQUEST_FILE):
-        with open(REQUEST_FILE, "w") as f:
-            json.dump([], f)
-
-init_files()
-
-
-# ---------------- LOAD/SAVE ----------------
-def load_passwords():
-    with open(PASSWORD_FILE, "r") as f:
-        return json.load(f)
-
-def save_passwords(data):
-    with open(PASSWORD_FILE, "w") as f:
-        json.dump(data, f)
-
-def load_requests():
-    with open(REQUEST_FILE, "r") as f:
-        return json.load(f)
-
-def save_requests(data):
-    with open(REQUEST_FILE, "w") as f:
-        json.dump(data, f)
-
-
-# ---------------- EMAIL OTP ----------------
-def send_email_otp(receiver_email):
-    otp = random.randint(100000, 999999)
-
-    sender_email = "your_email@gmail.com"
-    app_password = "your_app_password"
-
-    message = f"Subject: OTP\n\nYour OTP is {otp}"
-
-    server = smtplib.SMTP("smtp.gmail.com", 587)
-    server.starttls()
-    server.login(sender_email, app_password)
-    server.sendmail(sender_email, receiver_email, message)
-    server.quit()
-
-    return otp
-
-
-# ---------------- SESSION ----------------
-if "attempts" not in st.session_state:
-    st.session_state.attempts = 0
-
-if "blocked" not in st.session_state:
-    st.session_state.blocked = False
-
-if "otp" not in st.session_state:
-    st.session_state.otp = None
-
-if "otp_sent" not in st.session_state:
-    st.session_state.otp_sent = False
-
-if "reset_mode" not in st.session_state:
-    st.session_state.reset_mode = False
-
-
-passwords = load_passwords()
 
 
 # ---------------- SIDEBAR ----------------
 menu = st.sidebar.radio(
     "Select Mode",
-    ["🏠 Home", "🔮 CLV Predictor", "📊 Segmentation", "👤 Guest Login", "🧑‍💼 Host Panel"]
+    [
+        "🏠 Home",
+        "🔮 CLV Predictor",
+        "📊 Segmentation Dashboard",
+        "🔐 Admin Panel"
+    ]
 )
 
 
-# ==================================================
-# 🏠 HOME
-# ==================================================
+# ---------------- HOME ----------------
 if menu == "🏠 Home":
+
     st.header("Project Overview")
     st.write("""
-    ✔ CLV Prediction using ML  
+    ✔ Predict CLV using ML  
+    ✔ Store user data (hidden)  
     ✔ Customer segmentation  
-    ✔ Guest/Host secure login  
-    ✔ Block system + host approval  
-    ✔ Email OTP reset  
+    ✔ Admin-only access  
     """)
 
 
-# ==================================================
-# 🔮 CLV PREDICTOR
-# ==================================================
+# ---------------- CLV PREDICTOR ----------------
 elif menu == "🔮 CLV Predictor":
 
-    st.header("🔮 Predict CLV")
+    st.header("🔮 Predict Customer Lifetime Value")
 
-    recency = st.number_input("Recency", 0, 365, 30)
+    recency = st.number_input("Recency (Days)", 0, 365, 30)
     frequency = st.number_input("Frequency", 1, 100, 5)
-    monetary = st.number_input("Monetary", 0.0, 10000.0, 500.0)
+    monetary = st.number_input("Monetary Value", 0.0, 10000.0, 500.0)
 
-    if st.button("Predict"):
+    if st.button("Predict CLV"):
 
-        df = pd.DataFrame({
-            "Recency":[10,20,5,30],
-            "Frequency":[5,3,10,2],
-            "Monetary":[500,300,1000,200],
-            "CLV":[1200,700,2500,400]
-        })
+        data = {
+            "Recency":[10,20,5,30,15,40,25,8,60,12,35,18],
+            "Frequency":[5,3,10,2,7,1,4,12,2,8,3,6],
+            "Monetary":[500,300,1000,200,700,100,400,1500,250,900,350,650],
+            "CLV":[1200,700,2500,400,1600,200,900,3000,500,2000,800,1400]
+        }
+
+        df = pd.DataFrame(data)
 
         X = df[["Recency","Frequency","Monetary"]]
         y = df["CLV"]
 
-        model = GradientBoostingRegressor().fit(X, y)
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42
+        )
 
-        user = pd.DataFrame({
+        model = GradientBoostingRegressor(random_state=42)
+        model.fit(X_train, y_train)
+
+        user_data = pd.DataFrame({
             "Recency":[recency],
             "Frequency":[frequency],
             "Monetary":[monetary]
         })
 
-        pred = model.predict(user)
+        prediction = model.predict(user_data)
+        user_data["Predicted_CLV"] = prediction[0]
 
-        file = "user_inputs.xlsx"
+        file_name = "user_inputs.xlsx"
 
         try:
-            old = pd.read_excel(file)
-            pd.concat([old, user], ignore_index=True).to_excel(file, index=False)
+            old = pd.read_excel(file_name)
+            new = pd.concat([old, user_data], ignore_index=True)
+            new.to_excel(file_name, index=False)
         except:
-            user.to_excel(file, index=False)
+            user_data.to_excel(file_name, index=False)
 
-        st.success(f"💰 Predicted CLV: {pred[0]:.2f}")
+        st.success(f"💰 Predicted CLV: ${prediction[0]:.2f}")
 
 
-# ==================================================
-# 📊 SEGMENTATION
-# ==================================================
-elif menu == "📊 Segmentation":
+# ---------------- SEGMENTATION ----------------
+elif menu == "📊 Segmentation Dashboard":
 
     st.header("📊 Customer Segmentation")
 
@@ -173,177 +104,109 @@ elif menu == "📊 Segmentation":
         f = st.selectbox("Frequency column", df.columns)
         m = st.selectbox("Monetary column", df.columns)
 
-        if st.button("Run Clustering"):
+        if st.button("Run Segmentation"):
 
             X = df[[r,f,m]]
-            X_scaled = StandardScaler().fit_transform(X)
 
-            df["Cluster"] = KMeans(n_clusters=3, random_state=42).fit_predict(X_scaled)
+            scaler = StandardScaler()
+            X_scaled = scaler.fit_transform(X)
 
-            st.dataframe(df)
+            kmeans = KMeans(n_clusters=3, random_state=42)
+            df["Cluster"] = kmeans.fit_predict(X_scaled)
+
+            st.dataframe(df.head())
 
             fig, ax = plt.subplots()
             ax.scatter(df[r], df[m], c=df["Cluster"])
             ax.set_xlabel("Recency")
             ax.set_ylabel("Monetary")
+            ax.set_title("Customer Segmentation")
 
             st.pyplot(fig)
 
 
-# ==================================================
-# 👤 GUEST LOGIN
-# ==================================================
-elif menu == "👤 Guest Login":
+# ---------------- ADMIN PANEL ----------------
+elif menu == "🔐 Admin Panel":
 
-    st.header("👤 Guest Login")
+    st.header("🔐 Admin Access")
 
-    if not st.session_state.blocked:
+    if "attempts" not in st.session_state:
+        st.session_state.attempts = 0
 
-        pwd = st.text_input("Enter Guest Password", type="password")
+    if "blocked" not in st.session_state:
+        st.session_state.blocked = False
 
-        if st.button("Login"):
+    # -------- BLOCKED --------
+    if st.session_state.blocked:
+        st.error("🚫 Too many wrong attempts. Access blocked.")
 
-            if pwd == passwords["guest_password"]:
-                st.success("✅ Login Success")
-                st.session_state.attempts = 0
+        email = "atharavshende999@gmail.com"
+        subject = "Access Request for CLV App"
 
-            else:
-                st.session_state.attempts += 1
-                left = 3 - st.session_state.attempts
+        gmail_link = f"https://mail.google.com/mail/?view=cm&fs=1&to={email}&su={subject}"
 
-                if left > 0:
-                    st.error(f"❌ Wrong password. Attempts left: {left}")
-                else:
-                    st.session_state.blocked = True
+        st.markdown("### 📩 Contact Admin")
 
-                    reqs = load_requests()
-                    reqs.append({
-                        "status": "pending"
-                    })
-                    save_requests(reqs)
+        # ✅ WORKING BUTTON STYLE
+        st.markdown(
+            f"""
+            <a href="{gmail_link}" target="_blank">
+                <div style="
+                    display:inline-block;
+                    padding:12px 25px;
+                    background-color:#ff4b4b;
+                    color:white;
+                    font-weight:bold;
+                    border-radius:8px;
+                    text-align:center;
+                ">
+                    📧 Contact Admin
+                </div>
+            </a>
+            """,
+            unsafe_allow_html=True
+        )
 
-                    st.error("🚫 Blocked! Request sent to Host.")
+        st.info("Or email manually: atharavshende999@gmail.com")
 
-    else:
-        st.error("🚫 You are blocked")
+        st.stop()
 
-        if st.button("🔑 Reset via Email OTP"):
-            st.session_state.reset_mode = True
+    # -------- LOGIN --------
+    password = st.text_input("Enter Password", type="password")
 
+    if st.button("Login", use_container_width=True):
 
-# ==================================================
-# 🔑 OTP RESET
-# ==================================================
-if st.session_state.reset_mode:
+        if password.strip() == "admin123":
+            st.session_state.attempts = 0
+            st.success("✅ Access Granted")
 
-    st.warning("🔑 Reset Password")
+            st.subheader("📂 Server Files")
+            st.write(os.listdir())
 
-    email = st.text_input("Enter Email")
+            try:
+                df = pd.read_excel("user_inputs.xlsx")
+                st.subheader("📄 Stored User Data")
+                st.dataframe(df)
+            except:
+                st.warning("No data found")
 
-    if st.button("Send OTP"):
-        try:
-            otp = send_email_otp(email)
-            st.session_state.otp = otp
-            st.session_state.otp_sent = True
-            st.success("📧 OTP Sent")
-        except Exception as e:
-            st.error(e)
-
-    if st.session_state.otp_sent:
-
-        user_otp = st.text_input("Enter OTP")
-
-        if st.button("Verify OTP"):
-
-            if str(user_otp) == str(st.session_state.otp):
-
-                new_pass = st.text_input("New Password", type="password")
-                confirm = st.text_input("Confirm Password", type="password")
-
-                if st.button("Save Password"):
-
-                    if new_pass == confirm and new_pass.strip() != "":
-                        passwords["guest_password"] = new_pass
-                        save_passwords(passwords)
-
-                        st.session_state.blocked = False
-                        st.session_state.attempts = 0
-                        st.session_state.reset_mode = False
-                        st.session_state.otp_sent = False
-
-                        st.success("🎉 Password Reset Successful")
-                        st.rerun()
-                    else:
-                        st.error("❌ Passwords do not match")
-
-            else:
-                st.error("❌ Invalid OTP")
-
-
-# ==================================================
-# 🧑‍💼 HOST PANEL
-# ==================================================
-elif menu == "🧑‍💼 Host Panel":
-
-    st.header("🧑‍💼 Host Login")
-
-    pwd = st.text_input("Enter Host Password", type="password")
-
-    if st.button("Login as Host"):
-
-        if pwd == passwords["host_password"]:
-
-            st.success("✅ Host Logged In")
-
-            requests = load_requests()
-            st.subheader("📨 Block Requests")
-
-            if len(requests) == 0:
-                st.info("No requests")
-
-            else:
-                for i, r in enumerate(requests):
-
-                    if r["status"] == "pending":
-
-                        st.write(f"🔴 Request #{i}")
-
-                        new_pass = st.text_input(
-                            f"Set new password for Request {i}",
-                            key=f"pass_{i}",
-                            type="password"
-                        )
-
-                        col1, col2 = st.columns(2)
-
-                        # APPROVE
-                        with col1:
-                            if st.button(f"Approve {i}"):
-
-                                if new_pass.strip() == "":
-                                    st.error("⚠️ Enter new password")
-                                else:
-                                    passwords["guest_password"] = new_pass
-                                    save_passwords(passwords)
-
-                                    requests[i]["status"] = "approved"
-                                    save_requests(requests)
-
-                                    st.session_state.blocked = False
-                                    st.session_state.attempts = 0
-
-                                    st.success("✅ User unblocked & password updated")
-                                    st.rerun()
-
-                        # REJECT
-                        with col2:
-                            if st.button(f"Reject {i}"):
-
-                                requests[i]["status"] = "rejected"
-                                save_requests(requests)
-
-                                st.warning("❌ Request rejected")
-                                st.rerun()
+            try:
+                with open("user_inputs.xlsx", "rb") as f:
+                    st.download_button(
+                        "📥 Download Excel",
+                        f,
+                        file_name="user_inputs.xlsx"
+                    )
+            except:
+                pass
 
         else:
-            st.error("❌ Wrong Host Password")
+            st.session_state.attempts += 1
+            remaining = 3 - st.session_state.attempts
+
+            if remaining > 0:
+                st.error(f"❌ Wrong password! Attempts left: {remaining}")
+            else:
+                st.session_state.blocked = True
+                st.error("🚫 You are blocked after 3 wrong attempts")
+                st.rerun()
