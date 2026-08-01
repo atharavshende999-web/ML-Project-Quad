@@ -34,7 +34,7 @@ if menu == "🏠 Home":
     ✔ Predict CLV using ML  
     ✔ Store user data (hidden)  
     ✔ Customer segmentation  
-    ✔ Admin-only data access  
+    ✔ Admin chatbot login  
     """)
 
 
@@ -49,7 +49,6 @@ elif menu == "🔮 CLV Predictor":
 
     if st.button("Predict CLV"):
 
-        # Sample dataset
         data = {
             "Recency":[10,20,5,30,15,40,25,8,60,12,35,18],
             "Frequency":[5,3,10,2,7,1,4,12,2,8,3,6],
@@ -78,7 +77,6 @@ elif menu == "🔮 CLV Predictor":
         prediction = model.predict(user_data)
         user_data["Predicted_CLV"] = prediction[0]
 
-        # -------- SAVE TO EXCEL --------
         file_name = "user_inputs.xlsx"
 
         try:
@@ -120,48 +118,99 @@ elif menu == "📊 Segmentation Dashboard":
 
             fig, ax = plt.subplots()
             ax.scatter(df[r], df[m], c=df["Cluster"])
+            ax.set_xlabel("Recency")
+            ax.set_ylabel("Monetary")
+            ax.set_title("Customer Segmentation")
+
             st.pyplot(fig)
 
 
-# ---------------- ADMIN PANEL ----------------
+# ---------------- ADMIN PANEL (CHATBOT LOGIN) ----------------
 elif menu == "🔐 Admin Panel":
 
-    st.header("🔐 Admin Access")
+    st.header("🔐 Admin Access (Chatbot Login)")
 
-    username = st.text_input("Enter User Name")
-    password = st.text_input("Enter Password", type="password")
+    # -------- SESSION STATE --------
+    if "attempts" not in st.session_state:
+        st.session_state.attempts = 0
 
-    if st.button("Login"):
+    if "blocked" not in st.session_state:
+        st.session_state.blocked = False
 
-        valid_users = ["atharv", "aryan", "swaraj", "suraj"]
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
 
-        if username.lower() in valid_users:
+    # -------- BLOCK CHECK --------
+    if st.session_state.blocked:
+        st.error("🚫 Too many wrong attempts. Access blocked.")
 
-            if password == "admin123":
+        email = "atharavshende999@gmail.com"
+        subject = "Access Request for CLV App"
 
-                st.success("✅ Access Granted")
+        st.markdown("### 📩 Contact Admin")
+        st.markdown(
+            f"[📧 Contact Admin](mailto:{email}?subject={subject})"
+        )
+        st.stop()
 
-                #
+    # -------- CHAT DISPLAY --------
+    st.subheader("💬 Chat Login")
 
-                # Show Excel data
-                try:
-                    df = pd.read_excel("user_inputs.xlsx")
-                    st.subheader("📄 Stored User Data")
-                    st.dataframe(df)
+    for msg in st.session_state.chat_history:
+        st.write(msg)
 
-                    # Download button
-                    with open("user_inputs.xlsx", "rb") as f:
-                        st.download_button(
-                            "📥 Download Excel",
-                            f,
-                            file_name="user_inputs.xlsx"
-                        )
+    # -------- USER INPUT --------
+    user_input = st.text_input("Type password here...")
 
-                except:
-                    st.warning("No data found")
+    if st.button("Send"):
 
-            else:
-                st.error("❌ Password is wrong")
+        if user_input.strip() == "":
+            st.warning("Please enter password")
+            st.stop()
+
+        st.session_state.chat_history.append(f"👤 You: {user_input}")
+
+        # -------- CHECK PASSWORD --------
+        if user_input.strip() == "admin123":
+
+            st.session_state.chat_history.append("🤖 Bot: ✅ Access Granted")
+            st.session_state.attempts = 0
+
+            st.success("Welcome Admin 🎉")
+
+            # -------- ADMIN CONTENT --------
+            st.subheader("📂 Server Files")
+            st.write(os.listdir())
+
+            try:
+                df = pd.read_excel("user_inputs.xlsx")
+                st.subheader("📄 Stored Data")
+                st.dataframe(df)
+            except:
+                st.warning("No data found")
+
+            try:
+                with open("user_inputs.xlsx", "rb") as f:
+                    st.download_button(
+                        "📥 Download Excel",
+                        f,
+                        file_name="user_inputs.xlsx"
+                    )
+            except:
+                pass
 
         else:
-            st.error("❌ Invalid Username")
+            st.session_state.attempts += 1
+            remaining = 3 - st.session_state.attempts
+
+            if remaining > 0:
+                st.session_state.chat_history.append(
+                    f"🤖 Bot: ❌ Wrong password! Attempts left: {remaining}"
+                )
+            else:
+                st.session_state.chat_history.append(
+                    "🤖 Bot: 🚫 You are blocked after 3 attempts"
+                )
+                st.session_state.blocked = True
+
+        st.rerun()
