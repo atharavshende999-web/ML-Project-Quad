@@ -49,7 +49,6 @@ elif menu == "🔮 CLV Predictor":
 
     if st.button("Predict CLV"):
 
-        # Sample dataset
         data = {
             "Recency":[10,20,5,30,15,40,25,8,60,12,35,18],
             "Frequency":[5,3,10,2,7,1,4,12,2,8,3,6],
@@ -78,7 +77,6 @@ elif menu == "🔮 CLV Predictor":
         prediction = model.predict(user_data)
         user_data["Predicted_CLV"] = prediction[0]
 
-        # -------- SAVE TO EXCEL --------
         file_name = "user_inputs.xlsx"
 
         try:
@@ -132,26 +130,44 @@ elif menu == "🔐 Admin Panel":
 
     st.header("🔐 Admin Access")
 
-    # -------- SESSION STATE --------
     if "attempts" not in st.session_state:
         st.session_state.attempts = 0
 
     if "blocked" not in st.session_state:
         st.session_state.blocked = False
 
-    # -------- BLOCKED USER --------
+    # -------- BLOCKED --------
     if st.session_state.blocked:
         st.error("🚫 Too many wrong attempts. Access blocked.")
 
         email = "atharavshende999@gmail.com"
         subject = "Access Request for CLV App"
 
+        gmail_link = f"https://mail.google.com/mail/?view=cm&fs=1&to={email}&su={subject}"
+
         st.markdown("### 📩 Contact Admin")
+
+        # ✅ WORKING BUTTON STYLE
         st.markdown(
-            f'<a href="mailto:{email}?subject={subject}">'
-            f'<button>📧 Contact Admin</button></a>',
+            f"""
+            <a href="{gmail_link}" target="_blank">
+                <div style="
+                    display:inline-block;
+                    padding:12px 25px;
+                    background-color:#ff4b4b;
+                    color:white;
+                    font-weight:bold;
+                    border-radius:8px;
+                    text-align:center;
+                ">
+                    📧 Contact Admin
+                </div>
+            </a>
+            """,
             unsafe_allow_html=True
         )
+
+        st.info("Or email manually: atharavshende999@gmail.com")
 
         st.stop()
 
@@ -164,7 +180,6 @@ elif menu == "🔐 Admin Panel":
             st.session_state.attempts = 0
             st.success("✅ Access Granted")
 
-            # -------- ADMIN CONTENT --------
             st.subheader("📂 Server Files")
             st.write(os.listdir())
 
@@ -187,7 +202,6 @@ elif menu == "🔐 Admin Panel":
 
         else:
             st.session_state.attempts += 1
-
             remaining = 3 - st.session_state.attempts
 
             if remaining > 0:
