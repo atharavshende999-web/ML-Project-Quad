@@ -5,7 +5,6 @@ import os
 import json
 import random
 import smtplib
-import time
 
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
@@ -107,8 +106,8 @@ if menu == "🏠 Home":
     st.write("""
     ✔ CLV Prediction using ML  
     ✔ Customer segmentation  
-    ✔ Secure login system  
-    ✔ Host approval for blocked users  
+    ✔ Guest/Host secure login  
+    ✔ Block system + host approval  
     ✔ Email OTP reset  
     """)
 
@@ -218,7 +217,9 @@ elif menu == "👤 Guest Login":
                     st.session_state.blocked = True
 
                     reqs = load_requests()
-                    reqs.append({"status": "pending"})
+                    reqs.append({
+                        "status": "pending"
+                    })
                     save_requests(reqs)
 
                     st.error("🚫 Blocked! Request sent to Host.")
@@ -244,7 +245,7 @@ if st.session_state.reset_mode:
             otp = send_email_otp(email)
             st.session_state.otp = otp
             st.session_state.otp_sent = True
-            st.success("OTP Sent")
+            st.success("📧 OTP Sent")
         except Exception as e:
             st.error(e)
 
@@ -259,23 +260,24 @@ if st.session_state.reset_mode:
                 new_pass = st.text_input("New Password", type="password")
                 confirm = st.text_input("Confirm Password", type="password")
 
-                if st.button("Save"):
+                if st.button("Save Password"):
 
-                    if new_pass == confirm:
+                    if new_pass == confirm and new_pass.strip() != "":
                         passwords["guest_password"] = new_pass
                         save_passwords(passwords)
 
                         st.session_state.blocked = False
                         st.session_state.attempts = 0
                         st.session_state.reset_mode = False
+                        st.session_state.otp_sent = False
 
-                        st.success("Password Reset Done")
+                        st.success("🎉 Password Reset Successful")
                         st.rerun()
                     else:
-                        st.error("Passwords not match")
+                        st.error("❌ Passwords do not match")
 
             else:
-                st.error("Invalid OTP")
+                st.error("❌ Invalid OTP")
 
 
 # ==================================================
@@ -294,7 +296,6 @@ elif menu == "🧑‍💼 Host Panel":
             st.success("✅ Host Logged In")
 
             requests = load_requests()
-
             st.subheader("📨 Block Requests")
 
             if len(requests) == 0:
@@ -305,28 +306,44 @@ elif menu == "🧑‍💼 Host Panel":
 
                     if r["status"] == "pending":
 
-                        st.write(f"Request #{i}")
+                        st.write(f"🔴 Request #{i}")
+
+                        new_pass = st.text_input(
+                            f"Set new password for Request {i}",
+                            key=f"pass_{i}",
+                            type="password"
+                        )
 
                         col1, col2 = st.columns(2)
 
+                        # APPROVE
                         with col1:
                             if st.button(f"Approve {i}"):
-                                requests[i]["status"] = "approved"
-                                save_requests(requests)
 
-                                st.session_state.blocked = False
-                                st.session_state.attempts = 0
+                                if new_pass.strip() == "":
+                                    st.error("⚠️ Enter new password")
+                                else:
+                                    passwords["guest_password"] = new_pass
+                                    save_passwords(passwords)
 
-                                st.success("User Unblocked")
-                                st.rerun()
+                                    requests[i]["status"] = "approved"
+                                    save_requests(requests)
 
+                                    st.session_state.blocked = False
+                                    st.session_state.attempts = 0
+
+                                    st.success("✅ User unblocked & password updated")
+                                    st.rerun()
+
+                        # REJECT
                         with col2:
                             if st.button(f"Reject {i}"):
+
                                 requests[i]["status"] = "rejected"
                                 save_requests(requests)
 
-                                st.warning("Rejected")
+                                st.warning("❌ Request rejected")
                                 st.rerun()
 
         else:
-            st.error("Wrong Host Password")
+            st.error("❌ Wrong Host Password")
