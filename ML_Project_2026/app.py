@@ -164,5 +164,62 @@ elif menu == "🔐 Admin Panel":
         except:
             pass
 
-    elif password != "":
-        st.error("Wrong Password")
+    # ---------------- ADMIN PANEL ----------------
+
+elif menu == "🔐 Admin Panel":
+
+    st.header("🔐 Admin Access")
+
+    # Initialize session state
+    if "attempts" not in st.session_state:
+        st.session_state.attempts = 0
+
+    if "blocked" not in st.session_state:
+        st.session_state.blocked = False
+
+    # If blocked
+    if st.session_state.blocked:
+        st.error("🚫 Too many wrong attempts. Access blocked.")
+        st.stop()
+
+    password = st.text_input("Enter Password", type="password")
+
+    if st.button("Login"):
+
+        if password == "admin123":
+            st.session_state.attempts = 0  # reset
+            st.success("✅ Access Granted")
+
+            # ---- ADMIN CONTENT ----
+            import os
+            st.subheader("📂 Server Files")
+            st.write(os.listdir())
+
+            import pandas as pd
+            try:
+                df = pd.read_excel("user_inputs.xlsx")
+                st.subheader("📄 Stored User Data")
+                st.dataframe(df)
+            except:
+                st.warning("No data found")
+
+            try:
+                with open("user_inputs.xlsx", "rb") as f:
+                    st.download_button(
+                        "📥 Download Excel",
+                        f,
+                        file_name="user_inputs.xlsx"
+                    )
+            except:
+                pass
+
+        else:
+            st.session_state.attempts += 1
+
+            remaining = 3 - st.session_state.attempts
+
+            if remaining > 0:
+                st.error(f"❌ Wrong password! Attempts left: {remaining}")
+            else:
+                st.session_state.blocked = True
+                st.error("🚫 You are blocked after 3 wrong attempts")
