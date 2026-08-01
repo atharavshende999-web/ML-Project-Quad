@@ -1,119 +1,127 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
+
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import r2_score, mean_absolute_error
 
 
+# ---------------- PAGE CONFIG ----------------
 
 st.set_page_config(
     page_title="CLV Dashboard",
     layout="wide"
 )
 
+
 st.title("📊 Customer Lifetime Value (CLV) App")
 
 
+# ---------------- SIDEBAR ----------------
+
 menu = st.sidebar.radio(
     "Select Mode",
-    ["🏠 Home", "🔮 CLV Predictor", "📊 Segmentation Dashboard"]
+    [
+        "🏠 Home",
+        "🔮 CLV Predictor",
+        "📊 Segmentation Dashboard"
+    ]
 )
 
 
+
+# ---------------- HOME ----------------
 
 if menu == "🏠 Home":
 
     st.header("Project Overview")
 
-    st.write("""
-    This app is based on **Customer Lifetime Value Prediction and Segmentation**.
+    st.write(
+    """
+    This application performs Customer Lifetime Value Prediction 
+    and Customer Segmentation.
+
+    Features:
 
     ✔ Predict future customer revenue using Gradient Boosting  
-    ✔ Segment customers using RFM + KMeans  
+    ✔ Store customer prediction history  
+    ✔ Segment customers using KMeans  
     ✔ Visualize customer groups
-    """)
+    """
+    )
 
+
+
+# ---------------- CLV PREDICTOR ----------------
 
 elif menu == "🔮 CLV Predictor":
 
+
     st.header("🔮 Predict Customer Lifetime Value")
+
 
     st.subheader("Enter Customer RFM Values")
 
 
     recency = st.number_input(
-        "Recency (days)",
-        0,
-        365,
-        30
+        "Recency (Days)",
+        min_value=0,
+        max_value=365,
+        value=30
     )
 
 
     frequency = st.number_input(
-        "Frequency (purchases)",
-        1,
-        100,
-        5
+        "Frequency (Purchases)",
+        min_value=1,
+        max_value=100,
+        value=5
     )
 
 
     monetary = st.number_input(
         "Monetary Value ($)",
-        0.0,
-        10000.0,
-        500.0
+        min_value=0.0,
+        max_value=10000.0,
+        value=500.0
     )
+
 
 
     if st.button("Predict CLV"):
 
+
+        # Sample training dataset
+
         data = {
 
-            "Recency":[
-                10,20,5,30,15,
-                40,25,8,60,12,
-                35,18
-         ],
+            "Recency":[10,20,5,30,15,40,25,8,60,12,35,18],
 
-            "Frequency":[
-                5,3,10,2,7,
-                1,4,12,2,8,
-                3,6
-            ],
+            "Frequency":[5,3,10,2,7,1,4,12,2,8,3,6],
 
-            "Monetary":[
-                500,300,1000,200,700,
-                100,400,1500,250,900,
-                350,650
-            ],
+            "Monetary":[500,300,1000,200,700,100,400,1500,250,900,350,650],
 
-            "CLV":[
-                1200,700,2500,400,1600,
-                200,900,3000,500,2000,
-                800,1400
-            ]
+            "CLV":[1200,700,2500,400,1600,200,900,3000,500,2000,800,1400]
 
         }
 
 
-        df = pd.DataFrame(data) 
+        df = pd.DataFrame(data)
+
 
 
         X = df[
             [
-            "Recency",
-            "Frequency",
-            "Monetary"
+                "Recency",
+                "Frequency",
+                "Monetary"
             ]
         ]
 
 
         y = df["CLV"]
-
 
 
 
@@ -124,8 +132,6 @@ elif menu == "🔮 CLV Predictor":
             random_state=42
         )
 
-
-        
 
         model = GradientBoostingRegressor(
             n_estimators=100,
@@ -141,42 +147,94 @@ elif menu == "🔮 CLV Predictor":
         )
 
 
-        # Prediction
 
-        input_data = pd.DataFrame(
-            [
-            [
-            recency,
-            frequency,
-            monetary
-            
-            ]
-            ],
-            columns=[
-                "Recency",
-                "Frequency",
-                "Monetary"
-            ]
+        # User input dataframe
+
+        user_data = pd.DataFrame(
+
+            {
+                "Recency":[recency],
+                "Frequency":[frequency],
+                "Monetary":[monetary]
+            }
+
         )
 
 
-        prediction = model.predict(input_data)
+
+        prediction = model.predict(user_data)
 
 
-       
+
+        # Add prediction
+
+        user_data["Predicted_CLV"] = prediction[0]
+
+
+
+        # Show user input
+
+        st.subheader("👤 Customer Input")
+
+        st.dataframe(user_data)
+
+
+
+        # Save data
+
+        try:
+
+            old_data = pd.read_csv(
+                "user_inputs.csv"
+            )
+
+
+            final_data = pd.concat(
+                [
+                    old_data,
+                    user_data
+                ],
+                ignore_index=True
+            )
+
+
+            final_data.to_csv(
+                "user_inputs.csv",
+                index=False
+            )
+
+
+        except:
+
+            user_data.to_csv(
+                "user_inputs.csv",
+                index=False
+            )
+
+
 
         st.success(
-            f"💰 Predicted CLV: ${prediction[0]:.2f}"
+            f"💰 Predicted CLV : ${prediction[0]:.2f}"
         )
 
 
-    
+        st.success(
+            "✅ Customer data saved successfully"
+        )
+
+
+
+
+# ---------------- SEGMENTATION ----------------
 
 
 elif menu == "📊 Segmentation Dashboard":
 
 
-    st.header("📊 Customer Segmentation Dashboard")
+    st.header(
+        "📊 Customer Segmentation Dashboard"
+    )
+
 
 
     file = st.file_uploader(
@@ -185,15 +243,23 @@ elif menu == "📊 Segmentation Dashboard":
     )
 
 
+
     if file:
 
 
         df = pd.read_csv(file)
 
 
-        st.subheader("📌 Data Preview")
 
-        st.dataframe(df.head())
+        st.subheader(
+            "Dataset Preview"
+        )
+
+
+        st.dataframe(
+            df.head()
+        )
+
 
 
         r_col = st.selectbox(
@@ -215,21 +281,28 @@ elif menu == "📊 Segmentation Dashboard":
 
 
 
-        if st.button("Run Segmentation"):
+        if st.button(
+            "Run Segmentation"
+        ):
+
 
 
             X = df[
                 [
-                r_col,
-                f_col,
-                m_col
+                    r_col,
+                    f_col,
+                    m_col
                 ]
             ]
 
 
+
             scaler = StandardScaler()
 
-            X_scaled = scaler.fit_transform(X)
+
+            X_scaled = scaler.fit_transform(
+                X
+            )
 
 
 
@@ -244,8 +317,9 @@ elif menu == "📊 Segmentation Dashboard":
             )
 
 
+
             st.subheader(
-                "📊 Clustered Customers"
+                "Clustered Customers"
             )
 
 
@@ -254,7 +328,8 @@ elif menu == "📊 Segmentation Dashboard":
             )
 
 
-            fig, ax = plt.subplots()
+
+            fig,ax = plt.subplots()
 
 
             ax.scatter(
@@ -274,7 +349,14 @@ elif menu == "📊 Segmentation Dashboard":
             )
 
 
-            st.pyplot(fig)
+            ax.set_title(
+                "Customer Segmentation"
+            )
+
+
+            st.pyplot(
+                fig
+            )
 
 
             st.success(
