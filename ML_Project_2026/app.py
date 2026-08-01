@@ -2,95 +2,168 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
+import json
+import random
+import smtplib
 
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.model_selection import train_test_split
 
 
-# ---------------- PAGE CONFIG ----------------
+# ---------------- CONFIG ----------------
 st.set_page_config(page_title="CLV Dashboard", layout="wide")
 st.title("📊 Customer Lifetime Value (CLV) App")
+
+USER_FILE = "users.json"
+REQUEST_FILE = "requests.json"
+
+
+# ---------------- INIT FILES ----------------
+def init_files():
+    if not os.path.exists(USER_FILE):
+        with open(USER_FILE, "w") as f:
+            json.dump({
+                "host": {"password": "admin123"},
+                "guest": {
+                    "username": "guest",
+                    "password": "guest123",
+                    "blocked": False
+                }
+            }, f)
+
+    if not os.path.exists(REQUEST_FILE):
+        with open(REQUEST_FILE, "w") as f:
+            json.dump([], f)
+
+init_files()
+
+
+# ---------------- LOAD/SAVE ----------------
+def load_users():
+    with open(USER_FILE, "r") as f:
+        return json.load(f)
+
+def save_users(data):
+    with open(USER_FILE, "w") as f:
+        json.dump(data, f)
+
+def load_requests():
+    with open(REQUEST_FILE, "r") as f:
+        return json.load(f)
+
+def save_requests(data):
+    with open(REQUEST_FILE, "w") as f:
+        json.dump(data, f)
+
+
+# ---------------- EMAIL OTP ----------------
+def send_email_otp(receiver_email):
+    otp = random.randint(100000, 999999)
+
+    sender_email = st.secrets["EMAIL"]
+    app_password = st.secrets["APP_PASSWORD"]
+
+    message = f"Subject: OTP\n\nYour OTP is {otp}"
+
+    server = smtplib.SMTP("smtp.gmail.com", 587)
+    server.starttls()
+    server.login(sender_email, app_password)
+    server.sendmail(sender_email, receiver_email, message)
+    server.quit()
+
+    return otp
+
+
+# ---------------- SESSION ----------------
+if "attempts" not in st.session_state:
+    st.session_state.attempts = 0
+
+if "otp" not in st.session_state:
+    st.session_state.otp = None
+
+if "otp_sent" not in st.session_state:
+    st.session_state.otp_sent = False
+
+if "reset_mode" not in st.session_state:
+    st.session_state.reset_mode = False
+
+if "host_logged_in" not in st.session_state:
+    st.session_state.host_logged_in = False
+
+
+users = load_users()
 
 
 # ---------------- SIDEBAR ----------------
 menu = st.sidebar.radio(
     "Select Mode",
-    [
-        "🏠 Home",
-        "🔮 CLV Predictor",
-        "📊 Segmentation Dashboard",
-        "🔐 Admin Panel"
-    ]
+    ["🏠 Home", "🔮 CLV Predictor", "📊 Segmentation", "👤 Guest Login", "🧑‍💼 Admin Panel"]
 )
 
 
-# ---------------- HOME ----------------
+# ==================================================
+# 🏠 HOME
+# ==================================================
 if menu == "🏠 Home":
-
     st.header("Project Overview")
     st.write("""
-    ✔ Predict CLV using ML  
-    ✔ Store user data (hidden)  
+    ✔ CLV Prediction using ML  
     ✔ Customer segmentation  
-    ✔ Admin-only access  
+    ✔ Secure multi-role login  
+    ✔ Host approval system  
+    ✔ Email OTP reset  
     """)
 
 
-# ---------------- CLV PREDICTOR ----------------
+# ==================================================
+# 🔮 CLV PREDICTOR
+# ==================================================
 elif menu == "🔮 CLV Predictor":
 
-    st.header("🔮 Predict Customer Lifetime Value")
+    st.header("🔮 Predict CLV")
 
-    recency = st.number_input("Recency (Days)", 0, 365, 30)
+    recency = st.number_input("Recency", 0, 365, 30)
     frequency = st.number_input("Frequency", 1, 100, 5)
-    monetary = st.number_input("Monetary Value", 0.0, 10000.0, 500.0)
+    monetary = st.number_input("Monetary", 0.0, 10000.0, 500.0)
 
-    if st.button("Predict CLV"):
+    if st.button("Predict"):
 
-        data = {
-            "Recency":[10,20,5,30,15,40,25,8,60,12,35,18],
-            "Frequency":[5,3,10,2,7,1,4,12,2,8,3,6],
-            "Monetary":[500,300,1000,200,700,100,400,1500,250,900,350,650],
-            "CLV":[1200,700,2500,400,1600,200,900,3000,500,2000,800,1400]
-        }
-
-        df = pd.DataFrame(data)
+        df = pd.DataFrame({
+            "Recency":[10,20,5,30],
+            "Frequency":[5,3,10,2],
+            "Monetary":[500,300,1000,200],
+            "CLV":[1200,700,2500,400]
+        })
 
         X = df[["Recency","Frequency","Monetary"]]
         y = df["CLV"]
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.2, random_state=42
-        )
+        model = GradientBoostingRegressor().fit(X, y)
 
-        model = GradientBoostingRegressor(random_state=42)
-        model.fit(X_train, y_train)
-
-        user_data = pd.DataFrame({
+        user = pd.DataFrame({
             "Recency":[recency],
             "Frequency":[frequency],
             "Monetary":[monetary]
         })
 
-        prediction = model.predict(user_data)
-        user_data["Predicted_CLV"] = prediction[0]
+        pred = model.predict(user)
 
-        file_name = "user_inputs.xlsx"
+        file = "user_inputs.xlsx"
 
         try:
-            old = pd.read_excel(file_name)
-            new = pd.concat([old, user_data], ignore_index=True)
-            new.to_excel(file_name, index=False)
+            old = pd.read_excel(file)
+            pd.concat([old, user], ignore_index=True).to_excel(file, index=False)
         except:
-            user_data.to_excel(file_name, index=False)
+            user.to_excel(file, index=False)
 
-        st.success(f"💰 Predicted CLV: ${prediction[0]:.2f}")
+        st.success(f"💰 Predicted CLV: {pred[0]:.2f}")
 
 
-# ---------------- SEGMENTATION ----------------
-elif menu == "📊 Segmentation Dashboard":
+# ==================================================
+# 📊 SEGMENTATION
+# ==================================================
+elif menu == "📊 Segmentation":
 
     st.header("📊 Customer Segmentation")
 
@@ -104,109 +177,126 @@ elif menu == "📊 Segmentation Dashboard":
         f = st.selectbox("Frequency column", df.columns)
         m = st.selectbox("Monetary column", df.columns)
 
-        if st.button("Run Segmentation"):
+        if st.button("Run Clustering"):
 
             X = df[[r,f,m]]
+            X_scaled = StandardScaler().fit_transform(X)
 
-            scaler = StandardScaler()
-            X_scaled = scaler.fit_transform(X)
+            df["Cluster"] = KMeans(n_clusters=3, random_state=42).fit_predict(X_scaled)
 
-            kmeans = KMeans(n_clusters=3, random_state=42)
-            df["Cluster"] = kmeans.fit_predict(X_scaled)
-
-            st.dataframe(df.head())
+            st.dataframe(df)
 
             fig, ax = plt.subplots()
             ax.scatter(df[r], df[m], c=df["Cluster"])
-            ax.set_xlabel("Recency")
-            ax.set_ylabel("Monetary")
-            ax.set_title("Customer Segmentation")
-
             st.pyplot(fig)
 
 
-# ---------------- ADMIN PANEL ----------------
-elif menu == "🔐 Admin Panel":
+# ==================================================
+# 👤 GUEST LOGIN
+# ==================================================
+elif menu == "👤 Guest Login":
 
-    st.header("🔐 Admin Access")
+    st.header("👤 Guest Login")
 
-    if "attempts" not in st.session_state:
-        st.session_state.attempts = 0
+    username = st.text_input("Username")
+    pwd = st.text_input("Password", type="password")
 
-    if "blocked" not in st.session_state:
-        st.session_state.blocked = False
+    if st.button("Login"):
 
-    # -------- BLOCKED --------
-    if st.session_state.blocked:
-        st.error("🚫 Too many wrong attempts. Access blocked.")
+        guest = users["guest"]
 
-        email = "atharavshende999@gmail.com"
-        subject = "Access Request for CLV App"
+        if guest["blocked"]:
+            st.error("🚫 You are blocked")
 
-        gmail_link = f"https://mail.google.com/mail/?view=cm&fs=1&to={email}&su={subject}"
-
-        st.markdown("### 📩 Contact Admin")
-
-        # ✅ WORKING BUTTON STYLE
-        st.markdown(
-            f"""
-            <a href="{gmail_link}" target="_blank">
-                <div style="
-                    display:inline-block;
-                    padding:12px 25px;
-                    background-color:#ff4b4b;
-                    color:white;
-                    font-weight:bold;
-                    border-radius:8px;
-                    text-align:center;
-                ">
-                    📧 Contact Admin
-                </div>
-            </a>
-            """,
-            unsafe_allow_html=True
-        )
-
-        st.info("Or email manually: atharavshende999@gmail.com")
-
-        st.stop()
-
-    # -------- LOGIN --------
-    password = st.text_input("Enter Password", type="password")
-
-    if st.button("Login", use_container_width=True):
-
-        if password.strip() == "admin123":
-            st.session_state.attempts = 0
-            st.success("✅ Access Granted")
-
-            st.subheader("📂 Server Files")
-            st.write(os.listdir())
-
-            try:
-                df = pd.read_excel("user_inputs.xlsx")
-                st.subheader("📄 Stored User Data")
-                st.dataframe(df)
-            except:
-                st.warning("No data found")
-
-            try:
-                with open("user_inputs.xlsx", "rb") as f:
-                    st.download_button(
-                        "📥 Download Excel",
-                        f,
-                        file_name="user_inputs.xlsx"
-                    )
-            except:
-                pass
+            reqs = load_requests()
+            if not any(r["user"] == username and r["status"] == "pending" for r in reqs):
+                reqs.append({"user": username, "status": "pending"})
+                save_requests(reqs)
+                st.warning("Request sent to Admin")
 
         else:
-            st.session_state.attempts += 1
-            remaining = 3 - st.session_state.attempts
+            if username == guest["username"] and pwd == guest["password"]:
+                st.success("✅ Login Successful")
+                st.session_state.attempts = 0
 
-            if remaining > 0:
-                st.error(f"❌ Wrong password! Attempts left: {remaining}")
             else:
-                st.session_state.blocked = True
-                st.error("🚫 You are blocked after 3 wrong attempts")
-                st.rerun()
+                st.session_state.attempts += 1
+                left = 3 - st.session_state.attempts
+
+                if left > 0:
+                    st.error(f"❌ Wrong password. Attempts left: {left}")
+                else:
+                    guest["blocked"] = True
+                    save_users(users)
+
+                    reqs = load_requests()
+                    reqs.append({"user": username, "status": "pending"})
+                    save_requests(reqs)
+
+                    st.error("🚫 Blocked! Request sent to Admin")
+
+
+# ==================================================
+# 🧑‍💼 ADMIN PANEL
+# ==================================================
+elif menu == "🧑‍💼 Admin Panel":
+
+    st.header("🧑‍💼 Admin Login")
+
+    pwd = st.text_input("Enter Admin Password", type="password")
+
+    if st.button("Login"):
+
+        if pwd == users["host"]["password"]:
+            st.session_state.host_logged_in = True
+        else:
+            st.error("Wrong password")
+
+    if st.session_state.host_logged_in:
+
+        st.success("✅ Admin Logged In")
+
+        reqs = load_requests()
+
+        if len(reqs) == 0:
+            st.info("No requests")
+
+        else:
+            for i, r in enumerate(reqs):
+
+                if r["status"] == "pending":
+
+                    st.write(f"🔴 User: {r['user']}")
+
+                    new_pass = st.text_input(
+                        f"New password for {r['user']}",
+                        key=f"pass_{i}",
+                        type="password"
+                    )
+
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        if st.button(f"Approve {i}"):
+
+                            if new_pass.strip() == "":
+                                st.error("Enter password")
+                            else:
+                                users["guest"]["password"] = new_pass
+                                users["guest"]["blocked"] = False
+                                save_users(users)
+
+                                reqs[i]["status"] = "approved"
+                                save_requests(reqs)
+
+                                st.success("User unblocked")
+                                st.rerun()
+
+                    with col2:
+                        if st.button(f"Reject {i}"):
+
+                            reqs[i]["status"] = "rejected"
+                            save_requests(reqs)
+
+                            st.warning("Rejected")
+                            st.rerun()
