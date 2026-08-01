@@ -10,18 +10,12 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.model_selection import train_test_split
 
-from twilio.rest import Client
-
 
 # ---------------- CONFIG ----------------
 st.set_page_config(page_title="CLV Dashboard", layout="wide")
 st.title("📊 Customer Lifetime Value (CLV) App")
 
 PASSWORD_FILE = "password.json"
-
-TWILIO_SID = "YOUR_SID"
-TWILIO_AUTH = "YOUR_AUTH"
-TWILIO_PHONE = "YOUR_PHONE"
 
 
 # ---------------- PASSWORD STORAGE ----------------
@@ -36,6 +30,11 @@ def save_password(new_pass):
         json.dump({"password": new_pass}, f)
 
 
+# ---------------- OTP FUNCTION ----------------
+def generate_otp():
+    return random.randint(100000, 999999)
+
+
 # ---------------- SIDEBAR ----------------
 menu = st.sidebar.radio(
     "Select Mode",
@@ -47,15 +46,17 @@ menu = st.sidebar.radio(
 if menu == "🏠 Home":
     st.header("Project Overview")
     st.write("""
-    ✔ ML CLV Prediction  
-    ✔ Data storage  
-    ✔ Segmentation  
-    ✔ OTP Login + Password Reset  
+    ✔ CLV Prediction using ML  
+    ✔ Store user data  
+    ✔ Customer segmentation  
+    ✔ OTP-based password reset  
     """)
 
 
-# ---------------- CLV ----------------
+# ---------------- CLV PREDICTOR ----------------
 elif menu == "🔮 CLV Predictor":
+
+    st.header("🔮 Predict CLV")
 
     recency = st.number_input("Recency", 0, 365, 30)
     frequency = st.number_input("Frequency", 1, 100, 5)
@@ -91,33 +92,38 @@ elif menu == "🔮 CLV Predictor":
         except:
             user.to_excel(file, index=False)
 
-        st.success(f"💰 CLV: {pred[0]:.2f}")
+        st.success(f"💰 Predicted CLV: {pred[0]:.2f}")
 
 
 # ---------------- SEGMENTATION ----------------
 elif menu == "📊 Segmentation":
 
-    file = st.file_uploader("Upload CSV")
+    st.header("📊 Customer Segmentation")
+
+    file = st.file_uploader("Upload CSV", type=["csv"])
 
     if file:
         df = pd.read_csv(file)
         st.dataframe(df.head())
 
-        r = st.selectbox("Recency", df.columns)
-        f = st.selectbox("Frequency", df.columns)
-        m = st.selectbox("Monetary", df.columns)
+        r = st.selectbox("Recency column", df.columns)
+        f = st.selectbox("Frequency column", df.columns)
+        m = st.selectbox("Monetary column", df.columns)
 
-        if st.button("Cluster"):
+        if st.button("Run Clustering"):
 
             X = df[[r,f,m]]
             X_scaled = StandardScaler().fit_transform(X)
 
-            df["Cluster"] = KMeans(n_clusters=3).fit_predict(X_scaled)
+            df["Cluster"] = KMeans(n_clusters=3, random_state=42).fit_predict(X_scaled)
 
             st.dataframe(df)
 
             fig, ax = plt.subplots()
             ax.scatter(df[r], df[m], c=df["Cluster"])
+            ax.set_xlabel("Recency")
+            ax.set_ylabel("Monetary")
+
             st.pyplot(fig)
 
 
@@ -129,12 +135,16 @@ elif menu == "🔐 Admin Panel":
     # -------- SESSION --------
     if "attempts" not in st.session_state:
         st.session_state.attempts = 0
+
     if "blocked" not in st.session_state:
         st.session_state.blocked = False
+
     if "otp" not in st.session_state:
         st.session_state.otp = None
+
     if "otp_sent" not in st.session_state:
         st.session_state.otp_sent = False
+
     if "reset_mode" not in st.session_state:
         st.session_state.reset_mode = False
 
@@ -151,50 +161,43 @@ elif menu == "🔐 Admin Panel":
                 st.success("✅ Access Granted")
                 st.session_state.attempts = 0
 
-                st.write("📂 Files:", os.listdir())
+                st.subheader("📂 Server Files")
+                st.write(os.listdir())
 
                 try:
                     df = pd.read_excel("user_inputs.xlsx")
+                    st.subheader("📄 Stored Data")
                     st.dataframe(df)
                 except:
-                    st.warning("No data")
+                    st.warning("No data found")
 
             else:
                 st.session_state.attempts += 1
                 left = 3 - st.session_state.attempts
 
                 if left > 0:
-                    st.error(f"❌ Wrong password! Left: {left}")
+                    st.error(f"❌ Wrong password! Attempts left: {left}")
                 else:
                     st.session_state.blocked = True
                     st.session_state.reset_mode = True
-                    st.error("🚫 Blocked. Reset required.")
+                    st.error("🚫 Too many attempts. Reset required.")
                     st.rerun()
 
-    # -------- RESET FLOW --------
+    # -------- RESET PASSWORD FLOW --------
     if st.session_state.reset_mode:
 
-        st.warning("🔁 Reset Password")
+        st.warning("🔑 Password Reset")
 
-        phone = st.text_input("Enter Phone (+countrycode)")
+        phone = st.text_input("Enter Mobile Number")
 
         if st.button("Send OTP"):
 
-            otp = random.randint(100000,999999)
+            otp = generate_otp()
             st.session_state.otp = otp
             st.session_state.otp_sent = True
 
-            client = Client(TWILIO_SID, TWILIO_AUTH)
-
-            try:
-                client.messages.create(
-                    body=f"Your OTP is {otp}",
-                    from_=TWILIO_PHONE,
-                    to=phone
-                )
-                st.success("📲 OTP Sent")
-            except:
-                st.error("OTP failed")
+            # Demo OTP display
+            st.success(f"📲 OTP Sent: {otp}")
 
         if st.session_state.otp_sent:
 
@@ -204,21 +207,25 @@ elif menu == "🔐 Admin Panel":
 
                 if str(user_otp) == str(st.session_state.otp):
 
-                    st.success("✅ Verified")
+                    st.success("✅ OTP Verified")
 
-                    new_pass = st.text_input("New Password", type="password")
+                    new_pass = st.text_input("Create New Password", type="password")
 
                     if st.button("Save Password"):
 
-                        save_password(new_pass)
+                        if new_pass.strip() != "":
+                            save_password(new_pass)
 
-                        st.session_state.blocked = False
-                        st.session_state.reset_mode = False
-                        st.session_state.otp_sent = False
-                        st.session_state.attempts = 0
+                            st.session_state.blocked = False
+                            st.session_state.reset_mode = False
+                            st.session_state.otp_sent = False
+                            st.session_state.attempts = 0
 
-                        st.success("🎉 Password Reset Done")
-                        st.rerun()
+                            st.success("🎉 Password Reset Successful! Login again.")
+                            st.rerun()
+
+                        else:
+                            st.warning("Enter valid password")
 
                 else:
-                    st.error("❌ Wrong OTP")
+                    st.error("❌ Invalid OTP")
