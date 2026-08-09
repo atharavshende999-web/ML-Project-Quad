@@ -13,7 +13,7 @@
 
 | Member |
 |--------|
-| Atharvh Shende |
+| Atharv Shende |
 | Aryan Konde |
 | Swaraj Garud |
 | Suraj Ban | 
