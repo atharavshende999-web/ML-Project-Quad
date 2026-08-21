@@ -24,197 +24,104 @@ DATA_FILE = "user_inputs.xlsx"
 
 
 # ============================================================
-# PROFESSIONAL WEBSITE THEME
+# STREAMLIT THEME / CSS
 # ============================================================
 
-st.markdown("""
-<style>
+st.markdown(
+    """
+    <style>
 
-@import url(
-'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'
-);
+    /* Main application */
+    .stApp {
+        background-color: #f5f7fb;
+    }
 
-html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif;
-}
+    /* Sidebar */
+    section[data-testid="stSidebar"] {
+        background-color: #0b1020;
+    }
 
-.stApp {
-    background: #f5f7fb;
-}
+    section[data-testid="stSidebar"] * {
+        color: #e5e7eb;
+    }
 
-/* ---------- SIDEBAR ---------- */
+    /* Sidebar radio */
+    section[data-testid="stSidebar"] div[role="radiogroup"] label {
+        padding: 8px 6px;
+        border-radius: 8px;
+    }
 
-section[data-testid="stSidebar"] {
-    background: #0b1020;
-    border-right: 1px solid #20283d;
-}
+    /* Metrics */
+    div[data-testid="stMetric"] {
+        background-color: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 16px;
+        box-shadow: 0 5px 18px rgba(15, 23, 42, 0.05);
+    }
 
-section[data-testid="stSidebar"] * {
-    color: #e5e7eb;
-}
+    div[data-testid="stMetricLabel"] {
+        color: #64748b;
+    }
 
-section[data-testid="stSidebar"] .stRadio label {
-    padding: 8px 4px;
-}
+    div[data-testid="stMetricValue"] {
+        color: #111827;
+        font-weight: 750;
+    }
 
-/* ---------- TOP BRAND ---------- */
+    /* Buttons */
+    .stButton > button {
+        border-radius: 10px;
+        min-height: 44px;
+        font-weight: 650;
+    }
 
-.brand {
-    font-size: 25px;
-    font-weight: 800;
-    color: #ffffff;
-    letter-spacing: -0.8px;
-}
+    /* Download buttons */
+    .stDownloadButton > button {
+        border-radius: 10px;
+        font-weight: 650;
+    }
 
-.brand span {
-    color: #7c3aed;
-}
+    /* Inputs */
+    div[data-baseweb="input"] {
+        border-radius: 9px;
+    }
 
-.brand-sub {
-    color: #8992a8;
-    font-size: 11px;
-    letter-spacing: 1.6px;
-    margin-top: -5px;
-}
+    div[data-baseweb="select"] > div {
+        border-radius: 9px;
+    }
 
-/* ---------- HERO ---------- */
+    /* Cards */
+    div[data-testid="stVerticalBlockBorderWrapper"] {
+        border-radius: 16px;
+        border-color: #e5e7eb;
+        background-color: white;
+    }
 
-.hero {
-    background:
-        radial-gradient(
-            circle at 85% 15%,
-            rgba(124,58,237,0.32),
-            transparent 30%
-        ),
-        linear-gradient(
-            135deg,
-            #0b1020,
-            #111936 55%,
-            #172554
-        );
+    /* Alerts */
+    div[data-testid="stAlert"] {
+        border-radius: 12px;
+    }
 
-    border-radius: 26px;
-    padding: 46px;
-    margin-bottom: 28px;
-    color: white;
-    border: 1px solid #263354;
-    box-shadow: 0 18px 50px rgba(15,23,42,0.18);
-}
+    /* Dataframes */
+    div[data-testid="stDataFrame"] {
+        border-radius: 12px;
+        overflow: hidden;
+    }
 
-.hero-tag {
-    display: inline-block;
-    background: rgba(124,58,237,0.18);
-    border: 1px solid rgba(167,139,250,0.35);
-    color: #c4b5fd;
-    border-radius: 30px;
-    padding: 7px 14px;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: .5px;
-}
+    /* Hide Streamlit menu */
+    #MainMenu {
+        visibility: hidden;
+    }
 
-.hero h1 {
-    font-size: 48px;
-    line-height: 1.08;
-    margin: 18px 0 12px 0;
-    letter-spacing: -2px;
-    color: white;
-}
+    footer {
+        visibility: hidden;
+    }
 
-.hero p {
-    color: #cbd5e1;
-    font-size: 16px;
-    max-width: 700px;
-    line-height: 1.7;
-}
-
-/* ---------- SECTION ---------- */
-
-.section-title {
-    font-size: 25px;
-    font-weight: 800;
-    color: #111827;
-    margin: 24px 0 6px 0;
-}
-
-.section-sub {
-    color: #64748b;
-    margin-bottom: 18px;
-}
-
-/* ---------- CARDS ---------- */
-
-.card {
-    background: white;
-    border: 1px solid #e7eaf0;
-    border-radius: 18px;
-    padding: 23px;
-    min-height: 180px;
-    box-shadow: 0 8px 25px rgba(15,23,42,.045);
-}
-
-.card-icon {
-    font-size: 30px;
-}
-
-.card-title {
-    font-size: 18px;
-    font-weight: 750;
-    color: #111827;
-    margin-top: 10px;
-}
-
-.card-text {
-    color: #64748b;
-    line-height: 1.55;
-    font-size: 14px;
-}
-
-/* ---------- METRICS ---------- */
-
-div[data-testid="stMetric"] {
-    background: white;
-    border: 1px solid #e7eaf0;
-    border-radius: 16px;
-    padding: 17px;
-    box-shadow: 0 6px 20px rgba(15,23,42,.04);
-}
-
-/* ---------- INPUTS ---------- */
-
-div[data-baseweb="input"] {
-    border-radius: 10px;
-}
-
-div[data-baseweb="select"] > div {
-    border-radius: 10px;
-}
-
-/* ---------- BUTTONS ---------- */
-
-.stButton button {
-    border-radius: 10px;
-    font-weight: 650;
-    min-height: 44px;
-}
-
-/* ---------- INFO BOX ---------- */
-
-div[data-testid="stAlert"] {
-    border-radius: 13px;
-}
-
-/* ---------- FOOTER ---------- */
-
-.footer {
-    text-align: center;
-    color: #94a3b8;
-    padding: 35px 0 10px 0;
-    font-size: 12px;
-}
-
-</style>
-""", unsafe_allow_html=True)
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 
 # ============================================================
@@ -223,6 +130,15 @@ div[data-testid="stAlert"] {
 
 if "prediction" not in st.session_state:
     st.session_state.prediction = None
+
+if "last_recency" not in st.session_state:
+    st.session_state.last_recency = 30
+
+if "last_frequency" not in st.session_state:
+    st.session_state.last_frequency = 5
+
+if "last_monetary" not in st.session_state:
+    st.session_state.last_monetary = 500.0
 
 if "admin" not in st.session_state:
     st.session_state.admin = False
@@ -269,7 +185,11 @@ def build_model():
     })
 
     X = df[
-        ["Recency", "Frequency", "Monetary"]
+        [
+            "Recency",
+            "Frequency",
+            "Monetary"
+        ]
     ]
 
     y = df["CLV"]
@@ -287,7 +207,7 @@ def build_model():
 
 
 # ============================================================
-# DATA STORAGE
+# DATA FUNCTIONS
 # ============================================================
 
 def load_data():
@@ -297,7 +217,8 @@ def load_data():
 
     try:
         return pd.read_excel(DATA_FILE)
-    except:
+
+    except Exception:
         return None
 
 
@@ -327,9 +248,7 @@ def save_data(row):
 
     except Exception as e:
 
-        st.error(
-            f"Storage error: {e}"
-        )
+        st.error(f"Storage error: {e}")
 
         return False
 
@@ -340,18 +259,9 @@ def save_data(row):
 
 with st.sidebar:
 
-    st.markdown(
-        """
-        <div class="brand">
-            NEXA<span>CLV</span>
-        </div>
+    st.title("🧠 NEXA CLV")
 
-        <div class="brand-sub">
-            CUSTOMER INTELLIGENCE
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    st.caption("CUSTOMER INTELLIGENCE PLATFORM")
 
     st.divider()
 
@@ -370,23 +280,17 @@ with st.sidebar:
 
     st.caption("PLATFORM STATUS")
 
-    st.success(
-        "● ML ENGINE ONLINE"
-    )
+    st.success("● ML ENGINE ONLINE")
 
-    st.caption(
-        "Gradient Boosting"
-    )
+    st.caption("Gradient Boosting")
 
-    st.caption(
-        "K-Means Clustering"
-    )
+    st.caption("K-Means Clustering")
+
+    st.caption("RFM Analytics")
 
     st.divider()
 
-    st.caption(
-        "NEXA CLV v2.0"
-    )
+    st.caption("NEXA CLV v2.0")
 
 
 # ============================================================
@@ -395,30 +299,18 @@ with st.sidebar:
 
 if page == "⌂ Overview":
 
-    st.markdown(
-        """
-        <div class="hero">
+    st.title("NEXA CLV")
 
-            <div class="hero-tag">
-                ✦ MACHINE LEARNING CUSTOMER INTELLIGENCE
-            </div>
-
-            <h1>
-                Know which customers<br>
-                drive your future.
-            </h1>
-
-            <p>
-                NEXA CLV transforms customer behaviour into
-                actionable intelligence using machine learning.
-                Predict lifetime value, identify customer segments,
-                and understand the customers that matter most.
-            </p>
-
-        </div>
-        """,
-        unsafe_allow_html=True
+    st.subheader(
+        "Customer Intelligence powered by Machine Learning"
     )
+
+    st.info(
+        "Transform customer behaviour into actionable intelligence "
+        "using CLV prediction, RFM analysis and customer segmentation."
+    )
+
+    st.divider()
 
     data = load_data()
 
@@ -432,31 +324,27 @@ if page == "⌂ Overview":
 
         if "Predicted_CLV" in data.columns:
 
-            average = data[
-                "Predicted_CLV"
-            ].mean()
+            values = pd.to_numeric(
+                data["Predicted_CLV"],
+                errors="coerce"
+            ).dropna()
 
-            maximum = data[
-                "Predicted_CLV"
-            ].max()
+            if not values.empty:
 
-    st.markdown(
-        '<div class="section-title">Live Intelligence</div>',
-        unsafe_allow_html=True
-    )
+                average = values.mean()
+                maximum = values.max()
 
-    st.markdown(
-        '<div class="section-sub">'
-        'A real-time view of your customer value ecosystem.'
-        '</div>',
-        unsafe_allow_html=True
-    )
+    # ========================================================
+    # LIVE INTELLIGENCE
+    # ========================================================
+
+    st.header("📊 Live Intelligence")
 
     a, b, c, d = st.columns(4)
 
     a.metric(
         "Customers Analysed",
-        customers
+        f"{customers:,}"
     )
 
     b.metric(
@@ -480,75 +368,51 @@ if page == "⌂ Overview":
     # FEATURE CARDS
     # ========================================================
 
+    st.header("🚀 Intelligence Modules")
+
     f1, f2, f3 = st.columns(3)
 
     with f1:
 
-        st.markdown(
-            """
-            <div class="card">
+        with st.container(border=True):
 
-                <div class="card-icon">🧠</div>
+            st.subheader("🧠 ML Prediction")
 
-                <div class="card-title">
-                    Machine Learning Prediction
-                </div>
+            st.write(
+                "Gradient Boosting predicts the future "
+                "Customer Lifetime Value of a customer "
+                "from RFM behaviour."
+            )
 
-                <div class="card-text">
-                    Gradient Boosting analyses customer
-                    behaviour and estimates future
-                    Customer Lifetime Value.
-                </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+            st.info("Regression Model")
 
     with f2:
 
-        st.markdown(
-            """
-            <div class="card">
+        with st.container(border=True):
 
-                <div class="card-icon">👥</div>
+            st.subheader("👥 Customer Segmentation")
 
-                <div class="card-title">
-                    Behaviour Segmentation
-                </div>
+            st.write(
+                "K-Means clustering discovers behavioural "
+                "customer groups from Recency, Frequency "
+                "and Monetary values."
+            )
 
-                <div class="card-text">
-                    K-Means clustering separates customers
-                    into meaningful behavioural groups.
-                </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+            st.info("Unsupervised Learning")
 
     with f3:
 
-        st.markdown(
-            """
-            <div class="card">
+        with st.container(border=True):
 
-                <div class="card-icon">📊</div>
+            st.subheader("📈 Analytics")
 
-                <div class="card-title">
-                    Decision Intelligence
-                </div>
+            st.write(
+                "Analyze predicted customer value using "
+                "charts, distributions and historical "
+                "prediction records."
+            )
 
-                <div class="card-text">
-                    Convert raw customer data into
-                    visual insights that support
-                    smarter business decisions.
-                </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+            st.info("Business Intelligence")
 
     st.write("")
 
@@ -556,90 +420,115 @@ if page == "⌂ Overview":
     # ML PIPELINE
     # ========================================================
 
-    st.markdown(
-        '<div class="section-title">How the Intelligence Engine Works</div>',
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        '<div class="section-sub">'
-        'From customer behaviour to business intelligence.'
-        '</div>',
-        unsafe_allow_html=True
-    )
+    st.header("⚡ How NEXA CLV Works")
 
     p1, p2, p3, p4 = st.columns(4)
 
     with p1:
-        st.info(
-            "**01  DATA**\n\n"
-            "Customer transaction behaviour"
-        )
+
+        with st.container(border=True):
+
+            st.subheader("01")
+
+            st.write("📥 Data")
+
+            st.caption(
+                "Customer transaction behaviour"
+            )
 
     with p2:
-        st.info(
-            "**02  RFM**\n\n"
-            "Recency • Frequency • Monetary"
-        )
+
+        with st.container(border=True):
+
+            st.subheader("02")
+
+            st.write("📊 RFM")
+
+            st.caption(
+                "Recency • Frequency • Monetary"
+            )
 
     with p3:
-        st.info(
-            "**03  MODEL**\n\n"
-            "Gradient Boosting prediction"
-        )
+
+        with st.container(border=True):
+
+            st.subheader("03")
+
+            st.write("🤖 Model")
+
+            st.caption(
+                "Gradient Boosting prediction"
+            )
 
     with p4:
-        st.info(
-            "**04  INSIGHT**\n\n"
-            "Value & segmentation intelligence"
-        )
+
+        with st.container(border=True):
+
+            st.subheader("04")
+
+            st.write("💡 Insight")
+
+            st.caption(
+                "Customer value intelligence"
+            )
 
     # ========================================================
     # PREVIEW
     # ========================================================
 
-    st.markdown(
-        '<div class="section-title">Customer Value Preview</div>',
-        unsafe_allow_html=True
-    )
+    st.header("📈 Customer Value Preview")
 
-    if data is not None and "Predicted_CLV" in data.columns:
+    if (
+        data is not None
+        and not data.empty
+        and "Predicted_CLV" in data.columns
+    ):
 
-        fig, ax = plt.subplots(
-            figsize=(12, 4)
-        )
-
-        ax.plot(
+        values = pd.to_numeric(
             data["Predicted_CLV"],
-            linewidth=2,
-            marker="o"
-        )
+            errors="coerce"
+        ).dropna()
 
-        ax.set_title(
-            "Predicted Customer Lifetime Value"
-        )
+        if not values.empty:
 
-        ax.set_xlabel(
-            "Customer"
-        )
+            fig, ax = plt.subplots(
+                figsize=(12, 4)
+            )
 
-        ax.set_ylabel(
-            "CLV"
-        )
+            ax.plot(
+                range(1, len(values) + 1),
+                values,
+                marker="o",
+                linewidth=2
+            )
 
-        ax.grid(
-            alpha=.2
-        )
+            ax.set_xlabel(
+                "Customer"
+            )
 
-        st.pyplot(
-            fig,
-            use_container_width=True
-        )
+            ax.set_ylabel(
+                "Predicted CLV"
+            )
+
+            ax.set_title(
+                "Predicted Customer Lifetime Value"
+            )
+
+            ax.grid(
+                alpha=0.2
+            )
+
+            st.pyplot(
+                fig,
+                use_container_width=True
+            )
+
+            plt.close(fig)
 
     else:
 
         st.info(
-            "Your CLV intelligence chart will appear here "
+            "Your CLV intelligence chart will appear "
             "after the first prediction."
         )
 
@@ -650,73 +539,78 @@ if page == "⌂ Overview":
 
 elif page == "◈ CLV Prediction":
 
-    st.markdown(
-        '<div class="section-title">Customer Lifetime Value Prediction</div>',
-        unsafe_allow_html=True
+    st.title(
+        "◈ Customer Lifetime Value Prediction"
     )
 
-    st.markdown(
-        '<div class="section-sub">'
-        'Enter customer behaviour and let the ML engine estimate future value.'
-        '</div>',
-        unsafe_allow_html=True
+    st.write(
+        "Enter customer behaviour and let the ML engine "
+        "estimate future customer value."
     )
+
+    st.divider()
 
     left, right = st.columns(
-        [1, 1.2]
+        [1, 1.25]
     )
+
+    # ========================================================
+    # INPUT
+    # ========================================================
 
     with left:
 
-        st.markdown(
-            """
-            <div class="card">
-            <b>Customer Behaviour Input</b>
-            <br><br>
-            Provide the customer's RFM information.
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        with st.container(border=True):
 
-        st.write("")
+            st.subheader(
+                "👤 Customer Behaviour"
+            )
 
-        recency = st.number_input(
-            "Recency",
-            min_value=0,
-            max_value=365,
-            value=30,
-            help="Days since the customer's last purchase."
-        )
+            st.caption(
+                "Enter the customer's RFM information."
+            )
 
-        frequency = st.number_input(
-            "Frequency",
-            min_value=1,
-            max_value=100,
-            value=5,
-            help="Number of purchases."
-        )
+            recency = st.number_input(
+                "Recency",
+                min_value=0,
+                max_value=365,
+                value=st.session_state.last_recency,
+                help="Days since last purchase."
+            )
 
-        monetary = st.number_input(
-            "Monetary Value",
-            min_value=0.0,
-            max_value=100000.0,
-            value=500.0,
-            step=50.0,
-            help="Total amount spent."
-        )
+            frequency = st.number_input(
+                "Frequency",
+                min_value=1,
+                max_value=100,
+                value=st.session_state.last_frequency,
+                help="Number of purchases."
+            )
 
-        predict = st.button(
-            "✦ RUN ML PREDICTION",
-            type="primary",
-            use_container_width=True
-        )
+            monetary = st.number_input(
+                "Monetary Value",
+                min_value=0.0,
+                max_value=100000.0,
+                value=st.session_state.last_monetary,
+                step=50.0,
+                help="Total amount spent."
+            )
+
+            st.write("")
+
+            predict = st.button(
+                "🚀 RUN ML PREDICTION",
+                type="primary",
+                use_container_width=True
+            )
+
+    # ========================================================
+    # CUSTOMER PROFILE
+    # ========================================================
 
     with right:
 
-        st.markdown(
-            '<div class="section-title">Customer Profile</div>',
-            unsafe_allow_html=True
+        st.subheader(
+            "Customer Profile"
         )
 
         x1, x2, x3 = st.columns(3)
@@ -738,15 +632,30 @@ elif page == "◈ CLV Prediction":
 
         st.write("")
 
-        st.info(
-            """
-            **Model Input**
+        with st.container(border=True):
 
-            These three behavioural signals are processed
-            by the Gradient Boosting model to estimate
-            Customer Lifetime Value.
-            """
-        )
+            st.subheader("🤖 Model Information")
+
+            st.write(
+                "The NEXA CLV model uses three behavioural "
+                "signals:"
+            )
+
+            st.write(
+                "• Recency — how recently the customer purchased"
+            )
+
+            st.write(
+                "• Frequency — how often the customer purchases"
+            )
+
+            st.write(
+                "• Monetary — how much the customer spends"
+            )
+
+    # ========================================================
+    # PREDICTION
+    # ========================================================
 
     if predict:
 
@@ -766,15 +675,21 @@ elif page == "◈ CLV Prediction":
             model.predict(customer)[0]
         )
 
-        customer[
-            "Predicted_CLV"
-        ] = prediction
+        customer["Predicted_CLV"] = prediction
 
-        save_data(
-            customer
-        )
+        save_data(customer)
 
         st.session_state.prediction = prediction
+
+        st.session_state.last_recency = recency
+
+        st.session_state.last_frequency = frequency
+
+        st.session_state.last_monetary = monetary
+
+    # ========================================================
+    # RESULT
+    # ========================================================
 
     if st.session_state.prediction is not None:
 
@@ -782,25 +697,33 @@ elif page == "◈ CLV Prediction":
 
         st.divider()
 
-        st.markdown(
-            '<div class="section-title">ML Prediction Result</div>',
-            unsafe_allow_html=True
+        st.header(
+            "🎯 ML Prediction Result"
         )
 
         if prediction >= 2000:
 
             level = "HIGH VALUE"
-            icon = "🟢"
+            message = (
+                "This customer shows strong potential "
+                "for long-term business value."
+            )
 
         elif prediction >= 1000:
 
             level = "MEDIUM VALUE"
-            icon = "🟡"
+            message = (
+                "This customer represents a valuable "
+                "relationship with growth potential."
+            )
 
         else:
 
             level = "STANDARD VALUE"
-            icon = "🔵"
+            message = (
+                "This customer currently has a lower "
+                "predicted lifetime value."
+            )
 
         r1, r2, r3 = st.columns(3)
 
@@ -810,8 +733,8 @@ elif page == "◈ CLV Prediction":
         )
 
         r2.metric(
-            "CUSTOMER VALUE",
-            f"{icon} {level}"
+            "CUSTOMER SEGMENT",
+            level
         )
 
         r3.metric(
@@ -819,26 +742,55 @@ elif page == "◈ CLV Prediction":
             "Gradient Boosting"
         )
 
-        st.success(
-            "✓ Prediction completed successfully."
-        )
+        if prediction >= 2000:
 
-        st.markdown(
-            '<div class="section-title">RFM Behaviour Analysis</div>',
-            unsafe_allow_html=True
+            st.success(
+                f"🟢 {message}"
+            )
+
+        elif prediction >= 1000:
+
+            st.warning(
+                f"🟡 {message}"
+            )
+
+        else:
+
+            st.info(
+                f"🔵 {message}"
+            )
+
+        # ====================================================
+        # RFM VISUALIZATION
+        # ====================================================
+
+        st.header(
+            "📊 RFM Behaviour Analysis"
         )
 
         fig, ax = plt.subplots(
             figsize=(10, 4)
         )
 
+        features = [
+            "Recency",
+            "Frequency",
+            "Monetary"
+        ]
+
+        values = [
+            recency,
+            frequency,
+            monetary
+        ]
+
         ax.bar(
-            ["Recency", "Frequency", "Monetary"],
-            [
-                recency,
-                frequency,
-                monetary
-            ]
+            features,
+            values
+        )
+
+        ax.set_ylabel(
+            "Value"
         )
 
         ax.set_title(
@@ -847,7 +799,7 @@ elif page == "◈ CLV Prediction":
 
         ax.grid(
             axis="y",
-            alpha=.2
+            alpha=0.2
         )
 
         st.pyplot(
@@ -855,31 +807,33 @@ elif page == "◈ CLV Prediction":
             use_container_width=True
         )
 
+        plt.close(fig)
+
 
 # ============================================================
-# SEGMENTATION
+# CUSTOMER SEGMENTATION
 # ============================================================
 
 elif page == "◉ Customer Segmentation":
 
-    st.markdown(
-        '<div class="section-title">Customer Segmentation</div>',
-        unsafe_allow_html=True
+    st.title(
+        "◉ Customer Segmentation"
     )
 
-    st.markdown(
-        '<div class="section-sub">'
-        'Discover behavioural groups using unsupervised machine learning.'
-        '</div>',
-        unsafe_allow_html=True
+    st.write(
+        "Discover behavioural customer groups using "
+        "K-Means clustering."
     )
+
+    st.divider()
 
     st.info(
-        "Upload a CSV containing customer Recency, Frequency and Monetary data."
+        "Upload a CSV containing customer Recency, "
+        "Frequency and Monetary data."
     )
 
     uploaded = st.file_uploader(
-        "Upload customer dataset",
+        "Upload Customer Dataset",
         type=["csv"]
     )
 
@@ -892,47 +846,52 @@ elif page == "◉ Customer Segmentation":
             )
 
             st.success(
-                f"Dataset loaded • {len(df):,} customer records"
+                f"Dataset loaded successfully • "
+                f"{len(df):,} customer records"
             )
 
-            st.dataframe(
-                df.head(10),
-                use_container_width=True
-            )
+            with st.expander(
+                "👁 Preview Dataset",
+                expanded=True
+            ):
+
+                st.dataframe(
+                    df.head(10),
+                    use_container_width=True
+                )
 
             st.divider()
 
-            st.markdown(
-                '<div class="section-title">Feature Selection</div>',
-                unsafe_allow_html=True
+            st.header(
+                "⚙ Feature Selection"
             )
 
             a, b, c = st.columns(3)
 
             recency_col = a.selectbox(
-                "Recency",
+                "Recency Column",
                 df.columns
             )
 
             frequency_col = b.selectbox(
-                "Frequency",
+                "Frequency Column",
                 df.columns
             )
 
             monetary_col = c.selectbox(
-                "Monetary",
+                "Monetary Column",
                 df.columns
             )
 
             cluster_count = st.slider(
-                "Number of customer clusters",
-                2,
-                6,
-                3
+                "Number of Customer Clusters",
+                min_value=2,
+                max_value=6,
+                value=3
             )
 
             run = st.button(
-                "✦ RUN CLUSTERING MODEL",
+                "🚀 RUN K-MEANS CLUSTERING",
                 type="primary",
                 use_container_width=True
             )
@@ -954,9 +913,7 @@ elif page == "◉ Customer Segmentation":
                     axis=1
                 )
 
-                X = X.loc[
-                    valid
-                ]
+                X = X.loc[valid]
 
                 result = df.loc[
                     valid
@@ -988,8 +945,10 @@ elif page == "◉ Customer Segmentation":
                     )
 
                     st.success(
-                        "✓ K-Means segmentation completed."
+                        "✓ K-Means segmentation completed successfully."
                     )
+
+                    st.divider()
 
                     m1, m2, m3, m4 = st.columns(4)
 
@@ -1013,11 +972,12 @@ elif page == "◉ Customer Segmentation":
                         f"{X[frequency_col].mean():.1f}"
                     )
 
-                    st.divider()
+                    # =================================================
+                    # BEHAVIOURAL MAP
+                    # =================================================
 
-                    st.markdown(
-                        '<div class="section-title">Behavioural Map</div>',
-                        unsafe_allow_html=True
+                    st.header(
+                        "🗺 Behavioural Customer Map"
                     )
 
                     fig, ax = plt.subplots(
@@ -1030,7 +990,7 @@ elif page == "◉ Customer Segmentation":
                         c=result["Cluster"],
                         cmap="viridis",
                         s=80,
-                        alpha=.85
+                        alpha=0.85
                     )
 
                     ax.set_xlabel(
@@ -1046,7 +1006,7 @@ elif page == "◉ Customer Segmentation":
                     )
 
                     ax.grid(
-                        alpha=.2
+                        alpha=0.2
                     )
 
                     plt.colorbar(
@@ -1060,9 +1020,14 @@ elif page == "◉ Customer Segmentation":
                         use_container_width=True
                     )
 
-                    st.markdown(
-                        '<div class="section-title">Segment Intelligence</div>',
-                        unsafe_allow_html=True
+                    plt.close(fig)
+
+                    # =================================================
+                    # SEGMENT SUMMARY
+                    # =================================================
+
+                    st.header(
+                        "📋 Segment Intelligence"
                     )
 
                     summary = result.groupby(
@@ -1081,7 +1046,7 @@ elif page == "◉ Customer Segmentation":
                     )
 
                     st.download_button(
-                        "↓ Download Segmented Customers",
+                        "⬇ Download Segmented Customers",
                         result.to_csv(
                             index=False
                         ),
@@ -1103,17 +1068,15 @@ elif page == "◉ Customer Segmentation":
 
 elif page == "▦ Analytics":
 
-    st.markdown(
-        '<div class="section-title">Customer Intelligence Analytics</div>',
-        unsafe_allow_html=True
+    st.title(
+        "▦ Customer Intelligence Analytics"
     )
 
-    st.markdown(
-        '<div class="section-sub">'
-        'Monitor the value distribution of your predicted customers.'
-        '</div>',
-        unsafe_allow_html=True
+    st.write(
+        "Monitor the value distribution of predicted customers."
     )
+
+    st.divider()
 
     data = load_data()
 
@@ -1126,208 +1089,309 @@ elif page == "▦ Analytics":
     elif "Predicted_CLV" not in data.columns:
 
         st.warning(
-            "The stored data does not contain Predicted_CLV."
+            "Stored data does not contain Predicted_CLV."
         )
 
     else:
 
-        values = data[
-            "Predicted_CLV"
-        ]
+        values = pd.to_numeric(
+            data["Predicted_CLV"],
+            errors="coerce"
+        ).dropna()
 
-        a, b, c, d = st.columns(4)
+        if values.empty:
 
-        a.metric(
-            "Predictions",
-            len(values)
-        )
-
-        b.metric(
-            "Average CLV",
-            f"${values.mean():,.0f}"
-        )
-
-        c.metric(
-            "Maximum CLV",
-            f"${values.max():,.0f}"
-        )
-
-        d.metric(
-            "Minimum CLV",
-            f"${values.min():,.0f}"
-        )
-
-        st.divider()
-
-        left, right = st.columns(2)
-
-        with left:
-
-            st.markdown(
-                '<div class="section-title">CLV Distribution</div>',
-                unsafe_allow_html=True
+            st.info(
+                "No valid CLV values are available."
             )
 
-            fig, ax = plt.subplots(
-                figsize=(8, 4)
+        else:
+
+            a, b, c, d = st.columns(4)
+
+            a.metric(
+                "Predictions",
+                len(values)
             )
 
-            ax.hist(
-                values,
-                bins=10
+            b.metric(
+                "Average CLV",
+                f"${values.mean():,.0f}"
             )
 
-            ax.set_xlabel(
-                "Predicted CLV"
+            c.metric(
+                "Maximum CLV",
+                f"${values.max():,.0f}"
             )
 
-            ax.set_ylabel(
-                "Customers"
+            d.metric(
+                "Minimum CLV",
+                f"${values.min():,.0f}"
             )
 
-            ax.grid(
-                alpha=.2
+            st.divider()
+
+            left, right = st.columns(2)
+
+            # =================================================
+            # HISTOGRAM
+            # =================================================
+
+            with left:
+
+                st.subheader(
+                    "📊 CLV Distribution"
+                )
+
+                fig, ax = plt.subplots(
+                    figsize=(8, 4)
+                )
+
+                ax.hist(
+                    values,
+                    bins=min(10, max(3, len(values)))
+                )
+
+                ax.set_xlabel(
+                    "Predicted CLV"
+                )
+
+                ax.set_ylabel(
+                    "Customers"
+                )
+
+                ax.set_title(
+                    "Customer Lifetime Value Distribution"
+                )
+
+                ax.grid(
+                    alpha=0.2
+                )
+
+                st.pyplot(
+                    fig,
+                    use_container_width=True
+                )
+
+                plt.close(fig)
+
+            # =================================================
+            # TREND
+            # =================================================
+
+            with right:
+
+                st.subheader(
+                    "📈 Value Trend"
+                )
+
+                fig, ax = plt.subplots(
+                    figsize=(8, 4)
+                )
+
+                ax.plot(
+                    range(1, len(values) + 1),
+                    values,
+                    marker="o"
+                )
+
+                ax.set_xlabel(
+                    "Customer"
+                )
+
+                ax.set_ylabel(
+                    "CLV"
+                )
+
+                ax.set_title(
+                    "Predicted CLV Trend"
+                )
+
+                ax.grid(
+                    alpha=0.2
+                )
+
+                st.pyplot(
+                    fig,
+                    use_container_width=True
+                )
+
+                plt.close(fig)
+
+            st.divider()
+
+            # =================================================
+            # VALUE CATEGORIES
+            # =================================================
+
+            st.header(
+                "🎯 Customer Value Categories"
             )
 
-            st.pyplot(
-                fig,
+            high = int(
+                (values >= 2000).sum()
+            )
+
+            medium = int(
+                (
+                    (values >= 1000)
+                    &
+                    (values < 2000)
+                ).sum()
+            )
+
+            standard = int(
+                (values < 1000).sum()
+            )
+
+            c1, c2, c3 = st.columns(3)
+
+            c1.metric(
+                "🟢 High Value",
+                high
+            )
+
+            c2.metric(
+                "🟡 Medium Value",
+                medium
+            )
+
+            c3.metric(
+                "🔵 Standard Value",
+                standard
+            )
+
+            st.divider()
+
+            st.header(
+                "📋 Prediction Records"
+            )
+
+            st.dataframe(
+                data,
                 use_container_width=True
             )
 
-        with right:
-
-            st.markdown(
-                '<div class="section-title">Value Trend</div>',
-                unsafe_allow_html=True
-            )
-
-            fig, ax = plt.subplots(
-                figsize=(8, 4)
-            )
-
-            ax.plot(
-                values,
-                marker="o"
-            )
-
-            ax.set_xlabel(
-                "Customer"
-            )
-
-            ax.set_ylabel(
-                "CLV"
-            )
-
-            ax.grid(
-                alpha=.2
-            )
-
-            st.pyplot(
-                fig,
+            st.download_button(
+                "⬇ Download Analytics Data",
+                data.to_csv(index=False),
+                "nexa_clv_analytics.csv",
+                "text/csv",
                 use_container_width=True
             )
-
-        st.divider()
-
-        st.markdown(
-            '<div class="section-title">Prediction Data</div>',
-            unsafe_allow_html=True
-        )
-
-        st.dataframe(
-            data,
-            use_container_width=True
-        )
 
 
 # ============================================================
-# ADMIN
+# ADMINISTRATION
 # ============================================================
 
 elif page == "⚙ Administration":
 
-    st.markdown(
-        '<div class="section-title">Administration</div>',
-        unsafe_allow_html=True
+    st.title(
+        "⚙ Administration"
     )
 
-    st.markdown(
-        '<div class="section-sub">'
-        'Secure management of stored prediction records.'
-        '</div>',
-        unsafe_allow_html=True
+    st.write(
+        "Secure management of stored prediction records."
     )
+
+    st.divider()
+
+    # ========================================================
+    # BLOCKED
+    # ========================================================
 
     if st.session_state.blocked:
 
         st.error(
-            "Access blocked after 3 incorrect attempts."
+            "🔒 Access blocked after 3 incorrect attempts."
+        )
+
+        st.write(
+            "Please contact the administrator if you "
+            "need access."
         )
 
         st.link_button(
-            "Contact Administrator",
+            "📧 Contact Administrator",
             "https://mail.google.com/mail/?view=cm&fs=1&to=atharavshende999@gmail.com",
             use_container_width=True
         )
 
         st.stop()
 
+    # ========================================================
+    # LOGIN
+    # ========================================================
+
     if not st.session_state.admin:
 
-        st.info(
-            "Administrator authentication required."
-        )
+        with st.container(border=True):
 
-        password = st.text_input(
-            "Admin Password",
-            type="password"
-        )
+            st.subheader(
+                "🔐 Administrator Login"
+            )
 
-        login = st.button(
-            "SIGN IN",
-            type="primary",
-            use_container_width=True
-        )
+            st.info(
+                "Administrator authentication is required "
+                "to access stored customer records."
+            )
 
-        if login:
+            password = st.text_input(
+                "Admin Password",
+                type="password"
+            )
 
-            if password == "admin123":
+            login = st.button(
+                "🔑 SIGN IN",
+                type="primary",
+                use_container_width=True
+            )
 
-                st.session_state.admin = True
-                st.session_state.attempts = 0
+            if login:
 
-                st.rerun()
+                if password == "admin123":
 
-            else:
+                    st.session_state.admin = True
 
-                st.session_state.attempts += 1
+                    st.session_state.attempts = 0
 
-                remaining = (
-                    3 -
-                    st.session_state.attempts
-                )
-
-                if remaining > 0:
-
-                    st.error(
-                        f"Incorrect password. "
-                        f"{remaining} attempts remaining."
-                    )
+                    st.rerun()
 
                 else:
 
-                    st.session_state.blocked = True
+                    st.session_state.attempts += 1
 
-                    st.rerun()
+                    remaining = (
+                        3 -
+                        st.session_state.attempts
+                    )
+
+                    if remaining > 0:
+
+                        st.error(
+                            f"Incorrect password. "
+                            f"{remaining} attempts remaining."
+                        )
+
+                    else:
+
+                        st.session_state.blocked = True
+
+                        st.rerun()
+
+    # ========================================================
+    # ADMIN DASHBOARD
+    # ========================================================
 
     else:
 
         st.success(
-            "Administrator authenticated."
+            "✓ Administrator authenticated successfully."
         )
 
         if st.button(
-            "LOG OUT",
+            "🚪 LOG OUT",
             use_container_width=True
         ):
 
@@ -1341,9 +1405,8 @@ elif page == "⚙ Administration":
 
             st.divider()
 
-            st.markdown(
-                '<div class="section-title">Stored Intelligence</div>',
-                unsafe_allow_html=True
+            st.header(
+                "📊 Stored Intelligence"
             )
 
             a, b, c = st.columns(3)
@@ -1355,15 +1418,24 @@ elif page == "⚙ Administration":
 
             if "Predicted_CLV" in data.columns:
 
-                b.metric(
-                    "Average CLV",
-                    f"${data['Predicted_CLV'].mean():,.0f}"
-                )
+                values = pd.to_numeric(
+                    data["Predicted_CLV"],
+                    errors="coerce"
+                ).dropna()
 
-                c.metric(
-                    "Highest CLV",
-                    f"${data['Predicted_CLV'].max():,.0f}"
-                )
+                if not values.empty:
+
+                    b.metric(
+                        "Average CLV",
+                        f"${values.mean():,.0f}"
+                    )
+
+                    c.metric(
+                        "Highest CLV",
+                        f"${values.max():,.0f}"
+                    )
+
+            st.divider()
 
             st.dataframe(
                 data,
@@ -1371,7 +1443,7 @@ elif page == "⚙ Administration":
             )
 
             st.download_button(
-                "↓ Download Prediction Records",
+                "⬇ Download Prediction Records",
                 data.to_csv(index=False),
                 "clv_records.csv",
                 "text/csv",
@@ -1381,7 +1453,7 @@ elif page == "⚙ Administration":
         else:
 
             st.info(
-                "No prediction records have been stored."
+                "No prediction records have been stored yet."
             )
 
 
@@ -1389,13 +1461,9 @@ elif page == "⚙ Administration":
 # FOOTER
 # ============================================================
 
-st.markdown(
-    """
-    <div class="footer">
-        NEXA CLV · MACHINE LEARNING CUSTOMER INTELLIGENCE
-        <br>
-        Gradient Boosting · K-Means · RFM Analytics
-    </div>
-    """,
-    unsafe_allow_html=True
+st.divider()
+
+st.caption(
+    "NEXA CLV • Machine Learning Customer Intelligence • "
+    "Gradient Boosting • K-Means • RFM Analytics"
 )
