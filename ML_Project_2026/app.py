@@ -14,7 +14,7 @@ from sklearn.model_selection import train_test_split
 # ============================================================
 
 st.set_page_config(
-    page_title="CLV Intelligence Dashboard",
+    page_title="CLV Intelligence",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -28,185 +28,293 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-    /* ---------- MAIN BACKGROUND ---------- */
+    /* ================= GLOBAL ================= */
 
     .stApp {
-        background: #f5f7fb;
+        background-color: #f4f7fb;
     }
 
-    /* ---------- SIDEBAR ---------- */
+    .main .block-container {
+        padding-top: 2rem;
+        padding-bottom: 3rem;
+        max-width: 1450px;
+    }
+
+    h1, h2, h3 {
+        color: #172033;
+    }
+
+    /* ================= SIDEBAR ================= */
 
     section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #111827 0%, #1e293b 100%);
+        background: linear-gradient(
+            180deg,
+            #111827 0%,
+            #172554 55%,
+            #1e1b4b 100%
+        );
+    }
+
+    section[data-testid="stSidebar"] > div {
+        padding-top: 1rem;
     }
 
     section[data-testid="stSidebar"] * {
-        color: white !important;
+        color: #ffffff;
     }
 
-    section[data-testid="stSidebar"] .stRadio label {
-        padding: 10px;
-        border-radius: 8px;
+    /* ================= BRAND ================= */
+
+    .brand {
+        text-align: center;
+        padding: 10px 5px 20px 5px;
     }
 
-    /* ---------- HEADINGS ---------- */
+    .brand-icon {
+        font-size: 48px;
+    }
 
-    h1 {
-        color: #111827;
+    .brand-title {
+        font-size: 21px;
         font-weight: 800;
+        color: white;
+        margin-top: 5px;
     }
 
-    h2 {
-        color: #1e293b;
-        font-weight: 700;
+    .brand-subtitle {
+        font-size: 12px;
+        color: #a5b4fc;
+        margin-top: 4px;
     }
 
-    h3 {
-        color: #334155;
+    .sidebar-bottom {
+        margin-top: 30px;
+        padding: 15px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 12px;
+        text-align: center;
+        font-size: 12px;
+        color: #c7d2fe;
     }
 
-    /* ---------- CARDS ---------- */
-
-    .metric-card {
-        background: white;
-        padding: 22px;
-        border-radius: 16px;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 5px 18px rgba(15, 23, 42, 0.06);
-        min-height: 125px;
-    }
-
-    .metric-title {
-        color: #64748b;
-        font-size: 14px;
-        font-weight: 600;
-    }
-
-    .metric-value {
-        color: #111827;
-        font-size: 28px;
-        font-weight: 800;
-        margin-top: 8px;
-    }
-
-    .metric-icon {
-        font-size: 28px;
-        margin-bottom: 5px;
-    }
-
-    /* ---------- HERO ---------- */
+    /* ================= HERO ================= */
 
     .hero {
         background: linear-gradient(
             135deg,
             #2563eb 0%,
-            #4f46e5 100%
+            #4f46e5 50%,
+            #7c3aed 100%
         );
-        padding: 35px;
-        border-radius: 20px;
+
+        border-radius: 22px;
+        padding: 34px 38px;
         color: white;
-        margin-bottom: 25px;
-        box-shadow: 0 10px 30px rgba(37, 99, 235, 0.25);
+        box-shadow: 0 12px 35px rgba(79,70,229,0.25);
+        margin-bottom: 28px;
     }
 
-    .hero h1 {
-        color: white;
+    .hero-title {
         font-size: 36px;
+        font-weight: 800;
         margin-bottom: 8px;
     }
 
-    .hero p {
-        color: #dbeafe;
+    .hero-text {
         font-size: 16px;
-        margin: 0;
+        color: #e0e7ff;
+        max-width: 800px;
+        line-height: 1.6;
     }
 
-    /* ---------- INFO CARDS ---------- */
+    .online {
+        float: right;
+        background: rgba(255,255,255,0.15);
+        padding: 8px 14px;
+        border-radius: 30px;
+        font-size: 13px;
+        font-weight: 600;
+    }
 
-    .info-card {
+    /* ================= KPI ================= */
+
+    .kpi-card {
         background: white;
-        padding: 22px;
-        border-radius: 15px;
         border: 1px solid #e5e7eb;
-        height: 100%;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+        border-radius: 17px;
+        padding: 22px;
+        min-height: 145px;
+        box-shadow: 0 5px 20px rgba(15,23,42,0.05);
     }
 
-    .info-card h3 {
-        margin-top: 0;
-        color: #1e293b;
+    .kpi-icon {
+        font-size: 28px;
+        margin-bottom: 8px;
     }
 
-    .info-card p {
+    .kpi-label {
+        font-size: 13px;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    .kpi-value {
+        font-size: 29px;
+        font-weight: 800;
+        color: #111827;
+        margin-top: 7px;
+    }
+
+    .kpi-small {
+        font-size: 12px;
+        color: #10b981;
+        margin-top: 5px;
+    }
+
+    /* ================= SECTION ================= */
+
+    .section {
+        font-size: 22px;
+        font-weight: 800;
+        color: #172033;
+        margin-top: 28px;
+        margin-bottom: 16px;
+    }
+
+    /* ================= FEATURE CARD ================= */
+
+    .feature-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 17px;
+        padding: 24px;
+        min-height: 180px;
+        box-shadow: 0 5px 18px rgba(15,23,42,0.04);
+    }
+
+    .feature-icon {
+        font-size: 35px;
+        margin-bottom: 12px;
+    }
+
+    .feature-title {
+        font-size: 18px;
+        font-weight: 750;
+        color: #172033;
+        margin-bottom: 8px;
+    }
+
+    .feature-text {
+        font-size: 14px;
         color: #64748b;
         line-height: 1.6;
     }
 
-    /* ---------- PREDICTION RESULT ---------- */
+    /* ================= INPUT CARD ================= */
 
-    .prediction-box {
+    .input-card {
+        background: white;
+        padding: 25px;
+        border-radius: 18px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 5px 20px rgba(15,23,42,0.05);
+    }
+
+    /* ================= PREDICTION ================= */
+
+    .prediction-card {
         background: linear-gradient(
             135deg,
             #ecfdf5,
             #d1fae5
         );
+
         border: 1px solid #86efac;
-        padding: 25px;
-        border-radius: 16px;
+        border-radius: 20px;
+        padding: 30px;
         text-align: center;
-        margin-top: 20px;
+        margin-top: 15px;
     }
 
-    .prediction-label {
+    .prediction-title {
         color: #166534;
-        font-size: 15px;
-        font-weight: 600;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 1px;
     }
 
     .prediction-value {
         color: #15803d;
-        font-size: 40px;
+        font-size: 42px;
+        font-weight: 900;
+        margin: 8px 0;
+    }
+
+    .prediction-status {
+        display: inline-block;
+        background: #16a34a;
+        color: white;
+        padding: 7px 16px;
+        border-radius: 30px;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    /* ================= SEGMENT CARD ================= */
+
+    .segment-card {
+        background: white;
+        border-radius: 17px;
+        padding: 20px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 5px 18px rgba(15,23,42,0.04);
+    }
+
+    .segment-number {
+        font-size: 28px;
         font-weight: 800;
+        color: #4f46e5;
     }
 
-    /* ---------- SECTION ---------- */
-
-    .section-title {
-        font-size: 22px;
-        font-weight: 750;
-        color: #1e293b;
-        margin-top: 20px;
-        margin-bottom: 15px;
+    .segment-label {
+        color: #64748b;
+        font-size: 13px;
     }
 
-    /* ---------- FOOTER ---------- */
+    /* ================= ADMIN ================= */
+
+    .login-card {
+        background: white;
+        border-radius: 20px;
+        padding: 35px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 8px 30px rgba(15,23,42,0.07);
+        max-width: 550px;
+        margin: auto;
+    }
+
+    /* ================= FOOTER ================= */
 
     .footer {
         text-align: center;
         color: #94a3b8;
-        font-size: 13px;
-        padding: 30px 0 10px 0;
+        font-size: 12px;
+        padding-top: 35px;
     }
 
-    /* ---------- BUTTON ---------- */
+    /* ================= BUTTON ================= */
 
     .stButton > button {
         border-radius: 10px;
-        border: none;
-        padding: 10px 20px;
         font-weight: 700;
-        transition: 0.2s;
+        min-height: 45px;
     }
 
-    .stButton > button:hover {
-        transform: translateY(-2px);
-    }
+    /* ================= FILE UPLOADER ================= */
 
-    /* ---------- DATAFRAME ---------- */
-
-    [data-testid="stDataFrame"] {
-        border-radius: 12px;
-        overflow: hidden;
+    [data-testid="stFileUploader"] {
+        background: white;
+        border-radius: 15px;
     }
 
 </style>
@@ -214,30 +322,66 @@ st.markdown("""
 
 
 # ============================================================
-# FILE CONFIG
+# CONFIG
 # ============================================================
 
 DATA_FILE = "user_inputs.xlsx"
 
 
 # ============================================================
-# MODEL FUNCTION
+# SESSION STATE
+# ============================================================
+
+if "admin_logged_in" not in st.session_state:
+    st.session_state.admin_logged_in = False
+
+if "attempts" not in st.session_state:
+    st.session_state.attempts = 0
+
+if "blocked" not in st.session_state:
+    st.session_state.blocked = False
+
+
+# ============================================================
+# MODEL
 # ============================================================
 
 def train_clv_model():
 
     data = {
-        "Recency": [10, 20, 5, 30, 15, 40, 25, 8, 60, 12, 35, 18],
-        "Frequency": [5, 3, 10, 2, 7, 1, 4, 12, 2, 8, 3, 6],
-        "Monetary": [500, 300, 1000, 200, 700, 100, 400,
-                     1500, 250, 900, 350, 650],
-        "CLV": [1200, 700, 2500, 400, 1600, 200, 900,
-                3000, 500, 2000, 800, 1400]
+        "Recency": [
+            10, 20, 5, 30, 15, 40,
+            25, 8, 60, 12, 35, 18
+        ],
+
+        "Frequency": [
+            5, 3, 10, 2, 7, 1,
+            4, 12, 2, 8, 3, 6
+        ],
+
+        "Monetary": [
+            500, 300, 1000, 200,
+            700, 100, 400, 1500,
+            250, 900, 350, 650
+        ],
+
+        "CLV": [
+            1200, 700, 2500, 400,
+            1600, 200, 900, 3000,
+            500, 2000, 800, 1400
+        ]
     }
 
     df = pd.DataFrame(data)
 
-    X = df[["Recency", "Frequency", "Monetary"]]
+    X = df[
+        [
+            "Recency",
+            "Frequency",
+            "Monetary"
+        ]
+    ]
+
     y = df["CLV"]
 
     X_train, X_test, y_train, y_test = train_test_split(
@@ -251,40 +395,51 @@ def train_clv_model():
         random_state=42
     )
 
-    model.fit(X_train, y_train)
+    model.fit(
+        X_train,
+        y_train
+    )
 
     return model, df
 
 
 # ============================================================
-# SAVE USER DATA
+# SAVE DATA
 # ============================================================
 
-def save_user_data(user_data):
+def save_user_data(data):
 
     if os.path.exists(DATA_FILE):
 
         try:
-            old_data = pd.read_excel(DATA_FILE)
 
-            new_data = pd.concat(
-                [old_data, user_data],
+            old_data = pd.read_excel(
+                DATA_FILE
+            )
+
+            final_data = pd.concat(
+                [
+                    old_data,
+                    data
+                ],
                 ignore_index=True
             )
 
-            new_data.to_excel(
+            final_data.to_excel(
                 DATA_FILE,
                 index=False
             )
 
-        except Exception:
-            user_data.to_excel(
+        except:
+
+            data.to_excel(
                 DATA_FILE,
                 index=False
             )
 
     else:
-        user_data.to_excel(
+
+        data.to_excel(
             DATA_FILE,
             index=False
         )
@@ -297,160 +452,217 @@ def save_user_data(user_data):
 with st.sidebar:
 
     st.markdown("""
-    <div style="
-        text-align:center;
-        padding:15px 5px 25px 5px;
-    ">
-        <div style="font-size:45px;">📊</div>
-        <h2 style="margin:0;color:white;">
-            CLV Intelligence
-        </h2>
-        <p style="
-            color:#94a3b8;
-            font-size:13px;
-        ">
+    <div class="brand">
+
+        <div class="brand-icon">
+            📊
+        </div>
+
+        <div class="brand-title">
+            CLV INTELLIGENCE
+        </div>
+
+        <div class="brand-subtitle">
             Customer Analytics Platform
-        </p>
+        </div>
+
     </div>
     """, unsafe_allow_html=True)
 
     st.divider()
 
+    st.markdown(
+        "**MAIN MENU**"
+    )
+
     menu = st.radio(
-        "NAVIGATION",
+        "Navigation",
         [
-            "🏠 Home",
+            "🏠 Dashboard",
             "🔮 CLV Predictor",
-            "📊 Segmentation Dashboard",
+            "👥 Customer Segments",
             "🔐 Admin Panel"
         ],
-        label_visibility="visible"
+        label_visibility="collapsed"
     )
 
     st.divider()
 
-    st.caption("🤖 Machine Learning")
-    st.caption("📈 Customer Analytics")
-    st.caption("🔐 Secure Administration")
-
-
-# ============================================================
-# HOME
-# ============================================================
-
-if menu == "🏠 Home":
-
     st.markdown("""
-    <div class="hero">
+    <div class="sidebar-bottom">
 
-        <h1>📊 Customer Lifetime Value</h1>
+        🤖 Machine Learning<br>
+        📊 Customer Analytics<br>
+        🔐 Secure Data Management
 
-        <p>
-        AI-powered customer analytics dashboard for
-        predicting CLV and identifying valuable customer segments.
-        </p>
+        <br><br>
+
+        <b>System Status</b><br>
+        🟢 Online
 
     </div>
     """, unsafe_allow_html=True)
 
-    # KPI CARDS
 
-    total_customers = 12
+# ============================================================
+# DASHBOARD
+# ============================================================
+
+if menu == "🏠 Dashboard":
+
+    st.markdown("""
+    <div class="hero">
+
+        <div class="online">
+            ● System Online
+        </div>
+
+        <div class="hero-title">
+            Welcome to CLV Intelligence 👋
+        </div>
+
+        <div class="hero-text">
+            AI-powered Customer Lifetime Value analytics
+            platform for predicting customer value,
+            understanding behaviour and creating meaningful
+            customer segments.
+        </div>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ---------------- DATA ----------------
+
+    customer_count = 12
     avg_clv = 1333
     max_clv = 3000
 
     if os.path.exists(DATA_FILE):
 
         try:
-            stored = pd.read_excel(DATA_FILE)
 
-            if len(stored) > 0:
+            stored = pd.read_excel(
+                DATA_FILE
+            )
 
-                total_customers = len(stored)
+            if not stored.empty:
+
+                customer_count = len(stored)
 
                 if "Predicted_CLV" in stored.columns:
-                    avg_clv = stored["Predicted_CLV"].mean()
-                    max_clv = stored["Predicted_CLV"].max()
+
+                    avg_clv = stored[
+                        "Predicted_CLV"
+                    ].mean()
+
+                    max_clv = stored[
+                        "Predicted_CLV"
+                    ].max()
 
         except:
             pass
 
-    col1, col2, col3, col4 = st.columns(4)
+    # ---------------- KPI ----------------
 
-    with col1:
+    st.markdown(
+        '<div class="section">📊 Business Overview</div>',
+        unsafe_allow_html=True
+    )
+
+    c1, c2, c3, c4 = st.columns(4)
+
+    with c1:
 
         st.markdown(f"""
-        <div class="metric-card">
+        <div class="kpi-card">
 
-            <div class="metric-icon">👥</div>
+            <div class="kpi-icon">👥</div>
 
-            <div class="metric-title">
-                Customers Analyzed
+            <div class="kpi-label">
+                CUSTOMERS ANALYZED
             </div>
 
-            <div class="metric-value">
-                {total_customers}
+            <div class="kpi-value">
+                {customer_count}
+            </div>
+
+            <div class="kpi-small">
+                Customer records
             </div>
 
         </div>
         """, unsafe_allow_html=True)
 
-    with col2:
+    with c2:
 
         st.markdown(f"""
-        <div class="metric-card">
+        <div class="kpi-card">
 
-            <div class="metric-icon">💰</div>
+            <div class="kpi-icon">💰</div>
 
-            <div class="metric-title">
-                Average CLV
+            <div class="kpi-label">
+                AVERAGE CLV
             </div>
 
-            <div class="metric-value">
+            <div class="kpi-value">
                 ${avg_clv:,.0f}
             </div>
 
+            <div class="kpi-small">
+                Estimated value
+            </div>
+
         </div>
         """, unsafe_allow_html=True)
 
-    with col3:
+    with c3:
 
         st.markdown(f"""
-        <div class="metric-card">
+        <div class="kpi-card">
 
-            <div class="metric-icon">🏆</div>
+            <div class="kpi-icon">🏆</div>
 
-            <div class="metric-title">
-                Highest CLV
+            <div class="kpi-label">
+                HIGHEST CLV
             </div>
 
-            <div class="metric-value">
+            <div class="kpi-value">
                 ${max_clv:,.0f}
             </div>
 
+            <div class="kpi-small">
+                Top customer value
+            </div>
+
         </div>
         """, unsafe_allow_html=True)
 
-    with col4:
+    with c4:
 
         st.markdown("""
-        <div class="metric-card">
+        <div class="kpi-card">
 
-            <div class="metric-icon">🤖</div>
+            <div class="kpi-icon">🤖</div>
 
-            <div class="metric-title">
-                ML Model
+            <div class="kpi-label">
+                ML MODEL
             </div>
 
-            <div class="metric-value">
-                Active
+            <div class="kpi-value">
+                ACTIVE
+            </div>
+
+            <div class="kpi-small">
+                Gradient Boosting
             </div>
 
         </div>
         """, unsafe_allow_html=True)
 
+    # ---------------- FEATURES ----------------
+
     st.markdown(
-        '<div class="section-title">🚀 Platform Features</div>',
+        '<div class="section">🚀 Platform Capabilities</div>',
         unsafe_allow_html=True
     )
 
@@ -459,14 +671,21 @@ if menu == "🏠 Home":
     with c1:
 
         st.markdown("""
-        <div class="info-card">
+        <div class="feature-card">
 
-            <h3>🔮 CLV Prediction</h3>
+            <div class="feature-icon">
+                🔮
+            </div>
 
-            <p>
-            Predict the potential lifetime value of a customer
-            using Recency, Frequency and Monetary behaviour.
-            </p>
+            <div class="feature-title">
+                CLV Prediction
+            </div>
+
+            <div class="feature-text">
+                Predict future customer lifetime value
+                using Recency, Frequency and Monetary
+                behaviour with a machine learning model.
+            </div>
 
         </div>
         """, unsafe_allow_html=True)
@@ -474,14 +693,20 @@ if menu == "🏠 Home":
     with c2:
 
         st.markdown("""
-        <div class="info-card">
+        <div class="feature-card">
 
-            <h3>👥 Customer Segmentation</h3>
+            <div class="feature-icon">
+                👥
+            </div>
 
-            <p>
-            Use K-Means clustering to divide customers into
-            meaningful behavioural groups.
-            </p>
+            <div class="feature-title">
+                Customer Segmentation
+            </div>
+
+            <div class="feature-text">
+                Automatically divide customers into
+                meaningful groups using K-Means clustering.
+            </div>
 
         </div>
         """, unsafe_allow_html=True)
@@ -489,44 +714,60 @@ if menu == "🏠 Home":
     with c3:
 
         st.markdown("""
-        <div class="info-card">
+        <div class="feature-card">
 
-            <h3>🔐 Admin Analytics</h3>
+            <div class="feature-icon">
+                🔐
+            </div>
 
-            <p>
-            Securely access stored prediction records and
-            download customer analytics data.
-            </p>
+            <div class="feature-title">
+                Secure Administration
+            </div>
+
+            <div class="feature-text">
+                Manage prediction records and download
+                stored customer information through
+                the protected admin panel.
+            </div>
 
         </div>
         """, unsafe_allow_html=True)
 
+    # ---------------- WORKFLOW ----------------
+
     st.markdown(
-        '<div class="section-title">🧠 How CLV Works</div>',
+        '<div class="section">⚙️ How the System Works</div>',
         unsafe_allow_html=True
     )
 
-    step1, step2, step3 = st.columns(3)
+    w1, w2, w3, w4 = st.columns(4)
 
-    with step1:
-
+    with w1:
         st.info(
-            "1️⃣ **Customer Data**\n\n"
-            "Recency • Frequency • Monetary"
+            "### 01\n"
+            "📥 **Input Data**\n\n"
+            "Enter customer behaviour."
         )
 
-    with step2:
-
+    with w2:
         st.info(
-            "2️⃣ **Machine Learning**\n\n"
-            "Gradient Boosting Regression"
+            "### 02\n"
+            "🧠 **ML Processing**\n\n"
+            "Gradient Boosting analyzes data."
         )
 
-    with step3:
+    with w3:
+        st.info(
+            "### 03\n"
+            "💰 **CLV Prediction**\n\n"
+            "Calculate estimated customer value."
+        )
 
-        st.success(
-            "3️⃣ **CLV Result**\n\n"
-            "Estimated customer value"
+    with w4:
+        st.info(
+            "### 04\n"
+            "📊 **Analytics**\n\n"
+            "Understand customer segments."
         )
 
 
@@ -539,31 +780,45 @@ elif menu == "🔮 CLV Predictor":
     st.markdown("""
     <div class="hero">
 
-        <h1>🔮 CLV Predictor</h1>
+        <div class="hero-title">
+            🔮 Customer Lifetime Value Predictor
+        </div>
 
-        <p>
-        Enter customer behaviour data to estimate
-        their Customer Lifetime Value.
-        </p>
+        <div class="hero-text">
+            Enter customer purchase behaviour and
+            use machine learning to estimate their
+            future lifetime value.
+        </div>
 
     </div>
     """, unsafe_allow_html=True)
 
-    left, right = st.columns([1, 1])
+    left, right = st.columns(
+        [1, 1],
+        gap="large"
+    )
+
+    # ========================================================
+    # INPUT
+    # ========================================================
 
     with left:
 
         st.markdown(
-            '<div class="section-title">📋 Customer Information</div>',
+            '<div class="section">📋 Customer Information</div>',
             unsafe_allow_html=True
         )
 
         recency = st.number_input(
-            "📅 Recency (Days)",
+            "📅 Recency",
             min_value=0,
             max_value=365,
             value=30,
-            help="Number of days since the customer's last purchase."
+            step=1
+        )
+
+        st.caption(
+            "Days since the customer's last purchase."
         )
 
         frequency = st.number_input(
@@ -571,47 +826,80 @@ elif menu == "🔮 CLV Predictor":
             min_value=1,
             max_value=100,
             value=5,
-            help="Number of purchases made by the customer."
+            step=1
+        )
+
+        st.caption(
+            "Number of purchases made by the customer."
         )
 
         monetary = st.number_input(
-            "💵 Monetary Value ($)",
+            "💰 Monetary Value",
             min_value=0.0,
-            max_value=10000.0,
+            max_value=100000.0,
             value=500.0,
-            step=50.0,
-            help="Total monetary value generated by the customer."
+            step=50.0
         )
 
-        predict_button = st.button(
-            "🚀 Predict Customer CLV",
-            use_container_width=True,
-            type="primary"
+        st.caption(
+            "Total amount spent by the customer."
         )
+
+        st.write("")
+
+        predict = st.button(
+            "🚀 Predict Customer CLV",
+            type="primary",
+            use_container_width=True
+        )
+
+    # ========================================================
+    # CUSTOMER PROFILE
+    # ========================================================
 
     with right:
 
         st.markdown(
-            '<div class="section-title">📌 Customer Profile</div>',
+            '<div class="section">👤 Customer Profile</div>',
             unsafe_allow_html=True
         )
 
-        st.metric(
-            "Recency",
-            f"{recency} days"
+        st.markdown(
+            '<div class="input-card">',
+            unsafe_allow_html=True
         )
 
-        st.metric(
-            "Purchase Frequency",
-            f"{frequency}"
-        )
+        p1, p2 = st.columns(2)
+
+        with p1:
+
+            st.metric(
+                "📅 Recency",
+                f"{recency} days"
+            )
+
+        with p2:
+
+            st.metric(
+                "🔄 Frequency",
+                frequency
+            )
 
         st.metric(
-            "Monetary Value",
+            "💰 Monetary Value",
             f"${monetary:,.2f}"
         )
 
-    if predict_button:
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True
+        )
+
+    # ========================================================
+    # PREDICTION
+    # ========================================================
+
+    if predict:
 
         model, training_data = train_clv_model()
 
@@ -621,16 +909,43 @@ elif menu == "🔮 CLV Predictor":
             "Monetary": [monetary]
         })
 
-        prediction = model.predict(user_data)[0]
+        prediction = float(
+            model.predict(
+                user_data
+            )[0]
+        )
 
-        user_data["Predicted_CLV"] = prediction
+        user_data[
+            "Predicted_CLV"
+        ] = prediction
 
-        save_user_data(user_data)
+        save_user_data(
+            user_data
+        )
+
+        # Determine value level
+
+        if prediction >= 2000:
+
+            level = "HIGH VALUE"
+
+        elif prediction >= 1000:
+
+            level = "MEDIUM VALUE"
+
+        else:
+
+            level = "STANDARD VALUE"
+
+        st.markdown(
+            '<div class="section">💎 Prediction Result</div>',
+            unsafe_allow_html=True
+        )
 
         st.markdown(f"""
-        <div class="prediction-box">
+        <div class="prediction-card">
 
-            <div class="prediction-label">
+            <div class="prediction-title">
                 ESTIMATED CUSTOMER LIFETIME VALUE
             </div>
 
@@ -638,17 +953,29 @@ elif menu == "🔮 CLV Predictor":
                 ${prediction:,.2f}
             </div>
 
+            <div class="prediction-status">
+                {level}
+            </div>
+
         </div>
         """, unsafe_allow_html=True)
 
-        st.markdown("### 📊 Prediction Analysis")
+        # ====================================================
+        # CHART
+        # ====================================================
 
-        chart_data = pd.DataFrame({
+        st.markdown(
+            '<div class="section">📈 Customer Behaviour</div>',
+            unsafe_allow_html=True
+        )
+
+        chart_df = pd.DataFrame({
             "Metric": [
                 "Recency",
                 "Frequency",
                 "Monetary"
             ],
+
             "Value": [
                 recency,
                 frequency,
@@ -656,51 +983,73 @@ elif menu == "🔮 CLV Predictor":
             ]
         })
 
-        fig, ax = plt.subplots(figsize=(8, 4))
+        fig, ax = plt.subplots(
+            figsize=(9, 4)
+        )
 
         ax.bar(
-            chart_data["Metric"],
-            chart_data["Value"]
+            chart_df["Metric"],
+            chart_df["Value"]
         )
 
         ax.set_title(
-            "Customer Behaviour Profile"
+            "Customer Behaviour Profile",
+            fontsize=14,
+            fontweight="bold"
         )
 
-        ax.set_ylabel("Value")
+        ax.set_ylabel(
+            "Value"
+        )
 
         ax.grid(
             axis="y",
             alpha=0.2
         )
 
-        st.pyplot(fig)
+        st.pyplot(
+            fig,
+            use_container_width=True
+        )
 
         st.success(
-            "✅ Prediction completed and customer data saved successfully."
+            "✅ Prediction completed and saved successfully."
         )
 
 
 # ============================================================
-# SEGMENTATION DASHBOARD
+# SEGMENTATION
 # ============================================================
 
-elif menu == "📊 Segmentation Dashboard":
+elif menu == "👥 Customer Segments":
 
     st.markdown("""
     <div class="hero">
 
-        <h1>📊 Customer Segmentation</h1>
+        <div class="hero-title">
+            👥 Customer Segmentation
+        </div>
 
-        <p>
-        Discover customer groups using K-Means clustering.
-        </p>
+        <div class="hero-text">
+            Discover customer behaviour patterns and
+            divide customers into meaningful groups
+            using K-Means clustering.
+        </div>
 
     </div>
     """, unsafe_allow_html=True)
 
+    # ========================================================
+    # UPLOAD
+    # ========================================================
+
+    st.markdown(
+        '<div class="section">📂 Upload Dataset</div>',
+        unsafe_allow_html=True
+    )
+
     uploaded_file = st.file_uploader(
-        "📂 Upload Customer CSV Dataset",
+        "Upload your customer CSV file",
         type=["csv"]
     )
 
@@ -708,14 +1057,16 @@ elif menu == "📊 Segmentation Dashboard":
 
         try:
 
-            df = pd.read_csv(uploaded_file)
+            df = pd.read_csv(
+                uploaded_file
+            )
 
             st.success(
-                f"✅ Dataset loaded successfully — {len(df)} records found."
+                f"Dataset loaded successfully — {len(df)} records."
             )
 
             st.markdown(
-                '<div class="section-title">👀 Dataset Preview</div>',
+                '<div class="section">👀 Dataset Preview</div>',
                 unsafe_allow_html=True
             )
 
@@ -725,7 +1076,7 @@ elif menu == "📊 Segmentation Dashboard":
             )
 
             st.markdown(
-                '<div class="section-title">⚙️ Select Features</div>',
+                '<div class="section">⚙️ Configure Segmentation</div>',
                 unsafe_allow_html=True
             )
 
@@ -753,32 +1104,42 @@ elif menu == "📊 Segmentation Dashboard":
                 )
 
             clusters = st.slider(
-                "Number of Customer Segments",
+                "🎯 Number of Customer Segments",
                 min_value=2,
                 max_value=6,
                 value=3
             )
 
-            if st.button(
+            st.write("")
+
+            run = st.button(
                 "🚀 Run Customer Segmentation",
-                use_container_width=True,
-                type="primary"
-            ):
+                type="primary",
+                use_container_width=True
+            )
 
-                X = df[[r, f, m]].copy()
+            if run:
 
-                # Convert values to numeric
+                X = df[
+                    [r, f, m]
+                ].copy()
+
                 X = X.apply(
                     pd.to_numeric,
                     errors="coerce"
                 )
 
-                # Remove invalid rows
-                valid_rows = X.notna().all(axis=1)
+                valid = X.notna().all(
+                    axis=1
+                )
 
-                df = df.loc[valid_rows].copy()
+                df = df.loc[
+                    valid
+                ].copy()
 
-                X = X.loc[valid_rows]
+                X = X.loc[
+                    valid
+                ]
 
                 if len(X) < clusters:
 
@@ -790,7 +1151,9 @@ elif menu == "📊 Segmentation Dashboard":
 
                     scaler = StandardScaler()
 
-                    X_scaled = scaler.fit_transform(X)
+                    X_scaled = scaler.fit_transform(
+                        X
+                    )
 
                     kmeans = KMeans(
                         n_clusters=clusters,
@@ -803,43 +1166,103 @@ elif menu == "📊 Segmentation Dashboard":
                     )
 
                     st.success(
-                        "✅ Customer segmentation completed!"
+                        "✅ Segmentation completed successfully!"
                     )
 
-                    # ---------- KPI ----------
-
-                    a, b, c = st.columns(3)
-
-                    with a:
-
-                        st.metric(
-                            "👥 Customers",
-                            len(df)
-                        )
-
-                    with b:
-
-                        st.metric(
-                            "🎯 Segments",
-                            clusters
-                        )
-
-                    with c:
-
-                        st.metric(
-                            "💰 Avg Monetary",
-                            f"${X[m].mean():,.0f}"
-                        )
-
-                    # ---------- CHART ----------
+                    # =================================================
+                    # SEGMENT KPIs
+                    # =================================================
 
                     st.markdown(
-                        '<div class="section-title">📈 Customer Segments</div>',
+                        '<div class="section">📊 Segmentation Overview</div>',
+                        unsafe_allow_html=True
+                    )
+
+                    s1, s2, s3, s4 = st.columns(4)
+
+                    with s1:
+
+                        st.markdown(f"""
+                        <div class="kpi-card">
+
+                            <div class="kpi-icon">👥</div>
+
+                            <div class="kpi-label">
+                                CUSTOMERS
+                            </div>
+
+                            <div class="kpi-value">
+                                {len(df)}
+                            </div>
+
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                    with s2:
+
+                        st.markdown(f"""
+                        <div class="kpi-card">
+
+                            <div class="kpi-icon">🎯</div>
+
+                            <div class="kpi-label">
+                                SEGMENTS
+                            </div>
+
+                            <div class="kpi-value">
+                                {clusters}
+                            </div>
+
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                    with s3:
+
+                        st.markdown(f"""
+                        <div class="kpi-card">
+
+                            <div class="kpi-icon">💰</div>
+
+                            <div class="kpi-label">
+                                AVG MONETARY
+                            </div>
+
+                            <div class="kpi-value">
+                                ${X[m].mean():,.0f}
+                            </div>
+
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                    with s4:
+
+                        st.markdown(f"""
+                        <div class="kpi-card">
+
+                            <div class="kpi-icon">📈</div>
+
+                            <div class="kpi-label">
+                                DATA ROWS
+                            </div>
+
+                            <div class="kpi-value">
+                                {len(X)}
+                            </div>
+
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                    # =================================================
+                    # CHART
+                    # =================================================
+
+                    st.markdown(
+                        '<div class="section">📈 Customer Segmentation Map</div>',
                         unsafe_allow_html=True
                     )
 
                     fig, ax = plt.subplots(
-                        figsize=(10, 5)
+                        figsize=(11, 5)
                     )
 
                     scatter = ax.scatter(
@@ -847,7 +1270,7 @@ elif menu == "📊 Segmentation Dashboard":
                         df[m],
                         c=df["Cluster"],
                         cmap="viridis",
-                        s=80,
+                        s=85,
                         alpha=0.8
                     )
 
@@ -860,7 +1283,9 @@ elif menu == "📊 Segmentation Dashboard":
                     )
 
                     ax.set_title(
-                        "Customer Segmentation Map"
+                        "Customer Segmentation",
+                        fontsize=15,
+                        fontweight="bold"
                     )
 
                     ax.grid(
@@ -873,28 +1298,37 @@ elif menu == "📊 Segmentation Dashboard":
                         label="Cluster"
                     )
 
-                    st.pyplot(fig)
+                    st.pyplot(
+                        fig,
+                        use_container_width=True
+                    )
 
-                    # ---------- CLUSTER SUMMARY ----------
+                    # =================================================
+                    # SUMMARY
+                    # =================================================
 
                     st.markdown(
-                        '<div class="section-title">📋 Segment Summary</div>',
+                        '<div class="section">📋 Segment Summary</div>',
                         unsafe_allow_html=True
                     )
 
                     summary = df.groupby(
                         "Cluster"
-                    )[[r, f, m]].mean().round(2)
+                    )[
+                        [r, f, m]
+                    ].mean().round(2)
 
                     st.dataframe(
                         summary,
                         use_container_width=True
                     )
 
-                    # ---------- FULL DATA ----------
+                    # =================================================
+                    # FULL DATA
+                    # =================================================
 
                     st.markdown(
-                        '<div class="section-title">👥 Classified Customers</div>',
+                        '<div class="section">👥 Customer Classification</div>',
                         unsafe_allow_html=True
                     )
 
@@ -903,16 +1337,28 @@ elif menu == "📊 Segmentation Dashboard":
                         use_container_width=True
                     )
 
+                    csv_data = df.to_csv(
+                        index=False
+                    )
+
+                    st.download_button(
+                        "📥 Download Segmented Dataset",
+                        csv_data,
+                        "segmented_customers.csv",
+                        "text/csv",
+                        use_container_width=True
+                    )
+
         except Exception as e:
 
             st.error(
-                f"❌ Unable to process dataset: {e}"
+                f"Unable to process dataset: {e}"
             )
 
     else:
 
         st.info(
-            "📂 Upload a CSV file above to start customer segmentation."
+            "📂 Upload a CSV dataset above to begin customer segmentation."
         )
 
 
@@ -925,25 +1371,17 @@ elif menu == "🔐 Admin Panel":
     st.markdown("""
     <div class="hero">
 
-        <h1>🔐 Admin Panel</h1>
+        <div class="hero-title">
+            🔐 Administration Center
+        </div>
 
-        <p>
-        Secure access to stored customer prediction data.
-        </p>
+        <div class="hero-text">
+            Securely manage stored customer predictions,
+            inspect application files and download analytics.
+        </div>
 
     </div>
     """, unsafe_allow_html=True)
-
-    # Session state
-
-    if "attempts" not in st.session_state:
-        st.session_state.attempts = 0
-
-    if "blocked" not in st.session_state:
-        st.session_state.blocked = False
-
-    if "admin_logged_in" not in st.session_state:
-        st.session_state.admin_logged_in = False
 
     # ========================================================
     # BLOCKED
@@ -952,39 +1390,29 @@ elif menu == "🔐 Admin Panel":
     if st.session_state.blocked:
 
         st.error(
-            "🚫 Too many incorrect attempts. "
-            "Admin access has been temporarily blocked."
+            "🚫 Admin access has been blocked after 3 incorrect attempts."
         )
 
-        st.markdown(
-            "### 📩 Need administrator access?"
-        )
-
-        email = "atharavshende999@gmail.com"
-
-        gmail_link = (
-            "https://mail.google.com/mail/"
-            "?view=cm&fs=1"
-            f"&to={email}"
-            "&su=Access Request for CLV App"
+        st.warning(
+            "Please contact the administrator to request access."
         )
 
         st.link_button(
-            "📧 Contact Admin",
-            gmail_link,
+            "📧 Contact Administrator",
+            "https://mail.google.com/mail/?view=cm&fs=1&to=atharavshende999@gmail.com&su=CLV%20Admin%20Access%20Request",
             use_container_width=True
         )
 
         st.stop()
 
     # ========================================================
-    # ALREADY LOGGED IN
+    # LOGGED IN
     # ========================================================
 
     if st.session_state.admin_logged_in:
 
         st.success(
-            "✅ Admin authentication successful."
+            "🟢 Administrator authenticated successfully."
         )
 
         if st.button(
@@ -996,33 +1424,12 @@ elif menu == "🔐 Admin Panel":
 
             st.rerun()
 
-        st.markdown(
-            '<div class="section-title">📂 Server Files</div>',
-            unsafe_allow_html=True
-        )
-
-        files = os.listdir()
-
-        st.info(
-            f"📁 {len(files)} files found in application directory."
-        )
-
-        with st.expander(
-            "View Server Files"
-        ):
-
-            for file in files:
-
-                st.write(
-                    f"📄 {file}"
-                )
-
         # ====================================================
-        # USER DATA
+        # STORED DATA
         # ====================================================
 
         st.markdown(
-            '<div class="section-title">📊 Stored Customer Predictions</div>',
+            '<div class="section">📊 Customer Prediction Records</div>',
             unsafe_allow_html=True
         )
 
@@ -1034,18 +1441,18 @@ elif menu == "🔐 Admin Panel":
                     DATA_FILE
                 )
 
-                if len(df) > 0:
+                if not df.empty:
 
-                    c1, c2, c3 = st.columns(3)
+                    a, b, c = st.columns(3)
 
-                    with c1:
+                    with a:
 
                         st.metric(
-                            "👥 Records",
+                            "👥 Total Records",
                             len(df)
                         )
 
-                    with c2:
+                    with b:
 
                         if "Predicted_CLV" in df.columns:
 
@@ -1054,7 +1461,7 @@ elif menu == "🔐 Admin Panel":
                                 f"${df['Predicted_CLV'].mean():,.2f}"
                             )
 
-                    with c3:
+                    with c:
 
                         if "Predicted_CLV" in df.columns:
 
@@ -1068,41 +1475,57 @@ elif menu == "🔐 Admin Panel":
                         use_container_width=True
                     )
 
-                    # Download
-
                     with open(
                         DATA_FILE,
                         "rb"
                     ) as file:
 
                         st.download_button(
-                            label="📥 Download Customer Data",
-                            data=file,
-                            file_name="user_inputs.xlsx",
-                            mime=(
-                                "application/vnd.openxmlformats-officedocument."
-                                "spreadsheetml.sheet"
-                            ),
+                            "📥 Download Excel Data",
+                            file,
+                            "user_inputs.xlsx",
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                             use_container_width=True
                         )
 
                 else:
 
                     st.warning(
-                        "No customer records found."
+                        "No customer records available."
                     )
 
             except Exception as e:
 
                 st.error(
-                    f"Unable to read data: {e}"
+                    f"Could not read Excel file: {e}"
                 )
 
         else:
 
-            st.warning(
-                "📭 No prediction data has been stored yet."
+            st.info(
+                "📭 No prediction data exists yet."
             )
+
+        # ====================================================
+        # SERVER FILES
+        # ====================================================
+
+        st.markdown(
+            '<div class="section">📂 Application Files</div>',
+            unsafe_allow_html=True
+        )
+
+        with st.expander(
+            "View Application Files"
+        ):
+
+            files = os.listdir()
+
+            for file in files:
+
+                st.write(
+                    f"📄 {file}"
+                )
 
     # ========================================================
     # LOGIN
@@ -1111,40 +1534,44 @@ elif menu == "🔐 Admin Panel":
     else:
 
         st.markdown("""
-        <div style="
-            max-width:500px;
-            margin:auto;
-            background:white;
-            padding:30px;
-            border-radius:18px;
-            box-shadow:0 5px 20px rgba(0,0,0,0.07);
-        ">
+        <div class="login-card">
 
-        <h2 style="text-align:center;">
-        🔑 Administrator Login
-        </h2>
+            <div style="
+                text-align:center;
+                font-size:55px;
+            ">
+                🔐
+            </div>
 
-        <p style="
-            text-align:center;
-            color:#64748b;
-        ">
-        Enter the administrator password to continue.
-        </p>
+            <h2 style="text-align:center;">
+                Administrator Login
+            </h2>
+
+            <p style="
+                text-align:center;
+                color:#64748b;
+            ">
+                Authorized users only
+            </p>
 
         </div>
         """, unsafe_allow_html=True)
 
+        st.write("")
+
         password = st.text_input(
-            "🔑 Password",
+            "🔑 Administrator Password",
             type="password",
-            placeholder="Enter admin password"
+            placeholder="Enter password"
         )
 
-        if st.button(
-            "🔐 Login",
-            use_container_width=True,
-            type="primary"
-        ):
+        login = st.button(
+            "🔐 Secure Login",
+            type="primary",
+            use_container_width=True
+        )
+
+        if login:
 
             if password.strip() == "admin123":
 
@@ -1153,7 +1580,7 @@ elif menu == "🔐 Admin Panel":
                 st.session_state.admin_logged_in = True
 
                 st.success(
-                    "✅ Access Granted"
+                    "✅ Access granted."
                 )
 
                 st.rerun()
@@ -1179,7 +1606,7 @@ elif menu == "🔐 Admin Panel":
                     st.session_state.blocked = True
 
                     st.error(
-                        "🚫 Access blocked after 3 incorrect attempts."
+                        "🚫 Access blocked."
                     )
 
                     st.rerun()
@@ -1192,12 +1619,16 @@ elif menu == "🔐 Admin Panel":
 st.markdown("""
 <div class="footer">
 
-    CLV Intelligence Dashboard •
-    Machine Learning Customer Analytics
+    <b>CLV Intelligence Dashboard</b>
 
     <br>
 
-    Built with Python • Streamlit • Scikit-Learn • Pandas
+    Customer Lifetime Value • Machine Learning •
+    Customer Segmentation
+
+    <br><br>
+
+    Built with Python • Streamlit • Pandas • Scikit-Learn
 
 </div>
 """, unsafe_allow_html=True)
