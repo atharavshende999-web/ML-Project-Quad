@@ -1,17 +1,19 @@
 # ============================================================
 # CUSTOMER LIFETIME VALUE - ML DASHBOARD
-# Professional Streamlit UI
+# Clean Streamlit UI - NO HTML
+# NO DATASET UPLOAD
 # ============================================================
 
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
 
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 
 # ============================================================
@@ -27,243 +29,118 @@ st.set_page_config(
 
 
 # ============================================================
-# CUSTOM CSS
-# ============================================================
-
-st.markdown(
-<style>
-
-.block-container {
-    padding-top: 2rem;
-    padding-bottom: 3rem;
-    max-width: 1450px;
-}
-
-/* SIDEBAR */
-
-section[data-testid="stSidebar"] {
-    border-right: 1px solid rgba(128,128,128,0.18);
-}
-
-.sidebar-title {
-    font-size: 25px;
-    font-weight: 800;
-}
-
-.sidebar-subtitle {
-    font-size: 12px;
-    opacity: 0.55;
-}
-
-/* MAIN HEADER */
-
-.main-title {
-    font-size: 44px;
-    font-weight: 800;
-    letter-spacing: -1.5px;
-    margin-bottom: 4px;
-}
-
-.main-subtitle {
-    font-size: 16px;
-    opacity: 0.60;
-    margin-bottom: 25px;
-}
-
-/* HERO */
-
-.hero {
-    padding: 28px;
-    border-radius: 22px;
-    border: 1px solid rgba(128,128,128,0.18);
-    background: rgba(128,128,128,0.05);
-    margin-bottom: 25px;
-}
-
-.hero-title {
-    font-size: 28px;
-    font-weight: 800;
-}
-
-.hero-text {
-    margin-top: 8px;
-    font-size: 14px;
-    line-height: 1.7;
-    opacity: 0.65;
-}
-
-/* KPI */
-
-.kpi {
-    padding: 22px;
-    border-radius: 18px;
-    border: 1px solid rgba(128,128,128,0.18);
-    background: rgba(128,128,128,0.05);
-    min-height: 130px;
-}
-
-.kpi-label {
-    font-size: 12px;
-    font-weight: 700;
-    opacity: 0.55;
-    letter-spacing: 0.7px;
-}
-
-.kpi-value {
-    font-size: 30px;
-    font-weight: 800;
-    margin-top: 8px;
-}
-
-.kpi-text {
-    font-size: 12px;
-    opacity: 0.50;
-    margin-top: 5px;
-}
-
-/* SECTION */
-
-.section-title {
-    font-size: 25px;
-    font-weight: 750;
-    margin-top: 28px;
-    margin-bottom: 15px;
-}
-
-/* INFO CARDS */
-
-.info-card {
-    padding: 22px;
-    border-radius: 17px;
-    border: 1px solid rgba(128,128,128,0.18);
-    background: rgba(128,128,128,0.04);
-    min-height: 160px;
-}
-
-.info-title {
-    font-size: 18px;
-    font-weight: 750;
-    margin-bottom: 8px;
-}
-
-.info-text {
-    font-size: 13px;
-    opacity: 0.62;
-    line-height: 1.6;
-}
-
-/* RESULT */
-
-.prediction-box {
-    padding: 28px;
-    border-radius: 20px;
-    border: 1px solid rgba(128,128,128,0.20);
-    background: rgba(128,128,128,0.05);
-    text-align: center;
-}
-
-.prediction-label {
-    font-size: 13px;
-    opacity: 0.55;
-}
-
-.prediction-value {
-    font-size: 42px;
-    font-weight: 850;
-    margin-top: 5px;
-}
-
-/* BUTTON */
-
-.stButton > button {
-    border-radius: 11px;
-    min-height: 45px;
-    font-weight: 700;
-}
-
-/* FOOTER */
-
-.footer {
-    text-align: center;
-    font-size: 12px;
-    opacity: 0.45;
-    padding: 15px;
-}
-
-#MainMenu {
-    visibility: hidden;
-}
-
-footer {
-    visibility: hidden;
-}
-
-</style>
-, unsafe_allow_html=True)
-
-
-# ============================================================
 # BUILT-IN DATASET
 # ============================================================
 
-data = {
-    "Recency": [
-        10, 20, 5, 30, 15, 40,
-        25, 8, 60, 12, 35, 18
-    ],
+@st.cache_data
+def load_data():
 
-    "Frequency": [
-        5, 3, 10, 2, 7, 1,
-        4, 12, 2, 8, 3, 6
-    ],
+    data = {
+        "Recency": [
+            10, 20, 5, 30, 15, 40,
+            25, 8, 60, 12, 35, 18
+        ],
 
-    "Monetary": [
-        500, 300, 1000, 200,
-        700, 100, 400, 1500,
-        250, 900, 350, 650
-    ],
+        "Frequency": [
+            5, 3, 10, 2, 7, 1,
+            4, 12, 2, 8, 3, 6
+        ],
 
-    "CLV": [
-        1200, 700, 2500, 400,
-        1600, 200, 900, 3000,
-        500, 2000, 800, 1400
-    ]
-}
+        "Monetary": [
+            500, 300, 1000, 200,
+            700, 100, 400, 1500,
+            250, 900, 350, 650
+        ],
 
-df = pd.DataFrame(data)
+        "CLV": [
+            1200, 700, 2500, 400,
+            1600, 200, 900, 3000,
+            500, 2000, 800, 1400
+        ]
+    }
+
+    return pd.DataFrame(data)
+
+
+df = load_data()
 
 
 # ============================================================
-# TRAIN ML MODEL
+# TRAIN MODEL
 # ============================================================
 
-X = df[
-    [
-        "Recency",
-        "Frequency",
-        "Monetary"
+@st.cache_resource
+def train_model(data):
+
+    X = data[
+        [
+            "Recency",
+            "Frequency",
+            "Monetary"
+        ]
     ]
-]
 
-y = df["CLV"]
+    y = data["CLV"]
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=0.20,
+        random_state=42
+    )
+
+    model = GradientBoostingRegressor(
+        n_estimators=150,
+        learning_rate=0.05,
+        max_depth=3,
+        random_state=42
+    )
+
+    model.fit(X_train, y_train)
+
+    predictions = model.predict(X_test)
+
+    mae = mean_absolute_error(
+        y_test,
+        predictions
+    )
+
+    rmse = np.sqrt(
+        mean_squared_error(
+            y_test,
+            predictions
+        )
+    )
+
+    r2 = r2_score(
+        y_test,
+        predictions
+    )
+
+    return (
+        model,
+        X_train,
+        X_test,
+        y_train,
+        y_test,
+        predictions,
+        mae,
+        rmse,
+        r2
+    )
 
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.20,
-    random_state=42
-)
-
-
-model = GradientBoostingRegressor(
-    n_estimators=150,
-    learning_rate=0.05,
-    max_depth=3,
-    random_state=42
-)
-
-model.fit(X_train, y_train)
+(
+    model,
+    X_train,
+    X_test,
+    y_train,
+    y_test,
+    predictions,
+    mae,
+    rmse,
+    r2
+) = train_model(df)
 
 
 # ============================================================
@@ -272,48 +149,38 @@ model.fit(X_train, y_train)
 
 with st.sidebar:
 
-    st.markdown(
-        """
-        <div class="sidebar-title">
-            📊 CLV Intelligence
-        </div>
+    st.title("📊 CLV Intelligence")
 
-        <div class="sidebar-subtitle">
-            Machine Learning Customer Analytics
-        </div>
-        """,
-        unsafe_allow_html=True
+    st.caption(
+        "Customer Lifetime Value Analytics"
     )
 
-    st.write("")
-
-    st.success("🟢 ML MODEL ONLINE")
-
-    st.markdown("### Navigation")
+    st.divider()
 
     menu = st.radio(
-        "",
+        "Navigation",
         [
-            "🏠 Home",
+            "🏠 Dashboard",
             "🔮 CLV Predictor",
-            "📊 Segmentation Dashboard",
-            "🔐 Admin Panel"
+            "🎯 Customer Segmentation",
+            "🤖 ML Model",
+            "🔐 Admin Panel",
+            "ℹ️ About"
         ]
     )
 
     st.divider()
 
-    st.caption("MACHINE LEARNING")
+    st.success("🟢 Model Ready")
 
+    st.caption("Machine Learning")
     st.write("Gradient Boosting")
 
-    st.caption("SEGMENTATION")
+    st.caption("Segmentation")
+    st.write("K-Means")
 
-    st.write("K-Means Clustering")
-
-    st.caption("DATA")
-
-    st.write("Built-in Customer Dataset")
+    st.caption("Dataset")
+    st.write("Built-in CLV Dataset")
 
     st.divider()
 
@@ -323,176 +190,113 @@ with st.sidebar:
 
 
 # ============================================================
-# HEADER
+# TOP HEADER
 # ============================================================
 
-st.markdown(
-    """
-    <div class="main-title">
-        Customer Lifetime Value
-    </div>
+st.title("Customer Lifetime Value")
 
-    <div class="main-subtitle">
-        ML-powered customer intelligence & prediction platform
-    </div>
-    """,
-    unsafe_allow_html=True
+st.caption(
+    "Machine Learning powered customer intelligence platform"
 )
 
 
 # ============================================================
-# HOME
+# DASHBOARD
 # ============================================================
 
-if menu == "🏠 Home":
+if menu == "🏠 Dashboard":
 
-    # HERO IMAGE
-    st.image(
-        "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1600&q=80",
-        use_container_width=True
-    )
+    st.subheader("📈 Business Overview")
 
-    st.markdown(
-        """
-        <div class="hero">
-
-        <div class="hero-title">
-            🚀 Intelligent Customer Analytics
-        </div>
-
-        <div class="hero-text">
-            Customer Lifetime Value prediction helps businesses
-            understand which customers are likely to generate
-            greater value in the future. This application combines
-            Machine Learning prediction with customer segmentation
-            to provide actionable business insights.
-        </div>
-
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    # ========================================================
-    # KPI
-    # ========================================================
-
-    st.markdown(
-        '<div class="section-title">Business Overview</div>',
-        unsafe_allow_html=True
-    )
+    total_customers = len(df)
+    average_clv = df["CLV"].mean()
+    maximum_clv = df["CLV"].max()
+    median_clv = df["CLV"].median()
 
     c1, c2, c3, c4 = st.columns(4)
 
     with c1:
-
-        st.markdown(
-            f"""
-            <div class="kpi">
-
-            <div class="kpi-label">
-            CUSTOMERS
-            </div>
-
-            <div class="kpi-value">
-            {len(df)}
-            </div>
-
-            <div class="kpi-text">
-            Customer records analyzed
-            </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
+        st.metric(
+            "👥 Total Customers",
+            f"{total_customers:,}"
         )
 
     with c2:
-
-        st.markdown(
-            f"""
-            <div class="kpi">
-
-            <div class="kpi-label">
-            AVERAGE CLV
-            </div>
-
-            <div class="kpi-value">
-            ${df["CLV"].mean():,.0f}
-            </div>
-
-            <div class="kpi-text">
-            Average customer value
-            </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
+        st.metric(
+            "💰 Average CLV",
+            f"${average_clv:,.0f}"
         )
 
     with c3:
-
-        st.markdown(
-            f"""
-            <div class="kpi">
-
-            <div class="kpi-label">
-            HIGHEST CLV
-            </div>
-
-            <div class="kpi-value">
-            ${df["CLV"].max():,.0f}
-            </div>
-
-            <div class="kpi-text">
-            Maximum customer value
-            </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
+        st.metric(
+            "🏆 Highest CLV",
+            f"${maximum_clv:,.0f}"
         )
 
     with c4:
-
-        st.markdown(
-            """
-            <div class="kpi">
-
-            <div class="kpi-label">
-            ML ALGORITHM
-            </div>
-
-            <div class="kpi-value">
-            GB
-            </div>
-
-            <div class="kpi-text">
-            Gradient Boosting Regressor
-            </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
+        st.metric(
+            "📊 Median CLV",
+            f"${median_clv:,.0f}"
         )
 
-    # ========================================================
-    # CLV CHART
-    # ========================================================
+    st.divider()
 
-    st.markdown(
-        '<div class="section-title">Customer Value Analysis</div>',
-        unsafe_allow_html=True
-    )
+    # --------------------------------------------------------
+    # PROJECT INTRO
+    # --------------------------------------------------------
 
-    chart1, chart2 = st.columns(2)
+    st.subheader("🚀 Project Overview")
 
-    with chart1:
+    left, right = st.columns([2, 1])
 
-        st.markdown("### 📈 CLV Distribution")
+    with left:
+
+        st.info(
+            """
+            **Customer Lifetime Value (CLV)** is a machine
+            learning application that estimates the future
+            value of customers.
+
+            The system uses customer purchasing behavior:
+
+            • Recency  
+            • Frequency  
+            • Monetary Value  
+
+            Gradient Boosting is used for CLV prediction,
+            while K-Means clustering identifies customer
+            segments.
+            """
+        )
+
+    with right:
+
+        st.metric(
+            "🤖 ML Algorithm",
+            "Gradient Boosting"
+        )
+
+        st.metric(
+            "🎯 Clustering",
+            "K-Means"
+        )
+
+    st.divider()
+
+    # --------------------------------------------------------
+    # CHARTS
+    # --------------------------------------------------------
+
+    st.subheader("📊 Customer Analytics")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        st.write("### CLV Distribution")
 
         fig, ax = plt.subplots(
-            figsize=(8, 4)
+            figsize=(7, 4)
         )
 
         ax.hist(
@@ -501,48 +305,15 @@ if menu == "🏠 Home":
             alpha=0.75
         )
 
-        ax.set_xlabel("Customer Lifetime Value")
-
-        ax.set_ylabel("Customers")
-
-        ax.set_title(
-            "Distribution of Customer Value"
-        )
-
-        ax.grid(
-            alpha=0.2
-        )
-
-        st.pyplot(
-            fig,
-            use_container_width=True
-        )
-
-        plt.close(fig)
-
-    with chart2:
-
-        st.markdown("### 💰 Customer Value")
-
-        fig, ax = plt.subplots(
-            figsize=(8, 4)
-        )
-
-        ax.bar(
-            range(1, len(df) + 1),
-            df["CLV"]
-        )
-
-        ax.set_xlabel("Customer")
-
-        ax.set_ylabel("CLV")
-
-        ax.set_title(
+        ax.set_xlabel(
             "Customer Lifetime Value"
         )
 
+        ax.set_ylabel(
+            "Customers"
+        )
+
         ax.grid(
-            axis="y",
             alpha=0.2
         )
 
@@ -553,86 +324,33 @@ if menu == "🏠 Home":
 
         plt.close(fig)
 
-    # ========================================================
-    # FEATURES
-    # ========================================================
+    with col2:
 
-    st.markdown(
-        '<div class="section-title">Platform Capabilities</div>',
-        unsafe_allow_html=True
-    )
+        st.write("### Customer CLV")
 
-    a, b, c = st.columns(3)
+        chart_data = df[
+            ["CLV"]
+        ].copy()
 
-    with a:
+        chart_data.index = [
+            f"Customer {i}"
+            for i in range(
+                1,
+                len(df) + 1
+            )
+        ]
 
-        st.markdown(
-            """
-            <div class="info-card">
-
-            <div class="info-title">
-            🔮 CLV Prediction
-            </div>
-
-            <div class="info-text">
-            Estimate customer lifetime value using
-            Recency, Frequency and Monetary behavior
-            with a Gradient Boosting model.
-            </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
+        st.bar_chart(
+            chart_data
         )
 
-    with b:
+    st.divider()
 
-        st.markdown(
-            """
-            <div class="info-card">
+    # --------------------------------------------------------
+    # DATASET
+    # --------------------------------------------------------
 
-            <div class="info-title">
-            🎯 Customer Segmentation
-            </div>
-
-            <div class="info-text">
-            K-Means clustering automatically discovers
-            groups of customers with similar behavior.
-            </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    with c:
-
-        st.markdown(
-            """
-            <div class="info-card">
-
-            <div class="info-title">
-            🔐 Admin Management
-            </div>
-
-            <div class="info-text">
-            Protected administration section for
-            accessing customer information.
-            </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    # ========================================================
-    # DATA
-    # ========================================================
-
-    st.markdown(
-        '<div class="section-title">Customer Dataset</div>',
-        unsafe_allow_html=True
-    )
+    st.subheader("📋 Customer Data")
 
     st.dataframe(
         df,
@@ -647,45 +365,40 @@ if menu == "🏠 Home":
 
 elif menu == "🔮 CLV Predictor":
 
-    st.markdown(
-        """
-        <div class="hero">
-
-        <div class="hero-title">
-        🔮 Predict Customer Lifetime Value
-        </div>
-
-        <div class="hero-text">
-        Enter customer purchase behavior and let the
-        Machine Learning model estimate future customer value.
-        </div>
-
-        </div>
-        """,
-        unsafe_allow_html=True
+    st.subheader(
+        "🔮 Customer Lifetime Value Predictor"
     )
 
-    c1, c2, c3 = st.columns(3)
+    st.write(
+        "Enter customer purchasing behavior to estimate "
+        "their future lifetime value."
+    )
 
-    with c1:
+    st.divider()
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
 
         recency = st.number_input(
             "🕒 Recency (Days)",
             min_value=0,
             max_value=365,
-            value=30
+            value=30,
+            step=1
         )
 
-    with c2:
+    with col2:
 
         frequency = st.number_input(
             "🔄 Purchase Frequency",
             min_value=1,
             max_value=100,
-            value=5
+            value=5,
+            step=1
         )
 
-    with c3:
+    with col3:
 
         monetary = st.number_input(
             "💰 Monetary Value",
@@ -697,10 +410,12 @@ elif menu == "🔮 CLV Predictor":
 
     st.write("")
 
-    if st.button(
-        "🚀 Predict Customer Lifetime Value",
+    predict = st.button(
+        "🚀 Predict Customer CLV",
         use_container_width=True
-    ):
+    )
+
+    if predict:
 
         user_data = pd.DataFrame({
             "Recency": [recency],
@@ -712,54 +427,48 @@ elif menu == "🔮 CLV Predictor":
             user_data
         )[0]
 
-        st.markdown(
-            '<div class="section-title">Prediction Result</div>',
-            unsafe_allow_html=True
+        st.divider()
+
+        st.subheader(
+            "🎯 Prediction Result"
         )
 
-        st.markdown(
-            f"""
-            <div class="prediction-box">
+        result_col1, result_col2 = st.columns(2)
 
-            <div class="prediction-label">
-            PREDICTED CUSTOMER LIFETIME VALUE
-            </div>
+        with result_col1:
 
-            <div class="prediction-value">
-            ${prediction:,.2f}
-            </div>
+            st.metric(
+                "Predicted CLV",
+                f"${prediction:,.2f}"
+            )
 
-            </div>
-            """,
-            unsafe_allow_html=True
+        with result_col2:
+
+            if prediction >= df["CLV"].quantile(0.75):
+
+                st.success(
+                    "⭐ HIGH-VALUE CUSTOMER"
+                )
+
+            elif prediction >= df["CLV"].median():
+
+                st.info(
+                    "📈 MEDIUM-VALUE CUSTOMER"
+                )
+
+            else:
+
+                st.warning(
+                    "📌 LOWER-VALUE CUSTOMER"
+                )
+
+        st.divider()
+
+        st.subheader(
+            "Customer Profile"
         )
 
-        st.write("")
-
-        if prediction >= df["CLV"].quantile(0.75):
-
-            st.success(
-                "⭐ HIGH-VALUE CUSTOMER\n\n"
-                "Recommended for premium retention and loyalty campaigns."
-            )
-
-        elif prediction >= df["CLV"].median():
-
-            st.info(
-                "📈 MEDIUM-VALUE CUSTOMER\n\n"
-                "Suitable for engagement and personalized campaigns."
-            )
-
-        else:
-
-            st.warning(
-                "📌 LOWER-VALUE CUSTOMER\n\n"
-                "Consider targeted marketing strategies."
-            )
-
-        st.markdown("### Customer Input")
-
-        result = pd.DataFrame({
+        profile = pd.DataFrame({
             "Parameter": [
                 "Recency",
                 "Frequency",
@@ -776,50 +485,50 @@ elif menu == "🔮 CLV Predictor":
         })
 
         st.dataframe(
-            result,
+            profile,
             use_container_width=True,
             hide_index=True
         )
 
+        st.info(
+            "💡 Business Insight: High-value customers "
+            "can be prioritized for retention, loyalty "
+            "programs and personalized offers."
+        )
+
 
 # ============================================================
-# SEGMENTATION
+# CUSTOMER SEGMENTATION
 # ============================================================
 
-elif menu == "📊 Segmentation Dashboard":
+elif menu == "🎯 Customer Segmentation":
 
-    st.markdown(
-        """
-        <div class="hero">
-
-        <div class="hero-title">
-        🎯 Customer Segmentation
-        </div>
-
-        <div class="hero-text">
-        Discover customer groups using K-Means clustering.
-        The application automatically uses the built-in customer
-        dataset, so no file upload is required.
-        </div>
-
-        </div>
-        """,
-        unsafe_allow_html=True
+    st.subheader(
+        "🎯 Customer Segmentation"
     )
 
-    clusters = st.slider(
+    st.write(
+        "K-Means clustering groups customers according "
+        "to their purchasing behavior."
+    )
+
+    st.divider()
+
+    number_of_clusters = st.slider(
         "Number of Customer Segments",
-        2,
-        5,
-        3
+        min_value=2,
+        max_value=5,
+        value=3
     )
 
-    if st.button(
-        "🚀 Run Segmentation",
+    run_segmentation = st.button(
+        "🚀 Generate Customer Segments",
         use_container_width=True
-    ):
+    )
 
-        segment_features = df[
+    if run_segmentation:
+
+        features = df[
             [
                 "Recency",
                 "Frequency",
@@ -829,85 +538,77 @@ elif menu == "📊 Segmentation Dashboard":
 
         scaler = StandardScaler()
 
-        scaled = scaler.fit_transform(
-            segment_features
+        scaled_data = scaler.fit_transform(
+            features
         )
 
         kmeans = KMeans(
-            n_clusters=clusters,
+            n_clusters=number_of_clusters,
             random_state=42,
             n_init=10
         )
 
-        segmented = df.copy()
+        segmented_df = df.copy()
 
-        segmented["Cluster"] = (
-            kmeans.fit_predict(scaled) + 1
+        segmented_df["Segment"] = (
+            kmeans.fit_predict(
+                scaled_data
+            ) + 1
         )
 
         st.success(
-            f"Successfully created {clusters} customer segments."
+            f"Successfully created "
+            f"{number_of_clusters} customer segments."
         )
+
+        st.divider()
 
         # ----------------------------------------------------
-        # CHART
+        # SEGMENT COUNTS
         # ----------------------------------------------------
 
-        st.markdown(
-            "### 📊 Customer Segment Map"
+        st.subheader(
+            "👥 Segment Distribution"
         )
 
-        fig, ax = plt.subplots(
-            figsize=(10, 5)
+        segment_counts = (
+            segmented_df["Segment"]
+            .value_counts()
+            .sort_index()
         )
 
-        ax.scatter(
-            segmented["Recency"],
-            segmented["Monetary"],
-            c=segmented["Cluster"],
-            s=130,
-            alpha=0.8
+        chart_data = pd.DataFrame({
+            "Customers": segment_counts
+        })
+
+        st.bar_chart(
+            chart_data
         )
 
-        ax.set_xlabel(
-            "Recency"
-        )
-
-        ax.set_ylabel(
-            "Monetary Value"
-        )
-
-        ax.set_title(
-            "Customer Segmentation using K-Means"
-        )
-
-        ax.grid(
-            alpha=0.2
-        )
-
-        st.pyplot(
-            fig,
-            use_container_width=True
-        )
-
-        plt.close(fig)
+        st.divider()
 
         # ----------------------------------------------------
-        # SUMMARY
+        # SEGMENT TABLE
         # ----------------------------------------------------
 
-        st.markdown(
-            "### 📋 Segment Summary"
+        st.subheader(
+            "📊 Segment Performance"
         )
 
         summary = (
-            segmented
-            .groupby("Cluster")
+            segmented_df
+            .groupby("Segment")
             .agg(
                 Customers=("CLV", "count"),
                 Average_CLV=("CLV", "mean"),
-                Average_Frequency=("Frequency", "mean"),
-                Average_Monetary=("Monetary", "mean")
+                Average_Frequency=(
+                    "Frequency",
+                    "mean"
+                ),
+                Average_Monetary=(
+                    "Monetary",
+                    "mean"
+                )
             )
             .reset_index()
         )
@@ -922,39 +623,263 @@ elif menu == "📊 Segmentation Dashboard":
             hide_index=True
         )
 
-        st.markdown(
-            "### 👥 Segmented Customers"
+        st.divider()
+
+        # ----------------------------------------------------
+        # VISUALIZATION
+        # ----------------------------------------------------
+
+        st.subheader(
+            "📍 Customer Segment Map"
+        )
+
+        fig, ax = plt.subplots(
+            figsize=(10, 5)
+        )
+
+        ax.scatter(
+            segmented_df["Recency"],
+            segmented_df["Monetary"],
+            c=segmented_df["Segment"],
+            s=120,
+            alpha=0.8
+        )
+
+        ax.set_xlabel(
+            "Recency"
+        )
+
+        ax.set_ylabel(
+            "Monetary"
+        )
+
+        ax.set_title(
+            "K-Means Customer Segmentation"
+        )
+
+        ax.grid(
+            alpha=0.2
+        )
+
+        st.pyplot(
+            fig,
+            use_container_width=True
+        )
+
+        plt.close(fig)
+
+        st.subheader(
+            "📋 Segmented Customers"
         )
 
         st.dataframe(
-            segmented,
+            segmented_df,
             use_container_width=True,
             hide_index=True
         )
 
 
 # ============================================================
-# ADMIN
+# ML MODEL
+# ============================================================
+
+elif menu == "🤖 ML Model":
+
+    st.subheader(
+        "🤖 Machine Learning Model"
+    )
+
+    st.write(
+        "Model performance and technical information."
+    )
+
+    st.divider()
+
+    # --------------------------------------------------------
+    # MODEL METRICS
+    # --------------------------------------------------------
+
+    c1, c2, c3 = st.columns(3)
+
+    with c1:
+
+        st.metric(
+            "R² Score",
+            f"{r2:.3f}"
+        )
+
+    with c2:
+
+        st.metric(
+            "MAE",
+            f"{mae:.2f}"
+        )
+
+    with c3:
+
+        st.metric(
+            "RMSE",
+            f"{rmse:.2f}"
+        )
+
+    st.divider()
+
+    # --------------------------------------------------------
+    # MODEL INFO
+    # --------------------------------------------------------
+
+    st.subheader(
+        "🧠 Model Information"
+    )
+
+    info1, info2 = st.columns(2)
+
+    with info1:
+
+        st.info(
+            """
+            **Algorithm**
+
+            Gradient Boosting Regressor
+
+            **Problem Type**
+
+            Supervised Machine Learning
+
+            **Task**
+
+            Regression
+
+            **Target**
+
+            Customer Lifetime Value
+            """
+        )
+
+    with info2:
+
+        st.info(
+            """
+            **Input Features**
+
+            • Recency  
+            • Frequency  
+            • Monetary
+
+            **Training**
+
+            80% Training Data
+
+            **Testing**
+
+            20% Testing Data
+            """
+        )
+
+    st.divider()
+
+    # --------------------------------------------------------
+    # ACTUAL VS PREDICTED
+    # --------------------------------------------------------
+
+    st.subheader(
+        "📈 Actual vs Predicted CLV"
+    )
+
+    fig, ax = plt.subplots(
+        figsize=(9, 5)
+    )
+
+    ax.scatter(
+        y_test,
+        predictions,
+        s=80,
+        alpha=0.75
+    )
+
+    minimum = min(
+        y_test.min(),
+        predictions.min()
+    )
+
+    maximum = max(
+        y_test.max(),
+        predictions.max()
+    )
+
+    ax.plot(
+        [minimum, maximum],
+        [minimum, maximum],
+        linestyle="--"
+    )
+
+    ax.set_xlabel(
+        "Actual CLV"
+    )
+
+    ax.set_ylabel(
+        "Predicted CLV"
+    )
+
+    ax.set_title(
+        "Actual vs Predicted Customer Lifetime Value"
+    )
+
+    ax.grid(
+        alpha=0.2
+    )
+
+    st.pyplot(
+        fig,
+        use_container_width=True
+    )
+
+    plt.close(fig)
+
+    # --------------------------------------------------------
+    # FEATURES
+    # --------------------------------------------------------
+
+    st.subheader(
+        "🔍 Model Features"
+    )
+
+    feature_df = pd.DataFrame({
+        "Feature": [
+            "Recency",
+            "Frequency",
+            "Monetary"
+        ],
+
+        "Description": [
+            "Days since last purchase",
+            "Number of purchases",
+            "Total customer spending"
+        ]
+    })
+
+    st.dataframe(
+        feature_df,
+        use_container_width=True,
+        hide_index=True
+    )
+
+
+# ============================================================
+# ADMIN PANEL
 # ============================================================
 
 elif menu == "🔐 Admin Panel":
 
-    st.markdown(
-        """
-        <div class="hero">
-
-        <div class="hero-title">
-        🔐 Administrator Access
-        </div>
-
-        <div class="hero-text">
-        Restricted area for authorized project administrators.
-        </div>
-
-        </div>
-        """,
-        unsafe_allow_html=True
+    st.subheader(
+        "🔐 Administrator Panel"
     )
+
+    st.write(
+        "Authorized access only."
+    )
+
+    st.divider()
 
     if "attempts" not in st.session_state:
 
@@ -964,68 +889,29 @@ elif menu == "🔐 Admin Panel":
 
         st.session_state.blocked = False
 
-    # --------------------------------------------------------
-    # BLOCKED
-    # --------------------------------------------------------
-
     if st.session_state.blocked:
 
         st.error(
             "🚫 Access blocked after 3 incorrect attempts."
         )
 
-        email = "atharavshende999@gmail.com"
-
-        subject = "Access Request for CLV App"
-
-        gmail_link = (
-            "https://mail.google.com/mail/"
-            "?view=cm&fs=1"
-            f"&to={email}"
-            f"&su={subject}"
-        )
-
-        st.markdown(
-            f<a href="{gmail_link}" target="_blank">
-
-            <div style="
-                display:inline-block;
-                padding:13px 25px;
-                background:#ff4b4b;
-                color:white;
-                font-weight:bold;
-                border-radius:10px;
-                text-decoration:none;
-        >
-
-            📧 Contact Admin
-
-            </div>
-
-            </a>
-            ,
-            unsafe_allow_html=True
+        st.info(
+            "Please contact the project administrator."
         )
 
         st.stop()
 
-    # --------------------------------------------------------
-    # LOGIN
-    # --------------------------------------------------------
-
-    st.markdown(
-        "### 🔑 Secure Login"
-    )
-
     password = st.text_input(
-        "Enter Administrator Password",
+        "🔑 Administrator Password",
         type="password"
     )
 
-    if st.button(
+    login = st.button(
         "🔓 Login",
         use_container_width=True
-    ):
+    )
+
+    if login:
 
         if password.strip() == "admin123":
 
@@ -1035,8 +921,10 @@ elif menu == "🔐 Admin Panel":
                 "✅ Access Granted"
             )
 
-            st.markdown(
-                "### 📊 Admin Dashboard"
+            st.divider()
+
+            st.subheader(
+                "📊 Admin Dashboard"
             )
 
             c1, c2, c3 = st.columns(3)
@@ -1064,8 +952,8 @@ elif menu == "🔐 Admin Panel":
 
             st.divider()
 
-            st.markdown(
-                "### 📄 Customer Records"
+            st.subheader(
+                "📋 Customer Records"
             )
 
             st.dataframe(
@@ -1081,8 +969,8 @@ elif menu == "🔐 Admin Panel":
             st.download_button(
                 "📥 Download Customer Data",
                 csv,
-                "customer_clv_data.csv",
-                "text/csv",
+                file_name="customer_clv_data.csv",
+                mime="text/csv",
                 use_container_width=True
             )
 
@@ -1098,7 +986,7 @@ elif menu == "🔐 Admin Panel":
             if remaining > 0:
 
                 st.error(
-                    f"❌ Wrong password! "
+                    f"❌ Incorrect password. "
                     f"Attempts remaining: {remaining}"
                 )
 
@@ -1107,24 +995,114 @@ elif menu == "🔐 Admin Panel":
                 st.session_state.blocked = True
 
                 st.error(
-                    "🚫 You are blocked after 3 wrong attempts."
+                    "🚫 Too many incorrect attempts."
                 )
 
                 st.rerun()
 
 
+# ============================================================
+# ABOUT
+# ============================================================
+
+elif menu == "ℹ️ About":
+
+    st.subheader(
+        "ℹ️ About the Project"
+    )
+
+    st.write(
+        """
+        ### Customer Lifetime Value Prediction
+
+        This project uses Machine Learning to estimate
+        the potential lifetime value of customers.
+
+        The application analyzes three important customer
+        behavior features:
+
+        **Recency** — how recently the customer purchased.
+
+        **Frequency** — how often the customer purchases.
+
+        **Monetary Value** — how much the customer spends.
+
+        A Gradient Boosting Regressor is used to predict CLV.
+
+        K-Means clustering is additionally used to divide
+        customers into behavioral segments.
+        """
+    )
+
+    st.divider()
+
+    st.subheader(
+        "🔄 Project Workflow"
+    )
+
+    steps = [
+        "1️⃣ Customer Data",
+        "2️⃣ Data Preparation",
+        "3️⃣ Feature Selection",
+        "4️⃣ ML Model Training",
+        "5️⃣ CLV Prediction",
+        "6️⃣ Customer Segmentation",
+        "7️⃣ Business Insights"
+    ]
+
+    for step in steps:
+
+        st.write(step)
+
+    st.divider()
+
+    st.subheader(
+        "🛠 Technologies Used"
+    )
+
+    technologies = pd.DataFrame({
+        "Technology": [
+            "Python",
+            "Pandas",
+            "NumPy",
+            "Scikit-learn",
+            "Matplotlib",
+            "Streamlit"
+        ],
+
+        "Purpose": [
+            "Programming",
+            "Data Processing",
+            "Numerical Computing",
+            "Machine Learning",
+            "Visualization",
+            "Web Application"
+        ]
+    })
+
+    st.dataframe(
+        technologies,
+        use_container_width=True,
+        hide_index=True
+    )
+
+    st.divider()
+
+    st.success(
+        "🎯 Project Goal: Use Machine Learning to "
+        "understand customer value and support better "
+        "business decisions."
+    )
+
+
+# ============================================================
+# FOOTER
+# ============================================================
 
 st.divider()
 
-st.markdown(
-    <div class="footer">
-
-    📊 Customer Lifetime Value Prediction
-    &nbsp; • &nbsp;
-    Machine Learning Project
-    &nbsp; • &nbsp;
-    Python + Scikit-learn + Streamlit
-
-    </div>
-    ,unsafe_allow_html=True
+st.caption(
+    "📊 Customer Lifetime Value Prediction "
+    "• Machine Learning Project "
+    "• Built with Python & Streamlit"
 )
