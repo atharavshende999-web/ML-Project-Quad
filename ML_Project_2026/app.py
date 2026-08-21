@@ -1,9 +1,12 @@
 # ============================================================
 # CUSTOMER LIFETIME VALUE - ML DASHBOARD
-# Presentation Ready Streamlit Application
+# Complete Streamlit Application
+# Automatic Dataset Detection
+# No Upload / No Dataset Selector
 # ============================================================
 
 import warnings
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -35,130 +38,205 @@ st.set_page_config(
 # CUSTOM UI
 # ============================================================
 
-st.markdown("""
-<style>
+st.markdown(
+    """
+    <style>
 
-.block-container {
-    padding-top: 2rem;
-    padding-bottom: 2rem;
-    max-width: 1400px;
-}
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        max-width: 1400px;
+    }
 
-/* Main title */
+    .main-title {
+        font-size: 42px;
+        font-weight: 800;
+        letter-spacing: -1px;
+        margin-bottom: 5px;
+    }
 
-.main-title {
-    font-size: 42px;
-    font-weight: 800;
-    letter-spacing: -1px;
-    margin-bottom: 5px;
-}
+    .subtitle {
+        font-size: 17px;
+        opacity: 0.70;
+        margin-bottom: 30px;
+    }
 
-.subtitle {
-    font-size: 17px;
-    opacity: 0.70;
-    margin-bottom: 30px;
-}
+    .metric-card {
+        padding: 22px;
+        border-radius: 18px;
+        border: 1px solid rgba(128,128,128,0.18);
+        background: rgba(128,128,128,0.06);
+        min-height: 130px;
+        transition: 0.2s;
+    }
 
-/* Metric cards */
+    .metric-card:hover {
+        border-color: rgba(128,128,128,0.35);
+        transform: translateY(-2px);
+    }
 
-.metric-card {
-    padding: 22px;
-    border-radius: 18px;
-    border: 1px solid rgba(128,128,128,0.18);
-    background: rgba(128,128,128,0.06);
-    min-height: 130px;
-    transition: 0.2s;
-}
+    .metric-label {
+        font-size: 14px;
+        opacity: 0.65;
+        margin-bottom: 10px;
+    }
 
-.metric-card:hover {
-    border-color: rgba(128,128,128,0.35);
-    transform: translateY(-2px);
-}
+    .metric-value {
+        font-size: 30px;
+        font-weight: 750;
+    }
 
-.metric-label {
-    font-size: 14px;
-    opacity: 0.65;
-    margin-bottom: 10px;
-}
+    .metric-description {
+        font-size: 12px;
+        opacity: 0.55;
+        margin-top: 6px;
+    }
 
-.metric-value {
-    font-size: 30px;
-    font-weight: 750;
-}
+    .section-title {
+        font-size: 25px;
+        font-weight: 750;
+        margin-top: 25px;
+        margin-bottom: 15px;
+    }
 
-.metric-description {
-    font-size: 12px;
-    opacity: 0.55;
-    margin-top: 6px;
-}
+    .info-box {
+        padding: 18px;
+        border-radius: 15px;
+        border: 1px solid rgba(128,128,128,0.18);
+        background: rgba(128,128,128,0.05);
+        margin-bottom: 12px;
+    }
 
-/* Section */
+    section[data-testid="stSidebar"] {
+        border-right: 1px solid rgba(128,128,128,0.15);
+    }
 
-.section-title {
-    font-size: 25px;
-    font-weight: 750;
-    margin-top: 25px;
-    margin-bottom: 15px;
-}
+    .stButton > button {
+        border-radius: 10px;
+        font-weight: 600;
+    }
 
-/* Information boxes */
+    [data-testid="stDataFrame"] {
+        border-radius: 12px;
+    }
 
-.info-box {
-    padding: 18px;
-    border-radius: 15px;
-    border: 1px solid rgba(128,128,128,0.18);
-    background: rgba(128,128,128,0.05);
-    margin-bottom: 12px;
-}
+    #MainMenu {
+        visibility: hidden;
+    }
 
-/* Sidebar */
+    footer {
+        visibility: hidden;
+    }
 
-section[data-testid="stSidebar"] {
-    border-right: 1px solid rgba(128,128,128,0.15);
-}
-
-/* Buttons */
-
-.stButton > button {
-    border-radius: 10px;
-    font-weight: 600;
-}
-
-/* Tables */
-
-[data-testid="stDataFrame"] {
-    border-radius: 12px;
-}
-
-/* Hide Streamlit branding */
-
-#MainMenu {
-    visibility: hidden;
-}
-
-footer {
-    visibility: hidden;
-}
-
-</style>
-""", unsafe_allow_html=True)
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 
 # ============================================================
 # AUTOMATIC DATASET LOADING
 # ============================================================
 
-DATASET_PATH = "customer_clv.csv"
-
-
 @st.cache_data
 def load_dataset():
 
-    data = pd.read_csv(DATASET_PATH)
+    # Location of this app.py
+    app_directory = Path(__file__).resolve().parent
 
-    return data
+    # Search every CSV in this project and subfolders
+    csv_files = list(
+        app_directory.rglob("*.csv")
+    )
+
+    # Ignore hidden folders/files
+    csv_files = [
+        file
+        for file in csv_files
+        if not any(
+            part.startswith(".")
+            for part in file.parts
+        )
+    ]
+
+    # --------------------------------------------------------
+    # No CSV found
+    # --------------------------------------------------------
+
+    if not csv_files:
+
+        st.error(
+            "❌ Dataset not found."
+        )
+
+        st.info(
+            "Make sure your CSV dataset is inside the "
+            "GitHub project and committed to the repository."
+        )
+
+        st.stop()
+
+    # --------------------------------------------------------
+    # Preferred CLV filenames
+    # --------------------------------------------------------
+
+    preferred_names = [
+        "customer_clv.csv",
+        "clv.csv",
+        "customer_lifetime_value.csv",
+        "customer_lifetime_value_dataset.csv",
+        "customers.csv",
+        "customer_data.csv",
+        "data.csv",
+        "dataset.csv"
+    ]
+
+    selected_file = None
+
+    # First search for known filenames
+    for preferred_name in preferred_names:
+
+        for file in csv_files:
+
+            if file.name.lower() == preferred_name.lower():
+
+                selected_file = file
+
+                break
+
+        if selected_file is not None:
+            break
+
+    # --------------------------------------------------------
+    # Otherwise automatically use first CSV
+    # --------------------------------------------------------
+
+    if selected_file is None:
+
+        selected_file = csv_files[0]
+
+    # --------------------------------------------------------
+    # Read CSV
+    # --------------------------------------------------------
+
+    try:
+
+        data = pd.read_csv(
+            selected_file
+        )
+
+        return data
+
+    except Exception:
+
+        st.error(
+            "❌ Dataset was found but could not be read."
+        )
+
+        st.stop()
 
 
+# Load automatically
 df = load_dataset()
 
 
@@ -177,16 +255,22 @@ def find_column(dataframe, possible_names):
     for name in possible_names:
 
         if name.lower() in columns_lower:
-            return columns_lower[name.lower()]
+
+            return columns_lower[
+                name.lower()
+            ]
 
     # Partial match
     for col in dataframe.columns:
 
-        col_lower = str(col).lower().strip()
+        col_lower = str(
+            col
+        ).lower().strip()
 
         for name in possible_names:
 
             if name.lower() in col_lower:
+
                 return col
 
     return None
@@ -209,10 +293,10 @@ def prepare_data(dataframe):
         how="all"
     )
 
-    # Remove duplicate rows
+    # Remove duplicates
     data = data.drop_duplicates()
 
-    # Convert numeric-looking columns
+    # Convert numeric-looking object columns
     for col in data.columns:
 
         if data[col].dtype == "object":
@@ -222,7 +306,9 @@ def prepare_data(dataframe):
                 errors="coerce"
             )
 
-            valid_ratio = converted.notna().mean()
+            valid_ratio = (
+                converted.notna().mean()
+            )
 
             if valid_ratio > 0.80:
 
@@ -269,7 +355,7 @@ def create_features(dataframe, target):
         include=np.number
     ).copy()
 
-    # Remove target
+    # Remove CLV target
     if target in numerical.columns:
 
         numerical = numerical.drop(
@@ -281,13 +367,18 @@ def create_features(dataframe, target):
 
     for col in numerical.columns:
 
-        name = str(col).lower()
+        name = str(
+            col
+        ).lower()
 
         if (
             name == "id"
             or name.endswith("_id")
             or name.endswith(" id")
-            or "customerid" in name.replace("_", "")
+            or "customerid" in name.replace(
+                "_",
+                ""
+            )
         ):
 
             remove_columns.append(col)
@@ -305,7 +396,9 @@ def create_features(dataframe, target):
 
     # Fill missing values
     numerical = numerical.fillna(
-        numerical.median(numeric_only=True)
+        numerical.median(
+            numeric_only=True
+        )
     )
 
     numerical = numerical.fillna(0)
@@ -314,7 +407,7 @@ def create_features(dataframe, target):
 
 
 # ============================================================
-# MODEL TRAINING
+# TRAIN MACHINE LEARNING MODEL
 # ============================================================
 
 @st.cache_resource
@@ -330,12 +423,14 @@ def train_model(dataframe, target):
         errors="coerce"
     )
 
+    # Remove rows with invalid target
     valid = y.notna()
 
     X = X.loc[valid]
 
     y = y.loc[valid]
 
+    # Minimum data requirement
     if len(X) < 10:
 
         return None
@@ -344,9 +439,11 @@ def train_model(dataframe, target):
 
         return None
 
+    # Train/test split
     X_train, X_test, y_train, y_test = train_test_split(
 
         X,
+
         y,
 
         test_size=0.20,
@@ -354,6 +451,7 @@ def train_model(dataframe, target):
         random_state=42
     )
 
+    # Gradient Boosting
     model = GradientBoostingRegressor(
 
         n_estimators=150,
@@ -372,10 +470,12 @@ def train_model(dataframe, target):
         y_train
     )
 
+    # Prediction
     predictions = model.predict(
         X_test
     )
 
+    # Metrics
     mae = mean_absolute_error(
         y_test,
         predictions
@@ -425,11 +525,16 @@ def train_model(dataframe, target):
 # PREPARE DATA
 # ============================================================
 
-df = prepare_data(df)
+df = prepare_data(
+    df
+)
 
-target_column = create_target(df)
+target_column = create_target(
+    df
+)
 
 
+# Train model automatically
 if target_column is not None:
 
     result = train_model(
@@ -463,17 +568,25 @@ with st.sidebar:
         "Navigation",
 
         [
+
             "🏠 Dashboard",
+
             "👤 Customer Prediction",
+
             "📊 Analytics",
+
             "🎯 Customer Segments",
+
             "🤖 ML Model",
+
             "ℹ️ About Project"
+
         ]
     )
 
     st.divider()
 
+    # System status
     st.success(
         "● ML System Online"
     )
@@ -489,7 +602,8 @@ with st.sidebar:
     st.divider()
 
     st.caption(
-        "Built with Python • Scikit-learn • Streamlit"
+        "Built with Python • "
+        "Scikit-learn • Streamlit"
     )
 
 
@@ -498,16 +612,20 @@ with st.sidebar:
 # ============================================================
 
 st.markdown(
-    '<div class="main-title">'
-    'Customer Lifetime Value'
-    '</div>',
+    """
+    <div class="main-title">
+        Customer Lifetime Value
+    </div>
+    """,
     unsafe_allow_html=True
 )
 
 st.markdown(
-    '<div class="subtitle">'
-    'Machine Learning powered customer intelligence dashboard'
-    '</div>',
+    """
+    <div class="subtitle">
+        Machine Learning powered customer intelligence dashboard
+    </div>
+    """,
     unsafe_allow_html=True
 )
 
@@ -519,25 +637,32 @@ st.markdown(
 if page == "🏠 Dashboard":
 
     st.markdown(
-        '<div class="section-title">'
-        'Business Overview'
-        '</div>',
+        """
+        <div class="section-title">
+            Business Overview
+        </div>
+        """,
         unsafe_allow_html=True
     )
 
     if target_column is not None:
 
         clv_values = pd.to_numeric(
+
             df[target_column],
+
             errors="coerce"
+
         ).dropna()
 
-        total_customers = len(df)
+        total_customers = len(
+            df
+        )
 
         average_clv = clv_values.mean()
 
-        high_value_limit = clv_values.quantile(
-            0.75
+        high_value_limit = (
+            clv_values.quantile(0.75)
         )
 
         high_value_customers = (
@@ -721,6 +846,7 @@ if page == "🏠 Dashboard":
                     clv_values.max()
 
                 ]
+
             })
 
             st.dataframe(
@@ -734,6 +860,7 @@ if page == "🏠 Dashboard":
                 use_container_width=True,
 
                 hide_index=True
+
             )
 
             st.markdown(
@@ -758,15 +885,20 @@ if page == "🏠 Dashboard":
         # ----------------------------------------------------
 
         st.markdown(
-            '<div class="section-title">'
-            'Customer Data Preview'
-            '</div>',
+            """
+            <div class="section-title">
+                Customer Data Preview
+            </div>
+            """,
             unsafe_allow_html=True
         )
 
         st.dataframe(
+
             df.head(10),
+
             use_container_width=True,
+
             hide_index=True
         )
 
@@ -784,9 +916,11 @@ if page == "🏠 Dashboard":
 elif page == "👤 Customer Prediction":
 
     st.markdown(
-        '<div class="section-title">'
-        'Customer CLV Prediction'
-        '</div>',
+        """
+        <div class="section-title">
+            Customer CLV Prediction
+        </div>
+        """,
         unsafe_allow_html=True
     )
 
@@ -811,13 +945,18 @@ elif page == "👤 Customer Prediction":
 
         columns = st.columns(2)
 
-        for index, feature in enumerate(features):
+        for index, feature in enumerate(
+            features
+        ):
 
             with columns[index % 2]:
 
                 series = pd.to_numeric(
+
                     df[feature],
+
                     errors="coerce"
+
                 )
 
                 default_value = float(
@@ -869,11 +1008,14 @@ elif page == "👤 Customer Prediction":
                     max_value=maximum,
 
                     value=min(
+
                         max(
                             default_value,
                             minimum
                         ),
+
                         maximum
+
                     )
                 )
 
@@ -884,6 +1026,7 @@ elif page == "👤 Customer Prediction":
             "🔮 Predict Customer Lifetime Value",
 
             use_container_width=True
+
         ):
 
             input_df = pd.DataFrame(
@@ -923,7 +1066,9 @@ elif page == "👤 Customer Prediction":
 
             q75 = df[
                 target_column
-            ].quantile(0.75)
+            ].quantile(
+                0.75
+            )
 
             median = df[
                 target_column
@@ -932,19 +1077,22 @@ elif page == "👤 Customer Prediction":
             if prediction >= q75:
 
                 st.success(
-                    "⭐ High-value customer — strong retention priority."
+                    "⭐ High-value customer — "
+                    "strong retention priority."
                 )
 
             elif prediction >= median:
 
                 st.info(
-                    "📈 Medium-value customer — suitable for engagement campaigns."
+                    "📈 Medium-value customer — "
+                    "suitable for engagement campaigns."
                 )
 
             else:
 
                 st.warning(
-                    "📌 Lower-value customer — consider targeted marketing."
+                    "📌 Lower-value customer — "
+                    "consider targeted marketing."
                 )
 
 
@@ -955,13 +1103,17 @@ elif page == "👤 Customer Prediction":
 elif page == "📊 Analytics":
 
     st.markdown(
-        '<div class="section-title">'
-        'Customer Analytics'
-        '</div>',
+        """
+        <div class="section-title">
+            Customer Analytics
+        </div>
+        """,
         unsafe_allow_html=True
     )
 
-    numerical = numeric_columns(df)
+    numerical = numeric_columns(
+        df
+    )
 
     if len(numerical) >= 2:
 
@@ -977,9 +1129,13 @@ elif page == "📊 Analytics":
         with col2:
 
             y_options = [
+
                 col
+
                 for col in numerical
+
                 if col != x_column
+
             ]
 
             y_column = st.selectbox(
@@ -992,8 +1148,11 @@ elif page == "📊 Analytics":
         )
 
         ax.scatter(
+
             df[x_column],
+
             df[y_column],
+
             alpha=0.55
         )
 
@@ -1014,8 +1173,11 @@ elif page == "📊 Analytics":
         )
 
         st.pyplot(
+
             fig,
+
             use_container_width=True
+
         )
 
         plt.close(fig)
@@ -1025,9 +1187,11 @@ elif page == "📊 Analytics":
     # --------------------------------------------------------
 
     st.markdown(
-        '<div class="section-title">'
-        'Correlation Analysis'
-        '</div>',
+        """
+        <div class="section-title">
+            Correlation Analysis
+        </div>
+        """,
         unsafe_allow_html=True
     )
 
@@ -1040,25 +1204,34 @@ elif page == "📊 Analytics":
     )
 
     image = ax.imshow(
+
         correlation,
+
         aspect="auto"
     )
 
     ax.set_xticks(
         range(
-            len(correlation.columns)
+            len(
+                correlation.columns
+            )
         )
     )
 
     ax.set_yticks(
         range(
-            len(correlation.columns)
+            len(
+                correlation.columns
+            )
         )
     )
 
     ax.set_xticklabels(
+
         correlation.columns,
+
         rotation=45,
+
         ha="right"
     )
 
@@ -1076,8 +1249,11 @@ elif page == "📊 Analytics":
     )
 
     st.pyplot(
+
         fig,
+
         use_container_width=True
+
     )
 
     plt.close(fig)
@@ -1090,13 +1266,17 @@ elif page == "📊 Analytics":
 elif page == "🎯 Customer Segments":
 
     st.markdown(
-        '<div class="section-title">'
-        'Customer Segmentation'
-        '</div>',
+        """
+        <div class="section-title">
+            Customer Segmentation
+        </div>
+        """,
         unsafe_allow_html=True
     )
 
-    numerical = numeric_columns(df)
+    numerical = numeric_columns(
+        df
+    )
 
     if len(numerical) >= 2:
 
@@ -1105,15 +1285,20 @@ elif page == "🎯 Customer Segments":
         ].copy()
 
         segment_data = segment_data.replace(
+
             [np.inf, -np.inf],
+
             np.nan
         )
 
         segment_data = segment_data.fillna(
+
             segment_data.median()
         )
 
-        segment_data = segment_data.fillna(0)
+        segment_data = segment_data.fillna(
+            0
+        )
 
         scaler = StandardScaler()
 
@@ -1180,8 +1365,11 @@ elif page == "🎯 Customer Segments":
             )
 
             ax.bar(
+
                 segment_counts.index.astype(str),
+
                 segment_counts.values
+
             )
 
             ax.set_xlabel(
@@ -1197,8 +1385,11 @@ elif page == "🎯 Customer Segments":
             )
 
             st.pyplot(
+
                 fig,
+
                 use_container_width=True
+
             )
 
             plt.close(fig)
@@ -1222,6 +1413,7 @@ elif page == "🎯 Customer Segments":
                 .reset_index(
                     name="Customers"
                 )
+
             )
 
             summary[
@@ -1230,9 +1422,12 @@ elif page == "🎯 Customer Segments":
 
                 summary["Customers"]
 
-                / len(segmented_df)
+                / len(
+                    segmented_df
+                )
 
                 * 100
+
             )
 
             st.dataframe(
@@ -1246,19 +1441,26 @@ elif page == "🎯 Customer Segments":
                 use_container_width=True,
 
                 hide_index=True
+
             )
 
         st.markdown(
-            '<div class="section-title">'
-            'Segmented Customers'
-            '</div>',
+            """
+            <div class="section-title">
+                Segmented Customers
+            </div>
+            """,
             unsafe_allow_html=True
         )
 
         st.dataframe(
+
             segmented_df.head(20),
+
             use_container_width=True,
+
             hide_index=True
+
         )
 
     else:
@@ -1276,9 +1478,11 @@ elif page == "🎯 Customer Segments":
 elif page == "🤖 ML Model":
 
     st.markdown(
-        '<div class="section-title">'
-        'Machine Learning Model'
-        '</div>',
+        """
+        <div class="section-title">
+            Machine Learning Model
+        </div>
+        """,
         unsafe_allow_html=True
     )
 
@@ -1291,7 +1495,7 @@ elif page == "🤖 ML Model":
     else:
 
         # ----------------------------------------------------
-        # MODEL METRICS
+        # METRICS
         # ----------------------------------------------------
 
         col1, col2, col3 = st.columns(3)
@@ -1299,22 +1503,31 @@ elif page == "🤖 ML Model":
         with col1:
 
             st.metric(
+
                 "R² Score",
+
                 f"{result['r2']:.3f}"
+
             )
 
         with col2:
 
             st.metric(
+
                 "MAE",
+
                 f"{result['mae']:.2f}"
+
             )
 
         with col3:
 
             st.metric(
+
                 "RMSE",
+
                 f"{result['rmse']:.2f}"
+
             )
 
         st.write("")
@@ -1328,7 +1541,6 @@ elif page == "🤖 ML Model":
             <div class="info-box">
 
             <b>🤖 Algorithm</b><br>
-
             Gradient Boosting Regressor
 
             </div>
@@ -1336,7 +1548,6 @@ elif page == "🤖 ML Model":
             <div class="info-box">
 
             <b>📚 Problem Type</b><br>
-
             Supervised Machine Learning • Regression
 
             </div>
@@ -1344,7 +1555,6 @@ elif page == "🤖 ML Model":
             <div class="info-box">
 
             <b>🎯 Objective</b><br>
-
             Predict the expected Customer Lifetime Value.
 
             </div>
@@ -1374,6 +1584,7 @@ elif page == "🤖 ML Model":
             use_container_width=True,
 
             hide_index=True
+
         )
 
         # ----------------------------------------------------
@@ -1395,6 +1606,7 @@ elif page == "🤖 ML Model":
             result["predictions"],
 
             alpha=0.6
+
         )
 
         min_value = min(
@@ -1402,6 +1614,7 @@ elif page == "🤖 ML Model":
             result["y_test"].min(),
 
             result["predictions"].min()
+
         )
 
         max_value = max(
@@ -1409,6 +1622,7 @@ elif page == "🤖 ML Model":
             result["y_test"].max(),
 
             result["predictions"].max()
+
         )
 
         ax.plot(
@@ -1418,6 +1632,7 @@ elif page == "🤖 ML Model":
             [min_value, max_value],
 
             linestyle="--"
+
         )
 
         ax.set_xlabel(
@@ -1437,8 +1652,11 @@ elif page == "🤖 ML Model":
         )
 
         st.pyplot(
+
             fig,
+
             use_container_width=True
+
         )
 
         plt.close(fig)
@@ -1451,9 +1669,11 @@ elif page == "🤖 ML Model":
 elif page == "ℹ️ About Project":
 
     st.markdown(
-        '<div class="section-title">'
-        'About the Project'
-        '</div>',
+        """
+        <div class="section-title">
+            About the Project
+        </div>
+        """,
         unsafe_allow_html=True
     )
 
@@ -1465,11 +1685,11 @@ elif page == "ℹ️ About Project":
         application designed to estimate the future value of customers.
 
         The system analyzes customer-related information and uses a
-        Gradient Boosting Regression model to predict Customer Lifetime
-        Value.
+        Gradient Boosting Regression model to predict Customer
+        Lifetime Value.
 
-        K-Means clustering is also used to identify different customer
-        segments.
+        K-Means clustering is also used to identify different
+        customer segments.
 
         ### 🔄 Project Workflow
 
@@ -1557,6 +1777,7 @@ elif page == "ℹ️ About Project":
             "Machine Learning Web Application"
 
         ]
+
     })
 
     st.dataframe(
@@ -1566,6 +1787,7 @@ elif page == "ℹ️ About Project":
         use_container_width=True,
 
         hide_index=True
+
     )
 
 
