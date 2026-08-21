@@ -10,11 +10,11 @@ from sklearn.model_selection import train_test_split
 
 
 # ============================================================
-# CLV INTELLIGENCE — FINAL STREAMLIT APP
+# PAGE CONFIG
 # ============================================================
 
 st.set_page_config(
-    page_title="CLV Intelligence",
+    page_title="CLV Intelligence Dashboard",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -28,486 +28,222 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    /* ---------- MAIN BACKGROUND ---------- */
 
-html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif;
-}
+    .stApp {
+        background: #f5f7fb;
+    }
 
-.stApp {
-    background: #f6f8fc;
-}
+    /* ---------- SIDEBAR ---------- */
 
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #111827 0%, #1e293b 100%);
+    }
 
-/* ================= SIDEBAR ================= */
+    section[data-testid="stSidebar"] * {
+        color: white !important;
+    }
 
-section[data-testid="stSidebar"] {
-    background: linear-gradient(
-        180deg,
-        #0f172a 0%,
-        #111827 55%,
-        #172554 100%
-    );
+    section[data-testid="stSidebar"] .stRadio label {
+        padding: 10px;
+        border-radius: 8px;
+    }
 
-    border-right: 1px solid rgba(255,255,255,0.08);
-}
+    /* ---------- HEADINGS ---------- */
 
-section[data-testid="stSidebar"] * {
-    color: #f8fafc !important;
-}
+    h1 {
+        color: #111827;
+        font-weight: 800;
+    }
 
-.sidebar-brand {
-    text-align: center;
-    padding: 14px 8px 24px;
-}
+    h2 {
+        color: #1e293b;
+        font-weight: 700;
+    }
 
-.sidebar-logo {
-    width: 64px;
-    height: 64px;
-    margin: auto;
+    h3 {
+        color: #334155;
+    }
 
-    border-radius: 18px;
+    /* ---------- CARDS ---------- */
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    .metric-card {
+        background: white;
+        padding: 22px;
+        border-radius: 16px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 5px 18px rgba(15, 23, 42, 0.06);
+        min-height: 125px;
+    }
 
-    font-size: 32px;
+    .metric-title {
+        color: #64748b;
+        font-size: 14px;
+        font-weight: 600;
+    }
 
-    background: linear-gradient(
-        135deg,
-        #6366f1,
-        #8b5cf6
-    );
+    .metric-value {
+        color: #111827;
+        font-size: 28px;
+        font-weight: 800;
+        margin-top: 8px;
+    }
 
-    box-shadow:
-        0 12px 30px rgba(99,102,241,.35);
-}
+    .metric-icon {
+        font-size: 28px;
+        margin-bottom: 5px;
+    }
 
-.sidebar-title {
-    font-size: 22px;
-    font-weight: 800;
-    margin-top: 12px;
-}
+    /* ---------- HERO ---------- */
 
-.sidebar-subtitle {
-    color: #94a3b8 !important;
-    font-size: 12px;
-    margin-top: 3px;
-}
-
-
-/* ================= PAGE HEADINGS ================= */
-
-.page-title {
-    font-size: 38px;
-    font-weight: 800;
-    color: #0f172a;
-
-    letter-spacing: -1px;
-
-    margin-bottom: 2px;
-}
-
-.page-subtitle {
-    color: #64748b;
-    font-size: 15px;
-
-    margin-bottom: 26px;
-}
-
-.section-title {
-    font-size: 22px;
-    font-weight: 800;
-
-    color: #0f172a;
-
-    margin: 22px 0 12px;
-}
-
-
-/* ================= CARDS ================= */
-
-.card {
-
-    background: #ffffff;
-
-    border: 1px solid #e8edf5;
-
-    border-radius: 18px;
-
-    padding: 22px;
-
-    box-shadow:
-        0 8px 30px rgba(15,23,42,.055);
-}
-
-
-/* ================= HERO ================= */
-
-.hero {
-
-    background:
-        linear-gradient(
+    .hero {
+        background: linear-gradient(
             135deg,
-            #111827 0%,
-            #312e81 52%,
+            #2563eb 0%,
             #4f46e5 100%
         );
+        padding: 35px;
+        border-radius: 20px;
+        color: white;
+        margin-bottom: 25px;
+        box-shadow: 0 10px 30px rgba(37, 99, 235, 0.25);
+    }
 
-    border-radius: 24px;
+    .hero h1 {
+        color: white;
+        font-size: 36px;
+        margin-bottom: 8px;
+    }
 
-    padding: 34px;
+    .hero p {
+        color: #dbeafe;
+        font-size: 16px;
+        margin: 0;
+    }
 
-    color: white;
+    /* ---------- INFO CARDS ---------- */
 
-    box-shadow:
-        0 18px 45px rgba(49,46,129,.22);
+    .info-card {
+        background: white;
+        padding: 22px;
+        border-radius: 15px;
+        border: 1px solid #e5e7eb;
+        height: 100%;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+    }
 
-    margin-bottom: 22px;
-}
+    .info-card h3 {
+        margin-top: 0;
+        color: #1e293b;
+    }
 
-.hero h1 {
+    .info-card p {
+        color: #64748b;
+        line-height: 1.6;
+    }
 
-    color: white;
+    /* ---------- PREDICTION RESULT ---------- */
 
-    font-size: 34px;
-
-    margin:
-        0
-        0
-        10px;
-}
-
-.hero p {
-
-    color: #dbeafe;
-
-    max-width: 760px;
-
-    font-size: 15px;
-
-    line-height: 1.7;
-}
-
-.hero-badge {
-
-    display: inline-block;
-
-    padding:
-        7px
-        12px;
-
-    border-radius: 999px;
-
-    background:
-        rgba(255,255,255,.12);
-
-    border:
-        1px solid
-        rgba(255,255,255,.16);
-
-    font-size: 12px;
-
-    margin-bottom: 12px;
-}
-
-
-/* ================= KPI CARDS ================= */
-
-.kpi {
-
-    background: white;
-
-    border:
-        1px solid
-        #e8edf5;
-
-    border-radius: 18px;
-
-    padding: 20px;
-
-    min-height: 130px;
-
-    box-shadow:
-        0 8px 25px
-        rgba(15,23,42,.05);
-}
-
-.kpi-icon {
-    font-size: 25px;
-}
-
-.kpi-label {
-
-    color: #64748b;
-
-    font-size: 12px;
-
-    font-weight: 700;
-
-    margin-top: 9px;
-
-    text-transform: uppercase;
-
-    letter-spacing: .5px;
-}
-
-.kpi-value {
-
-    color: #0f172a;
-
-    font-size: 27px;
-
-    font-weight: 800;
-
-    margin-top: 3px;
-}
-
-.kpi-note {
-
-    color: #94a3b8;
-
-    font-size: 11px;
-
-    margin-top: 3px;
-}
-
-
-/* ================= PREDICTION ================= */
-
-.prediction {
-
-    background:
-        linear-gradient(
+    .prediction-box {
+        background: linear-gradient(
             135deg,
-            #4f46e5,
-            #7c3aed
+            #ecfdf5,
+            #d1fae5
         );
-
-    border-radius: 22px;
-
-    padding: 30px;
-
-    color: white;
-
-    text-align: center;
-
-    box-shadow:
-        0 18px 40px
-        rgba(79,70,229,.24);
-
-    margin: 20px 0;
-}
-
-.prediction-label {
-
-    font-size: 13px;
-
-    opacity: .85;
-
-    font-weight: 600;
-}
-
-.prediction-value {
-
-    font-size: 45px;
-
-    font-weight: 800;
-
-    margin:
-        5px
-        0;
-}
-
-.prediction-caption {
-
-    font-size: 12px;
-
-    opacity: .8;
-}
-
-
-/* ================= SEGMENT CARDS ================= */
-
-.segment {
-
-    border-radius: 16px;
-
-    padding: 18px;
-
-    background: white;
-
-    border:
-        1px solid
-        #e8edf5;
-
-    box-shadow:
-        0 6px 20px
-        rgba(15,23,42,.04);
-}
-
-.segment h3 {
-
-    margin:
-        0
-        0
-        5px;
-
-    color: #0f172a;
-}
-
-.segment p {
-
-    margin: 0;
-
-    color: #64748b;
-
-    font-size: 13px;
-}
-
-
-/* ================= BUTTONS ================= */
-
-.stButton > button {
-
-    border-radius: 11px;
-
-    min-height: 44px;
-
-    font-weight: 700;
-
-    border:
-        1px solid
-        #e2e8f0;
-
-    transition:
-        all .2s ease;
-}
-
-.stButton > button:hover {
-
-    transform:
-        translateY(-1px);
-
-    box-shadow:
-        0 8px 20px
-        rgba(15,23,42,.10);
-}
-
-
-/* ================= INPUTS ================= */
-
-div[data-baseweb="input"] > div,
-div[data-baseweb="select"] > div {
-
-    border-radius: 10px !important;
-}
-
-
-/* ================= FILE UPLOADER ================= */
-
-[data-testid="stFileUploader"] {
-
-    background: #fff;
-
-    border:
-        1px dashed
-        #cbd5e1;
-
-    border-radius: 15px;
-
-    padding: 8px;
-}
-
-
-/* ================= STREAMLIT CLEANUP ================= */
-
-#MainMenu {
-    visibility: hidden;
-}
-
-footer {
-    visibility: hidden;
-}
-
-header[data-testid="stHeader"] {
-    background: transparent;
-}
-
-
-/* ================= STATUS ================= */
-
-.status-dot {
-
-    display: inline-block;
-
-    width: 8px;
-    height: 8px;
-
-    border-radius: 50%;
-
-    background: #22c55e;
-
-    margin-right: 6px;
-}
+        border: 1px solid #86efac;
+        padding: 25px;
+        border-radius: 16px;
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .prediction-label {
+        color: #166534;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .prediction-value {
+        color: #15803d;
+        font-size: 40px;
+        font-weight: 800;
+    }
+
+    /* ---------- SECTION ---------- */
+
+    .section-title {
+        font-size: 22px;
+        font-weight: 750;
+        color: #1e293b;
+        margin-top: 20px;
+        margin-bottom: 15px;
+    }
+
+    /* ---------- FOOTER ---------- */
+
+    .footer {
+        text-align: center;
+        color: #94a3b8;
+        font-size: 13px;
+        padding: 30px 0 10px 0;
+    }
+
+    /* ---------- BUTTON ---------- */
+
+    .stButton > button {
+        border-radius: 10px;
+        border: none;
+        padding: 10px 20px;
+        font-weight: 700;
+        transition: 0.2s;
+    }
+
+    .stButton > button:hover {
+        transform: translateY(-2px);
+    }
+
+    /* ---------- DATAFRAME ---------- */
+
+    [data-testid="stDataFrame"] {
+        border-radius: 12px;
+        overflow: hidden;
+    }
 
 </style>
 """, unsafe_allow_html=True)
 
 
 # ============================================================
-# HELPER FUNCTIONS
+# FILE CONFIG
+# ============================================================
+
+DATA_FILE = "user_inputs.xlsx"
+
+
+# ============================================================
+# MODEL FUNCTION
 # ============================================================
 
 def train_clv_model():
 
     data = {
-
-        "Recency": [
-            10, 20, 5, 30,
-            15, 40, 25, 8,
-            60, 12, 35, 18
-        ],
-
-        "Frequency": [
-            5, 3, 10, 2,
-            7, 1, 4, 12,
-            2, 8, 3, 6
-        ],
-
-        "Monetary": [
-            500, 300, 1000, 200,
-            700, 100, 400, 1500,
-            250, 900, 350, 650
-        ],
-
-        "CLV": [
-            1200, 700, 2500, 400,
-            1600, 200, 900, 3000,
-            500, 2000, 800, 1400
-        ]
+        "Recency": [10, 20, 5, 30, 15, 40, 25, 8, 60, 12, 35, 18],
+        "Frequency": [5, 3, 10, 2, 7, 1, 4, 12, 2, 8, 3, 6],
+        "Monetary": [500, 300, 1000, 200, 700, 100, 400,
+                     1500, 250, 900, 350, 650],
+        "CLV": [1200, 700, 2500, 400, 1600, 200, 900,
+                3000, 500, 2000, 800, 1400]
     }
 
     df = pd.DataFrame(data)
 
-    X = df[
-        [
-            "Recency",
-            "Frequency",
-            "Monetary"
-        ]
-    ]
-
+    X = df[["Recency", "Frequency", "Monetary"]]
     y = df["CLV"]
 
     X_train, X_test, y_train, y_test = train_test_split(
-
         X,
         y,
-
         test_size=0.2,
-
         random_state=42
     )
 
@@ -515,65 +251,43 @@ def train_clv_model():
         random_state=42
     )
 
-    model.fit(
-        X_train,
-        y_train
-    )
+    model.fit(X_train, y_train)
 
-    return model
-
-
-def save_prediction(user_data):
-
-    file_name = "user_inputs.xlsx"
-
-    try:
-
-        old = pd.read_excel(
-            file_name
-        )
-
-        new = pd.concat(
-            [
-                old,
-                user_data
-            ],
-
-            ignore_index=True
-        )
-
-    except Exception:
-
-        new = user_data
-
-    new.to_excel(
-        file_name,
-        index=False
-    )
+    return model, df
 
 
 # ============================================================
-# SESSION STATE
+# SAVE USER DATA
 # ============================================================
 
-if "attempts" not in st.session_state:
+def save_user_data(user_data):
 
-    st.session_state.attempts = 0
+    if os.path.exists(DATA_FILE):
 
+        try:
+            old_data = pd.read_excel(DATA_FILE)
 
-if "blocked" not in st.session_state:
+            new_data = pd.concat(
+                [old_data, user_data],
+                ignore_index=True
+            )
 
-    st.session_state.blocked = False
+            new_data.to_excel(
+                DATA_FILE,
+                index=False
+            )
 
+        except Exception:
+            user_data.to_excel(
+                DATA_FILE,
+                index=False
+            )
 
-if "admin_logged_in" not in st.session_state:
-
-    st.session_state.admin_logged_in = False
-
-
-if "last_prediction" not in st.session_state:
-
-    st.session_state.last_prediction = None
+    else:
+        user_data.to_excel(
+            DATA_FILE,
+            index=False
+        )
 
 
 # ============================================================
@@ -583,379 +297,237 @@ if "last_prediction" not in st.session_state:
 with st.sidebar:
 
     st.markdown("""
-    <div class="sidebar-brand">
-
-        <div class="sidebar-logo">
-            📊
-        </div>
-
-        <div class="sidebar-title">
+    <div style="
+        text-align:center;
+        padding:15px 5px 25px 5px;
+    ">
+        <div style="font-size:45px;">📊</div>
+        <h2 style="margin:0;color:white;">
             CLV Intelligence
-        </div>
-
-        <div class="sidebar-subtitle">
-            AI CUSTOMER ANALYTICS
-        </div>
-
+        </h2>
+        <p style="
+            color:#94a3b8;
+            font-size:13px;
+        ">
+            Customer Analytics Platform
+        </p>
     </div>
     """, unsafe_allow_html=True)
 
+    st.divider()
 
     menu = st.radio(
-
         "NAVIGATION",
-
         [
-            "🏠 Overview",
+            "🏠 Home",
             "🔮 CLV Predictor",
-            "👥 Customer Segmentation",
-            "🔐 Admin Center"
+            "📊 Segmentation Dashboard",
+            "🔐 Admin Panel"
         ],
-
-        label_visibility="collapsed"
+        label_visibility="visible"
     )
 
+    st.divider()
 
-    st.markdown("---")
-
-
-    st.markdown("""
-    <div style="
-        padding:8px 4px;
-        color:#cbd5e1 !important;
-        font-size:12px;
-    ">
-
-        <span class="status-dot"></span>
-        System Ready
-
-        <br><br>
-
-        <b>ML Engine</b>
-        <br>
-        Gradient Boosting
-
-        <br><br>
-
-        <b>Segmentation</b>
-        <br>
-        K-Means Clustering
-
-    </div>
-    """, unsafe_allow_html=True)
+    st.caption("🤖 Machine Learning")
+    st.caption("📈 Customer Analytics")
+    st.caption("🔐 Secure Administration")
 
 
 # ============================================================
-# OVERVIEW
+# HOME
 # ============================================================
 
-if menu == "🏠 Overview":
-
-    st.markdown(
-        '<div class="page-title">'
-        'Customer Intelligence Dashboard'
-        '</div>',
-
-        unsafe_allow_html=True
-    )
-
-
-    st.markdown(
-        '<div class="page-subtitle">'
-        'Predict customer value, discover customer groups, '
-        'and manage analytics data from one platform.'
-        '</div>',
-
-        unsafe_allow_html=True
-    )
-
-
-    # Hero section
+if menu == "🏠 Home":
 
     st.markdown("""
     <div class="hero">
 
-        <div class="hero-badge">
-            ✦ AI-POWERED CUSTOMER ANALYTICS
-        </div>
-
-        <h1>
-            Understand your customers better.
-        </h1>
+        <h1>📊 Customer Lifetime Value</h1>
 
         <p>
-            CLV Intelligence combines Machine Learning
-            and customer behaviour analytics to estimate
-            Customer Lifetime Value and segment customers
-            using Recency, Frequency and Monetary behaviour.
+        AI-powered customer analytics dashboard for
+        predicting CLV and identifying valuable customer segments.
         </p>
 
     </div>
     """, unsafe_allow_html=True)
 
-
-    # ========================================================
     # KPI CARDS
-    # ========================================================
 
-    saved_count = 0
+    total_customers = 12
+    avg_clv = 1333
+    max_clv = 3000
 
-    if os.path.exists(
-        "user_inputs.xlsx"
-    ):
+    if os.path.exists(DATA_FILE):
 
         try:
+            stored = pd.read_excel(DATA_FILE)
 
-            saved_count = len(
-                pd.read_excel(
-                    "user_inputs.xlsx"
-                )
-            )
+            if len(stored) > 0:
 
-        except Exception:
+                total_customers = len(stored)
 
-            saved_count = 0
+                if "Predicted_CLV" in stored.columns:
+                    avg_clv = stored["Predicted_CLV"].mean()
+                    max_clv = stored["Predicted_CLV"].max()
 
+        except:
+            pass
 
-    cols = st.columns(4)
+    col1, col2, col3, col4 = st.columns(4)
 
+    with col1:
 
-    kpis = [
+        st.markdown(f"""
+        <div class="metric-card">
 
-        (
-            "🤖",
-            "ML MODEL",
-            "GBR",
-            "Gradient Boosting Regressor"
-        ),
+            <div class="metric-icon">👥</div>
 
-        (
-            "👥",
-            "SEGMENTS",
-            "3",
-            "K-Means customer groups"
-        ),
+            <div class="metric-title">
+                Customers Analyzed
+            </div>
 
-        (
-            "📌",
-            "FEATURES",
-            "3",
-            "Recency • Frequency • Monetary"
-        ),
+            <div class="metric-value">
+                {total_customers}
+            </div>
 
-        (
-            "💾",
-            "PREDICTIONS",
-            str(saved_count),
-            "Stored prediction records"
-        )
-    ]
+        </div>
+        """, unsafe_allow_html=True)
 
+    with col2:
 
-    for col, data in zip(
-        cols,
-        kpis
-    ):
+        st.markdown(f"""
+        <div class="metric-card">
 
-        icon, label, value, note = data
+            <div class="metric-icon">💰</div>
 
-        with col:
+            <div class="metric-title">
+                Average CLV
+            </div>
 
-            st.markdown(
-                f"""
-                <div class="kpi">
+            <div class="metric-value">
+                ${avg_clv:,.0f}
+            </div>
 
-                    <div class="kpi-icon">
-                        {icon}
-                    </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-                    <div class="kpi-label">
-                        {label}
-                    </div>
+    with col3:
 
-                    <div class="kpi-value">
-                        {value}
-                    </div>
+        st.markdown(f"""
+        <div class="metric-card">
 
-                    <div class="kpi-note">
-                        {note}
-                    </div>
+            <div class="metric-icon">🏆</div>
 
-                </div>
-                """,
+            <div class="metric-title">
+                Highest CLV
+            </div>
 
-                unsafe_allow_html=True
-            )
+            <div class="metric-value">
+                ${max_clv:,.0f}
+            </div>
 
+        </div>
+        """, unsafe_allow_html=True)
 
-    # ========================================================
-    # MODULES
-    # ========================================================
+    with col4:
+
+        st.markdown("""
+        <div class="metric-card">
+
+            <div class="metric-icon">🤖</div>
+
+            <div class="metric-title">
+                ML Model
+            </div>
+
+            <div class="metric-value">
+                Active
+            </div>
+
+        </div>
+        """, unsafe_allow_html=True)
 
     st.markdown(
-        '<div class="section-title">'
-        '⚡ Platform Modules'
-        '</div>',
-
+        '<div class="section-title">🚀 Platform Features</div>',
         unsafe_allow_html=True
     )
-
 
     c1, c2, c3 = st.columns(3)
 
+    with c1:
 
-    modules = [
+        st.markdown("""
+        <div class="info-card">
 
-        (
-            "🔮",
-            "CLV Predictor",
-            "Estimate the future value of a customer "
-            "using a trained Machine Learning model."
-        ),
+            <h3>🔮 CLV Prediction</h3>
 
-        (
-            "👥",
-            "Segmentation",
-            "Group customers into meaningful clusters "
-            "using K-Means clustering."
-        ),
+            <p>
+            Predict the potential lifetime value of a customer
+            using Recency, Frequency and Monetary behaviour.
+            </p>
 
-        (
-            "🔐",
-            "Admin Center",
-            "Securely review prediction records and "
-            "download stored Excel data."
-        )
-    ]
+        </div>
+        """, unsafe_allow_html=True)
 
+    with c2:
 
-    for col, data in zip(
-        [c1, c2, c3],
-        modules
-    ):
+        st.markdown("""
+        <div class="info-card">
 
-        icon, title, desc = data
+            <h3>👥 Customer Segmentation</h3>
 
-        with col:
+            <p>
+            Use K-Means clustering to divide customers into
+            meaningful behavioural groups.
+            </p>
 
-            st.markdown(
-                f"""
-                <div class="card"
-                     style="height:170px;">
+        </div>
+        """, unsafe_allow_html=True)
 
-                    <div style="
-                        font-size:30px;
-                    ">
-                        {icon}
-                    </div>
+    with c3:
 
-                    <h3 style="
-                        margin:8px 0;
-                        color:#0f172a;
-                    ">
-                        {title}
-                    </h3>
+        st.markdown("""
+        <div class="info-card">
 
-                    <p style="
-                        color:#64748b;
-                        font-size:13px;
-                        line-height:1.6;
-                    ">
-                        {desc}
-                    </p>
+            <h3>🔐 Admin Analytics</h3>
 
-                </div>
-                """,
+            <p>
+            Securely access stored prediction records and
+            download customer analytics data.
+            </p>
 
-                unsafe_allow_html=True
-            )
-
-
-    # ========================================================
-    # HOW IT WORKS
-    # ========================================================
+        </div>
+        """, unsafe_allow_html=True)
 
     st.markdown(
-        '<div class="section-title">'
-        '🧠 How It Works'
-        '</div>',
-
+        '<div class="section-title">🧠 How CLV Works</div>',
         unsafe_allow_html=True
     )
 
+    step1, step2, step3 = st.columns(3)
 
-    c1, c2, c3, c4 = st.columns(4)
+    with step1:
 
-
-    steps = [
-
-        (
-            "01",
-            "Input",
-            "Enter customer behaviour"
-        ),
-
-        (
-            "02",
-            "Predict",
-            "ML estimates CLV"
-        ),
-
-        (
-            "03",
-            "Segment",
-            "K-Means groups customers"
-        ),
-
-        (
-            "04",
-            "Analyze",
-            "Admin reviews stored data"
+        st.info(
+            "1️⃣ **Customer Data**\n\n"
+            "Recency • Frequency • Monetary"
         )
-    ]
 
+    with step2:
 
-    for col, data in zip(
-        [c1, c2, c3, c4],
-        steps
-    ):
+        st.info(
+            "2️⃣ **Machine Learning**\n\n"
+            "Gradient Boosting Regression"
+        )
 
-        num, title, desc = data
+    with step3:
 
-        with col:
-
-            st.markdown(
-                f"""
-                <div class="card"
-                     style="min-height:135px;">
-
-                    <div style="
-                        color:#6366f1;
-                        font-weight:800;
-                        font-size:12px;
-                    ">
-                        STEP {num}
-                    </div>
-
-                    <h4 style="
-                        margin:8px 0;
-                        color:#0f172a;
-                    ">
-                        {title}
-                    </h4>
-
-                    <p style="
-                        font-size:12px;
-                        color:#64748b;
-                    ">
-                        {desc}
-                    </p>
-
-                </div>
-                """,
-
-                unsafe_allow_html=True
-            )
+        st.success(
+            "3️⃣ **CLV Result**\n\n"
+            "Estimated customer value"
+        )
 
 
 # ============================================================
@@ -964,1435 +536,668 @@ if menu == "🏠 Overview":
 
 elif menu == "🔮 CLV Predictor":
 
-    st.markdown(
-        '<div class="page-title">'
-        '🔮 CLV Predictor'
-        '</div>',
+    st.markdown("""
+    <div class="hero">
 
-        unsafe_allow_html=True
-    )
+        <h1>🔮 CLV Predictor</h1>
 
+        <p>
+        Enter customer behaviour data to estimate
+        their Customer Lifetime Value.
+        </p>
 
-    st.markdown(
-        '<div class="page-subtitle">'
-        'Estimate Customer Lifetime Value using customer '
-        'purchasing behaviour.'
-        '</div>',
+    </div>
+    """, unsafe_allow_html=True)
 
-        unsafe_allow_html=True
-    )
+    left, right = st.columns([1, 1])
 
-
-    st.markdown(
-        '<div class="card">',
-        unsafe_allow_html=True
-    )
-
-
-    st.markdown(
-        '<div class="section-title" '
-        'style="margin-top:0;">'
-        'Customer Behaviour'
-        '</div>',
-
-        unsafe_allow_html=True
-    )
-
-
-    c1, c2, c3 = st.columns(3)
-
-
-    with c1:
-
-        recency = st.number_input(
-
-            "📅 Recency (Days)",
-
-            min_value=0,
-
-            max_value=365,
-
-            value=30,
-
-            help=
-            "Number of days since the customer's last purchase."
-        )
-
-
-    with c2:
-
-        frequency = st.number_input(
-
-            "🛒 Purchase Frequency",
-
-            min_value=1,
-
-            max_value=100,
-
-            value=5,
-
-            help=
-            "Number of purchases made by the customer."
-        )
-
-
-    with c3:
-
-        monetary = st.number_input(
-
-            "💰 Monetary Value",
-
-            min_value=0.0,
-
-            max_value=10000.0,
-
-            value=500.0,
-
-            step=50.0,
-
-            help=
-            "Total or representative monetary value of purchases."
-        )
-
-
-    st.markdown(
-        "<br>",
-        unsafe_allow_html=True
-    )
-
-
-    predict = st.button(
-
-        "🚀 Predict Customer Lifetime Value",
-
-        use_container_width=True,
-
-        type="primary"
-    )
-
-
-    st.markdown(
-        "</div>",
-        unsafe_allow_html=True
-    )
-
-
-    # ========================================================
-    # PREDICTION
-    # ========================================================
-
-    if predict:
-
-        model = train_clv_model()
-
-
-        user_data = pd.DataFrame({
-
-            "Recency": [recency],
-
-            "Frequency": [frequency],
-
-            "Monetary": [monetary]
-
-        })
-
-
-        prediction = float(
-
-            model.predict(
-                user_data
-            )[0]
-        )
-
-
-        user_data[
-            "Predicted_CLV"
-        ] = prediction
-
-
-        save_prediction(
-            user_data
-        )
-
-
-        st.session_state.last_prediction = prediction
-
+    with left:
 
         st.markdown(
-
-            f"""
-            <div class="prediction">
-
-                <div class="prediction-label">
-                    ESTIMATED CUSTOMER LIFETIME VALUE
-                </div>
-
-                <div class="prediction-value">
-                    ${prediction:,.2f}
-                </div>
-
-                <div class="prediction-caption">
-                    Generated using Gradient Boosting Regression
-                </div>
-
-            </div>
-            """,
-
+            '<div class="section-title">📋 Customer Information</div>',
             unsafe_allow_html=True
         )
 
+        recency = st.number_input(
+            "📅 Recency (Days)",
+            min_value=0,
+            max_value=365,
+            value=30,
+            help="Number of days since the customer's last purchase."
+        )
 
-        c1, c2, c3 = st.columns(3)
+        frequency = st.number_input(
+            "🔄 Purchase Frequency",
+            min_value=1,
+            max_value=100,
+            value=5,
+            help="Number of purchases made by the customer."
+        )
 
+        monetary = st.number_input(
+            "💵 Monetary Value ($)",
+            min_value=0.0,
+            max_value=10000.0,
+            value=500.0,
+            step=50.0,
+            help="Total monetary value generated by the customer."
+        )
 
-        with c1:
+        predict_button = st.button(
+            "🚀 Predict Customer CLV",
+            use_container_width=True,
+            type="primary"
+        )
 
-            st.metric(
-                "📅 Recency",
-                f"{recency} days"
-            )
+    with right:
 
+        st.markdown(
+            '<div class="section-title">📌 Customer Profile</div>',
+            unsafe_allow_html=True
+        )
 
-        with c2:
+        st.metric(
+            "Recency",
+            f"{recency} days"
+        )
 
-            st.metric(
-                "🛒 Frequency",
-                f"{frequency} purchases"
-            )
+        st.metric(
+            "Purchase Frequency",
+            f"{frequency}"
+        )
 
+        st.metric(
+            "Monetary Value",
+            f"${monetary:,.2f}"
+        )
 
-        with c3:
+    if predict_button:
 
-            st.metric(
-                "💰 Monetary",
-                f"${monetary:,.2f}"
-            )
+        model, training_data = train_clv_model()
 
+        user_data = pd.DataFrame({
+            "Recency": [recency],
+            "Frequency": [frequency],
+            "Monetary": [monetary]
+        })
+
+        prediction = model.predict(user_data)[0]
+
+        user_data["Predicted_CLV"] = prediction
+
+        save_user_data(user_data)
+
+        st.markdown(f"""
+        <div class="prediction-box">
+
+            <div class="prediction-label">
+                ESTIMATED CUSTOMER LIFETIME VALUE
+            </div>
+
+            <div class="prediction-value">
+                ${prediction:,.2f}
+            </div>
+
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("### 📊 Prediction Analysis")
+
+        chart_data = pd.DataFrame({
+            "Metric": [
+                "Recency",
+                "Frequency",
+                "Monetary"
+            ],
+            "Value": [
+                recency,
+                frequency,
+                monetary
+            ]
+        })
+
+        fig, ax = plt.subplots(figsize=(8, 4))
+
+        ax.bar(
+            chart_data["Metric"],
+            chart_data["Value"]
+        )
+
+        ax.set_title(
+            "Customer Behaviour Profile"
+        )
+
+        ax.set_ylabel("Value")
+
+        ax.grid(
+            axis="y",
+            alpha=0.2
+        )
+
+        st.pyplot(fig)
 
         st.success(
-            "✅ Prediction generated and stored successfully."
+            "✅ Prediction completed and customer data saved successfully."
         )
-
-
-    elif (
-        st.session_state.last_prediction
-        is not None
-    ):
-
-        st.info(
-            f"Last prediction: "
-            f"${st.session_state.last_prediction:,.2f}"
-        )
-
-
-    # ========================================================
-    # INTERPRETATION
-    # ========================================================
-
-    st.markdown(
-        '<div class="section-title">'
-        '💡 CLV Interpretation'
-        '</div>',
-
-        unsafe_allow_html=True
-    )
-
-
-    c1, c2, c3 = st.columns(3)
-
-
-    interpretations = [
-
-        (
-            "📅 Recency",
-
-            "Lower recency generally indicates "
-            "a more recently active customer."
-        ),
-
-        (
-            "🛒 Frequency",
-
-            "Higher purchase frequency can indicate "
-            "stronger customer engagement."
-        ),
-
-        (
-            "💰 Monetary",
-
-            "Higher spending contributes strongly "
-            "to customer value."
-        )
-    ]
-
-
-    for col, data in zip(
-        [c1, c2, c3],
-        interpretations
-    ):
-
-        title, desc = data
-
-        with col:
-
-            st.markdown(
-                f"""
-                <div class="card"
-                     style="min-height:130px;">
-
-                    <h4 style="
-                        margin:0 0 8px;
-                        color:#0f172a;
-                    ">
-                        {title}
-                    </h4>
-
-                    <p style="
-                        margin:0;
-                        color:#64748b;
-                        font-size:13px;
-                        line-height:1.6;
-                    ">
-                        {desc}
-                    </p>
-
-                </div>
-                """,
-
-                unsafe_allow_html=True
-            )
 
 
 # ============================================================
-# CUSTOMER SEGMENTATION
+# SEGMENTATION DASHBOARD
 # ============================================================
 
-elif menu == "👥 Customer Segmentation":
+elif menu == "📊 Segmentation Dashboard":
 
-    st.markdown(
-        '<div class="page-title">'
-        '👥 Customer Segmentation'
-        '</div>',
+    st.markdown("""
+    <div class="hero">
 
-        unsafe_allow_html=True
-    )
+        <h1>📊 Customer Segmentation</h1>
 
+        <p>
+        Discover customer groups using K-Means clustering.
+        </p>
 
-    st.markdown(
-        '<div class="page-subtitle">'
-        'Discover customer groups using K-Means clustering.'
-        '</div>',
-
-        unsafe_allow_html=True
-    )
-
-
-    st.markdown(
-        '<div class="card">',
-        unsafe_allow_html=True
-    )
-
+    </div>
+    """, unsafe_allow_html=True)
 
     uploaded_file = st.file_uploader(
-
-        "📁 Upload Customer CSV Dataset",
-
-        type=["csv"],
-
-        help=
-        "Upload a CSV containing customer behaviour columns."
+        "📂 Upload Customer CSV Dataset",
+        type=["csv"]
     )
 
-
-    st.markdown(
-        "</div>",
-        unsafe_allow_html=True
-    )
-
-
-    if uploaded_file is not None:
+    if uploaded_file:
 
         try:
 
-            df = pd.read_csv(
-                uploaded_file
+            df = pd.read_csv(uploaded_file)
+
+            st.success(
+                f"✅ Dataset loaded successfully — {len(df)} records found."
             )
-
-
-            if df.empty:
-
-                st.warning(
-                    "The uploaded CSV is empty."
-                )
-
-                st.stop()
-
-
-            # ==================================================
-            # DATASET OVERVIEW
-            # ==================================================
 
             st.markdown(
-                '<div class="section-title">'
-                '📋 Dataset Overview'
-                '</div>',
-
+                '<div class="section-title">👀 Dataset Preview</div>',
                 unsafe_allow_html=True
             )
-
-
-            c1, c2, c3 = st.columns(3)
-
-
-            with c1:
-
-                st.metric(
-                    "👥 Customers",
-                    len(df)
-                )
-
-
-            with c2:
-
-                st.metric(
-                    "📊 Columns",
-                    len(df.columns)
-                )
-
-
-            with c3:
-
-                st.metric(
-                    "🧹 Missing Values",
-                    int(
-                        df.isna()
-                        .sum()
-                        .sum()
-                    )
-                )
-
 
             st.dataframe(
-
                 df.head(10),
-
-                use_container_width=True,
-
-                hide_index=True
+                use_container_width=True
             )
 
-
-            # ==================================================
-            # FEATURE SELECTION
-            # ==================================================
-
             st.markdown(
-                '<div class="section-title">'
-                '⚙️ Select Features'
-                '</div>',
-
+                '<div class="section-title">⚙️ Select Features</div>',
                 unsafe_allow_html=True
             )
 
-
-            numeric_cols = (
-                df
-                .select_dtypes(
-                    include="number"
-                )
-                .columns
-                .tolist()
-            )
-
-
-            if len(numeric_cols) < 3:
-
-                st.error(
-                    "Please upload a CSV containing "
-                    "at least 3 numeric columns."
-                )
-
-                st.stop()
-
-
             c1, c2, c3 = st.columns(3)
-
 
             with c1:
 
                 r = st.selectbox(
-
                     "📅 Recency Column",
-
-                    numeric_cols,
-
-                    index=0
+                    df.columns
                 )
-
 
             with c2:
 
                 f = st.selectbox(
-
-                    "🛒 Frequency Column",
-
-                    numeric_cols,
-
-                    index=min(
-                        1,
-                        len(numeric_cols) - 1
-                    )
+                    "🔄 Frequency Column",
+                    df.columns
                 )
-
 
             with c3:
 
                 m = st.selectbox(
-
                     "💰 Monetary Column",
-
-                    numeric_cols,
-
-                    index=min(
-                        2,
-                        len(numeric_cols) - 1
-                    )
+                    df.columns
                 )
 
-
-            if len(
-                {
-                    r,
-                    f,
-                    m
-                }
-            ) < 3:
-
-                st.warning(
-                    "Please select three different columns."
-                )
-
-                st.stop()
-
-
-            # ==================================================
-            # RUN SEGMENTATION
-            # ==================================================
+            clusters = st.slider(
+                "Number of Customer Segments",
+                min_value=2,
+                max_value=6,
+                value=3
+            )
 
             if st.button(
-
                 "🚀 Run Customer Segmentation",
-
                 use_container_width=True,
-
                 type="primary"
             ):
 
-                work = df[
-                    [
-                        r,
-                        f,
-                        m
-                    ]
-                ].copy()
+                X = df[[r, f, m]].copy()
 
+                # Convert values to numeric
+                X = X.apply(
+                    pd.to_numeric,
+                    errors="coerce"
+                )
 
-                work = work.dropna()
+                # Remove invalid rows
+                valid_rows = X.notna().all(axis=1)
 
+                df = df.loc[valid_rows].copy()
 
-                if len(work) < 3:
+                X = X.loc[valid_rows]
+
+                if len(X) < clusters:
 
                     st.error(
-                        "At least 3 valid customer rows are required."
+                        "Not enough valid records for the selected number of clusters."
                     )
 
-                    st.stop()
+                else:
 
+                    scaler = StandardScaler()
 
-                scaler = StandardScaler()
+                    X_scaled = scaler.fit_transform(X)
 
-
-                X_scaled = scaler.fit_transform(
-                    work
-                )
-
-
-                kmeans = KMeans(
-
-                    n_clusters=3,
-
-                    random_state=42,
-
-                    n_init=10
-                )
-
-
-                labels = kmeans.fit_predict(
-                    X_scaled
-                )
-
-
-                result = df.loc[
-                    work.index
-                ].copy()
-
-
-                result[
-                    "Cluster"
-                ] = labels
-
-
-                # ==================================================
-                # CLUSTER PROFILES
-                # ==================================================
-
-                profiles = (
-
-                    result
-                    .groupby("Cluster")[
-                        [
-                            r,
-                            f,
-                            m
-                        ]
-                    ]
-                    .mean()
-                    .reset_index()
-                )
-
-
-                overall_monetary = (
-                    profiles[m].mean()
-                )
-
-
-                def label_cluster(row):
-
-                    if (
-                        row[m]
-                        >= overall_monetary * 1.15
-                    ):
-
-                        return "High Value"
-
-                    elif (
-                        row[m]
-                        <= overall_monetary * 0.85
-                    ):
-
-                        return "Low Value"
-
-                    return "Regular"
-
-
-                profiles[
-                    "Segment"
-                ] = profiles.apply(
-                    label_cluster,
-                    axis=1
-                )
-
-
-                result[
-                    "Segment"
-                ] = result[
-                    "Cluster"
-                ].map(
-                    profiles
-                    .set_index(
-                        "Cluster"
-                    )["Segment"]
-                )
-
-
-                st.success(
-                    "✅ Customer segmentation completed successfully."
-                )
-
-
-                # ==================================================
-                # RESULT METRICS
-                # ==================================================
-
-                st.markdown(
-                    '<div class="section-title">'
-                    '📈 Segmentation Results'
-                    '</div>',
-
-                    unsafe_allow_html=True
-                )
-
-
-                c1, c2, c3, c4 = st.columns(4)
-
-
-                with c1:
-
-                    st.metric(
-                        "👥 Customers",
-                        len(result)
+                    kmeans = KMeans(
+                        n_clusters=clusters,
+                        random_state=42,
+                        n_init=10
                     )
 
-
-                with c2:
-
-                    st.metric(
-                        "🎯 Clusters",
-                        result[
-                            "Cluster"
-                        ].nunique()
+                    df["Cluster"] = kmeans.fit_predict(
+                        X_scaled
                     )
 
-
-                with c3:
-
-                    st.metric(
-                        "💰 Avg Monetary",
-                        f"${result[m].mean():,.2f}"
+                    st.success(
+                        "✅ Customer segmentation completed!"
                     )
 
+                    # ---------- KPI ----------
 
-                with c4:
+                    a, b, c = st.columns(3)
 
-                    st.metric(
-                        "🛒 Avg Frequency",
-                        f"{result[f].mean():,.1f}"
-                    )
+                    with a:
 
-
-                # ==================================================
-                # CUSTOMER GROUP CARDS
-                # ==================================================
-
-                st.markdown(
-                    '<div class="section-title">'
-                    '🏷️ Customer Groups'
-                    '</div>',
-
-                    unsafe_allow_html=True
-                )
-
-
-                high = len(
-                    result[
-                        result[
-                            "Segment"
-                        ]
-                        == "High Value"
-                    ]
-                )
-
-
-                regular = len(
-                    result[
-                        result[
-                            "Segment"
-                        ]
-                        == "Regular"
-                    ]
-                )
-
-
-                low = len(
-                    result[
-                        result[
-                            "Segment"
-                        ]
-                        == "Low Value"
-                    ]
-                )
-
-
-                c1, c2, c3 = st.columns(3)
-
-
-                cards = [
-
-                    (
-                        "💎",
-                        "High Value",
-                        high,
-                        "Customers with comparatively "
-                        "higher monetary value."
-                    ),
-
-                    (
-                        "⭐",
-                        "Regular",
-                        regular,
-                        "Customers with balanced "
-                        "purchasing behaviour."
-                    ),
-
-                    (
-                        "📌",
-                        "Low Value",
-                        low,
-                        "Customers with comparatively "
-                        "lower monetary value."
-                    )
-                ]
-
-
-                for col, data in zip(
-                    [c1, c2, c3],
-                    cards
-                ):
-
-                    icon, title, count, desc = data
-
-
-                    with col:
-
-                        st.markdown(
-                            f"""
-                            <div class="segment">
-
-                                <div style="
-                                    font-size:27px;
-                                ">
-                                    {icon}
-                                </div>
-
-                                <h3>
-                                    {title}
-                                </h3>
-
-                                <div style="
-                                    font-size:26px;
-                                    font-weight:800;
-                                    color:#4f46e5;
-                                ">
-                                    {count}
-                                </div>
-
-                                <p>
-                                    {desc}
-                                </p>
-
-                            </div>
-                            """,
-
-                            unsafe_allow_html=True
+                        st.metric(
+                            "👥 Customers",
+                            len(df)
                         )
 
+                    with b:
 
-                # ==================================================
-                # DISTRIBUTION CHART
-                # ==================================================
+                        st.metric(
+                            "🎯 Segments",
+                            clusters
+                        )
 
-                st.markdown(
-                    '<div class="section-title">'
-                    '📊 Customer Distribution'
-                    '</div>',
+                    with c:
 
-                    unsafe_allow_html=True
-                )
+                        st.metric(
+                            "💰 Avg Monetary",
+                            f"${X[m].mean():,.0f}"
+                        )
 
+                    # ---------- CHART ----------
 
-                counts = (
-                    result[
-                        "Segment"
-                    ]
-                    .value_counts()
-                )
+                    st.markdown(
+                        '<div class="section-title">📈 Customer Segments</div>',
+                        unsafe_allow_html=True
+                    )
 
+                    fig, ax = plt.subplots(
+                        figsize=(10, 5)
+                    )
 
-                fig1, ax1 = plt.subplots(
-                    figsize=(8, 4.5)
-                )
+                    scatter = ax.scatter(
+                        df[r],
+                        df[m],
+                        c=df["Cluster"],
+                        cmap="viridis",
+                        s=80,
+                        alpha=0.8
+                    )
 
+                    ax.set_xlabel(
+                        "Recency"
+                    )
 
-                counts.plot(
-                    kind="bar",
-                    ax=ax1
-                )
+                    ax.set_ylabel(
+                        "Monetary Value"
+                    )
 
+                    ax.set_title(
+                        "Customer Segmentation Map"
+                    )
 
-                ax1.set_xlabel(
-                    "Customer Segment"
-                )
+                    ax.grid(
+                        alpha=0.2
+                    )
 
+                    plt.colorbar(
+                        scatter,
+                        ax=ax,
+                        label="Cluster"
+                    )
 
-                ax1.set_ylabel(
-                    "Number of Customers"
-                )
+                    st.pyplot(fig)
 
+                    # ---------- CLUSTER SUMMARY ----------
 
-                ax1.set_title(
-                    "Customer Segment Distribution",
-                    fontweight="bold"
-                )
+                    st.markdown(
+                        '<div class="section-title">📋 Segment Summary</div>',
+                        unsafe_allow_html=True
+                    )
 
-
-                ax1.tick_params(
-                    axis="x",
-                    rotation=0
-                )
-
-
-                ax1.grid(
-                    axis="y",
-                    alpha=0.2
-                )
-
-
-                st.pyplot(
-                    fig1
-                )
-
-
-                # ==================================================
-                # SCATTER CHART
-                # ==================================================
-
-                st.markdown(
-                    '<div class="section-title">'
-                    '🔎 Behaviour Visualization'
-                    '</div>',
-
-                    unsafe_allow_html=True
-                )
-
-
-                fig2, ax2 = plt.subplots(
-                    figsize=(10, 5)
-                )
-
-
-                ax2.scatter(
-
-                    result[r],
-
-                    result[m],
-
-                    c=result[
+                    summary = df.groupby(
                         "Cluster"
-                    ],
+                    )[[r, f, m]].mean().round(2)
 
-                    s=75,
-
-                    alpha=0.8
-                )
-
-
-                ax2.set_xlabel(
-                    r
-                )
-
-
-                ax2.set_ylabel(
-                    m
-                )
-
-
-                ax2.set_title(
-
-                    f"{r} vs {m} — "
-                    f"Customer Clusters",
-
-                    fontweight="bold"
-                )
-
-
-                ax2.grid(
-                    alpha=0.2
-                )
-
-
-                st.pyplot(
-                    fig2
-                )
-
-
-                # ==================================================
-                # SEGMENTED DATA
-                # ==================================================
-
-                st.markdown(
-                    '<div class="section-title">'
-                    '📄 Segmented Customer Data'
-                    '</div>',
-
-                    unsafe_allow_html=True
-                )
-
-
-                st.dataframe(
-
-                    result,
-
-                    use_container_width=True,
-
-                    hide_index=True
-                )
-
-
-                csv_data = (
-                    result
-                    .to_csv(
-                        index=False
+                    st.dataframe(
+                        summary,
+                        use_container_width=True
                     )
-                    .encode(
-                        "utf-8"
+
+                    # ---------- FULL DATA ----------
+
+                    st.markdown(
+                        '<div class="section-title">👥 Classified Customers</div>',
+                        unsafe_allow_html=True
                     )
-                )
 
-
-                st.download_button(
-
-                    "📥 Download Segmented CSV",
-
-                    data=csv_data,
-
-                    file_name=
-                    "segmented_customers.csv",
-
-                    mime="text/csv",
-
-                    use_container_width=True
-                )
-
+                    st.dataframe(
+                        df,
+                        use_container_width=True
+                    )
 
         except Exception as e:
 
             st.error(
-                f"Unable to process the dataset: {e}"
+                f"❌ Unable to process dataset: {e}"
             )
 
+    else:
+
+        st.info(
+            "📂 Upload a CSV file above to start customer segmentation."
+        )
+
 
 # ============================================================
-# ADMIN CENTER
+# ADMIN PANEL
 # ============================================================
 
-elif menu == "🔐 Admin Center":
+elif menu == "🔐 Admin Panel":
 
-    st.markdown(
-        '<div class="page-title">'
-        '🔐 Admin Center'
-        '</div>',
+    st.markdown("""
+    <div class="hero">
 
-        unsafe_allow_html=True
-    )
+        <h1>🔐 Admin Panel</h1>
 
+        <p>
+        Secure access to stored customer prediction data.
+        </p>
 
-    st.markdown(
-        '<div class="page-subtitle">'
-        'Securely manage stored CLV prediction records.'
-        '</div>',
+    </div>
+    """, unsafe_allow_html=True)
 
-        unsafe_allow_html=True
-    )
+    # Session state
 
+    if "attempts" not in st.session_state:
+        st.session_state.attempts = 0
+
+    if "blocked" not in st.session_state:
+        st.session_state.blocked = False
+
+    if "admin_logged_in" not in st.session_state:
+        st.session_state.admin_logged_in = False
 
     # ========================================================
-    # LOGGED IN ADMIN
+    # BLOCKED
+    # ========================================================
+
+    if st.session_state.blocked:
+
+        st.error(
+            "🚫 Too many incorrect attempts. "
+            "Admin access has been temporarily blocked."
+        )
+
+        st.markdown(
+            "### 📩 Need administrator access?"
+        )
+
+        email = "atharavshende999@gmail.com"
+
+        gmail_link = (
+            "https://mail.google.com/mail/"
+            "?view=cm&fs=1"
+            f"&to={email}"
+            "&su=Access Request for CLV App"
+        )
+
+        st.link_button(
+            "📧 Contact Admin",
+            gmail_link,
+            use_container_width=True
+        )
+
+        st.stop()
+
+    # ========================================================
+    # ALREADY LOGGED IN
     # ========================================================
 
     if st.session_state.admin_logged_in:
 
-        c1, c2 = st.columns(
-            [
-                4,
-                1
-            ]
+        st.success(
+            "✅ Admin authentication successful."
         )
 
+        if st.button(
+            "🚪 Logout",
+            use_container_width=True
+        ):
 
-        with c1:
+            st.session_state.admin_logged_in = False
 
-            st.success(
-                "🟢 Administrator session active"
-            )
-
-
-        with c2:
-
-            if st.button(
-                "Logout",
-                use_container_width=True
-            ):
-
-                st.session_state.admin_logged_in = False
-
-                st.rerun()
-
-
-        # ====================================================
-        # SERVER FILES
-        # ====================================================
+            st.rerun()
 
         st.markdown(
-            '<div class="section-title">'
-            '📂 Server Files'
-            '</div>',
-
+            '<div class="section-title">📂 Server Files</div>',
             unsafe_allow_html=True
         )
-
 
         files = os.listdir()
 
-
-        st.dataframe(
-
-            pd.DataFrame(
-                {
-                    "Files": files
-                }
-            ),
-
-            use_container_width=True,
-
-            hide_index=True
+        st.info(
+            f"📁 {len(files)} files found in application directory."
         )
 
+        with st.expander(
+            "View Server Files"
+        ):
+
+            for file in files:
+
+                st.write(
+                    f"📄 {file}"
+                )
 
         # ====================================================
-        # STORED DATA
+        # USER DATA
         # ====================================================
 
         st.markdown(
-            '<div class="section-title">'
-            '📄 Stored Prediction Records'
-            '</div>',
-
+            '<div class="section-title">📊 Stored Customer Predictions</div>',
             unsafe_allow_html=True
         )
 
+        if os.path.exists(DATA_FILE):
 
-        try:
+            try:
 
-            stored = pd.read_excel(
-                "user_inputs.xlsx"
-            )
-
-
-            c1, c2, c3 = st.columns(3)
-
-
-            with c1:
-
-                st.metric(
-                    "👥 Records",
-                    len(stored)
+                df = pd.read_excel(
+                    DATA_FILE
                 )
 
+                if len(df) > 0:
 
-            with c2:
+                    c1, c2, c3 = st.columns(3)
 
-                if (
-                    "Predicted_CLV"
-                    in stored.columns
-                ):
+                    with c1:
 
-                    avg = (
-                        stored[
-                            "Predicted_CLV"
-                        ].mean()
+                        st.metric(
+                            "👥 Records",
+                            len(df)
+                        )
+
+                    with c2:
+
+                        if "Predicted_CLV" in df.columns:
+
+                            st.metric(
+                                "💰 Average CLV",
+                                f"${df['Predicted_CLV'].mean():,.2f}"
+                            )
+
+                    with c3:
+
+                        if "Predicted_CLV" in df.columns:
+
+                            st.metric(
+                                "🏆 Highest CLV",
+                                f"${df['Predicted_CLV'].max():,.2f}"
+                            )
+
+                    st.dataframe(
+                        df,
+                        use_container_width=True
                     )
+
+                    # Download
+
+                    with open(
+                        DATA_FILE,
+                        "rb"
+                    ) as file:
+
+                        st.download_button(
+                            label="📥 Download Customer Data",
+                            data=file,
+                            file_name="user_inputs.xlsx",
+                            mime=(
+                                "application/vnd.openxmlformats-officedocument."
+                                "spreadsheetml.sheet"
+                            ),
+                            use_container_width=True
+                        )
 
                 else:
 
-                    avg = 0
-
-
-                st.metric(
-                    "💰 Average CLV",
-                    f"${avg:,.2f}"
-                )
-
-
-            with c3:
-
-                if (
-                    "Predicted_CLV"
-                    in stored.columns
-                ):
-
-                    max_clv = (
-                        stored[
-                            "Predicted_CLV"
-                        ].max()
+                    st.warning(
+                        "No customer records found."
                     )
 
-                else:
+            except Exception as e:
 
-                    max_clv = 0
-
-
-                st.metric(
-                    "🏆 Highest CLV",
-                    f"${max_clv:,.2f}"
+                st.error(
+                    f"Unable to read data: {e}"
                 )
 
+        else:
 
-            st.dataframe(
-
-                stored,
-
-                use_container_width=True,
-
-                hide_index=True
+            st.warning(
+                "📭 No prediction data has been stored yet."
             )
-
-
-            with open(
-                "user_inputs.xlsx",
-                "rb"
-            ) as file:
-
-                st.download_button(
-
-                    "📥 Download Excel Data",
-
-                    data=file,
-
-                    file_name=
-                    "user_inputs.xlsx",
-
-                    mime=
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-
-                    use_container_width=True
-                )
-
-
-        except Exception:
-
-            st.info(
-                "ℹ️ No prediction data has been stored yet."
-            )
-
 
     # ========================================================
-    # ADMIN LOGIN
+    # LOGIN
     # ========================================================
 
     else:
 
-        # ====================================================
-        # BLOCKED
-        # ====================================================
+        st.markdown("""
+        <div style="
+            max-width:500px;
+            margin:auto;
+            background:white;
+            padding:30px;
+            border-radius:18px;
+            box-shadow:0 5px 20px rgba(0,0,0,0.07);
+        ">
 
-        if st.session_state.blocked:
+        <h2 style="text-align:center;">
+        🔑 Administrator Login
+        </h2>
 
-            st.error(
-                "🚫 Access blocked after "
-                "3 incorrect attempts."
-            )
+        <p style="
+            text-align:center;
+            color:#64748b;
+        ">
+        Enter the administrator password to continue.
+        </p>
 
+        </div>
+        """, unsafe_allow_html=True)
 
-            email = (
-                "atharavshende999@gmail.com"
-            )
-
-
-            subject = (
-                "Access Request for CLV App"
-            )
-
-
-            gmail_link = (
-
-                "https://mail.google.com/mail/"
-                "?view=cm"
-                "&fs=1"
-                f"&to={email}"
-                f"&su={subject}"
-            )
-
-
-            st.markdown(
-                """
-                <div class="card">
-
-                    <h3 style="
-                        color:#0f172a;
-                    ">
-                        📩 Contact Administrator
-                    </h3>
-
-                    <p style="
-                        color:#64748b;
-                    ">
-                        Access is temporarily blocked.
-                        Contact the administrator
-                        to request access.
-                    </p>
-
-                </div>
-                """,
-
-                unsafe_allow_html=True
-            )
-
-
-            st.markdown(
-
-                f"""
-                <a href="{gmail_link}"
-                   target="_blank"
-                   style="text-decoration:none;">
-
-                    <div style="
-                        display:inline-block;
-                        margin-top:15px;
-                        padding:13px 24px;
-                        border-radius:11px;
-                        color:white;
-                        font-weight:700;
-                        background:
-                        linear-gradient(
-                            135deg,
-                            #ef4444,
-                            #dc2626
-                        );
-                    ">
-
-                        📧 Contact Admin
-
-                    </div>
-
-                </a>
-                """,
-
-                unsafe_allow_html=True
-            )
-
-
-            st.stop()
-
-
-        # ====================================================
-        # LOGIN UI
-        # ====================================================
-
-        st.markdown(
-            """
-            <div class="card">
-
-                <div style="
-                    font-size:42px;
-                    text-align:center;
-                ">
-                    🔐
-                </div>
-
-                <h2 style="
-                    text-align:center;
-                    color:#0f172a;
-                    margin:10px 0;
-                ">
-                    Administrator Login
-                </h2>
-
-                <p style="
-                    text-align:center;
-                    color:#64748b;
-                    font-size:13px;
-                ">
-                    Enter the administrator password
-                    to access stored customer data.
-                </p>
-
-            </div>
-            """,
-
-            unsafe_allow_html=True
+        password = st.text_input(
+            "🔑 Password",
+            type="password",
+            placeholder="Enter admin password"
         )
 
+        if st.button(
+            "🔐 Login",
+            use_container_width=True,
+            type="primary"
+        ):
 
-        st.markdown(
-            "<br>",
-            unsafe_allow_html=True
-        )
+            if password.strip() == "admin123":
 
+                st.session_state.attempts = 0
 
-        c1, c2, c3 = st.columns(
-            [
-                1,
-                2,
-                1
-            ]
-        )
+                st.session_state.admin_logged_in = True
 
+                st.success(
+                    "✅ Access Granted"
+                )
 
-        with c2:
+                st.rerun()
 
-            password = st.text_input(
+            else:
 
-                "🔑 Admin Password",
+                st.session_state.attempts += 1
 
-                type="password",
+                remaining = (
+                    3 -
+                    st.session_state.attempts
+                )
 
-                placeholder=
-                "Enter password"
-            )
+                if remaining > 0:
 
+                    st.error(
+                        f"❌ Incorrect password. "
+                        f"{remaining} attempt(s) remaining."
+                    )
 
-            login = st.button(
+                else:
 
-                "🔓 Sign In",
+                    st.session_state.blocked = True
 
-                use_container_width=True,
-
-                type="primary"
-            )
-
-
-            st.caption(
-
-                f"Security: "
-                f"{3 - st.session_state.attempts} "
-                f"attempts remaining"
-            )
-
-
-            # =================================================
-            # LOGIN VALIDATION
-            # =================================================
-
-            if login:
-
-                # ------------------------------------------------
-                # DEMO PASSWORD
-                # For production use st.secrets instead.
-                # ------------------------------------------------
-
-                if password.strip() == "admin123":
-
-                    st.session_state.attempts = 0
-
-                    st.session_state.admin_logged_in = True
-
-                    st.success(
-                        "✅ Access granted."
+                    st.error(
+                        "🚫 Access blocked after 3 incorrect attempts."
                     )
 
                     st.rerun()
 
-                else:
 
-                    st.session_state.attempts += 1
+# ============================================================
+# FOOTER
+# ============================================================
 
-                    remaining = (
-                        3
-                        -
-                        st.session_state.attempts
-                    )
+st.markdown("""
+<div class="footer">
 
+    CLV Intelligence Dashboard •
+    Machine Learning Customer Analytics
 
-                    if remaining > 0:
+    <br>
 
-                        st.error(
+    Built with Python • Streamlit • Scikit-Learn • Pandas
 
-                            f"❌ Incorrect password. "
-                            f"{remaining} attempt(s) remaining."
-                        )
-
-                    else:
-
-                        st.session_state.blocked = True
-
-                        st.rerun()
+</div>
+""", unsafe_allow_html=True)
