@@ -30,7 +30,7 @@ st.set_page_config(
 # CUSTOM CSS
 # ============================================================
 
-st.markdown("""
+st.markdown(
 <style>
 
 .block-container {
@@ -199,7 +199,7 @@ footer {
 }
 
 </style>
-""", unsafe_allow_html=True)
+, unsafe_allow_html=True)
 
 
 # ============================================================
@@ -1126,5 +1126,5 @@ st.markdown(
     Python + Scikit-learn + Streamlit
 
     </div>
-    unsafe_allow_html=True
+    ,unsafe_allow_html=True
 )
