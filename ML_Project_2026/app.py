@@ -1,12 +1,17 @@
 import os
-import pandas as pd
+import warnings
+warnings.filterwarnings("ignore")
+
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import streamlit as st
 
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 
 # ============================================================
@@ -14,243 +19,534 @@ from sklearn.preprocessing import StandardScaler
 # ============================================================
 
 st.set_page_config(
-    page_title="NEXA CLV | Customer Intelligence",
-    page_icon="🧠",
+    page_title="CLV Studio | Customer Intelligence",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-DATA_FILE = "user_inputs.xlsx"
+
+# ============================================================
+# GLOBAL STYLE
+# ============================================================
+
+st.markdown("""
+<style>
+
+.block-container {
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+    max-width: 1400px;
+}
+
+[data-testid="stSidebar"] {
+    border-right: 1px solid #e6e9ef;
+}
+
+[data-testid="stMetric"] {
+    background-color: #f8fafc;
+    border: 1px solid #e5e7eb;
+    padding: 16px;
+    border-radius: 12px;
+}
+
+[data-testid="stMetricLabel"] {
+    font-size: 13px;
+}
+
+[data-testid="stMetricValue"] {
+    font-size: 25px;
+}
+
+h1 {
+    font-weight: 700;
+    letter-spacing: -1px;
+}
+
+h2 {
+    font-weight: 650;
+}
+
+h3 {
+    font-weight: 600;
+}
+
+.stButton > button {
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+div[data-baseweb="select"] > div {
+    border-radius: 8px;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 
 # ============================================================
-# STREAMLIT THEME / CSS
+# CONSTANTS
 # ============================================================
 
-st.markdown(
+DATA_FOLDER = "data"
+
+SUPPORTED_FILES = [
+    ".csv",
+    ".xlsx",
+    ".xls"
+]
+
+
+# ============================================================
+# HELPER FUNCTIONS
+# ============================================================
+
+def find_dataset():
     """
-    <style>
+    Automatically searches common locations for a dataset.
+    """
 
-    /* Main application */
-    .stApp {
-        background-color: #f5f7fb;
-    }
-
-    /* Sidebar */
-    section[data-testid="stSidebar"] {
-        background-color: #0b1020;
-    }
-
-    section[data-testid="stSidebar"] * {
-        color: #e5e7eb;
-    }
-
-    /* Sidebar radio */
-    section[data-testid="stSidebar"] div[role="radiogroup"] label {
-        padding: 8px 6px;
-        border-radius: 8px;
-    }
-
-    /* Metrics */
-    div[data-testid="stMetric"] {
-        background-color: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 14px;
-        padding: 16px;
-        box-shadow: 0 5px 18px rgba(15, 23, 42, 0.05);
-    }
-
-    div[data-testid="stMetricLabel"] {
-        color: #64748b;
-    }
-
-    div[data-testid="stMetricValue"] {
-        color: #111827;
-        font-weight: 750;
-    }
-
-    /* Buttons */
-    .stButton > button {
-        border-radius: 10px;
-        min-height: 44px;
-        font-weight: 650;
-    }
-
-    /* Download buttons */
-    .stDownloadButton > button {
-        border-radius: 10px;
-        font-weight: 650;
-    }
-
-    /* Inputs */
-    div[data-baseweb="input"] {
-        border-radius: 9px;
-    }
-
-    div[data-baseweb="select"] > div {
-        border-radius: 9px;
-    }
-
-    /* Cards */
-    div[data-testid="stVerticalBlockBorderWrapper"] {
-        border-radius: 16px;
-        border-color: #e5e7eb;
-        background-color: white;
-    }
-
-    /* Alerts */
-    div[data-testid="stAlert"] {
-        border-radius: 12px;
-    }
-
-    /* Dataframes */
-    div[data-testid="stDataFrame"] {
-        border-radius: 12px;
-        overflow: hidden;
-    }
-
-    /* Hide Streamlit menu */
-    #MainMenu {
-        visibility: hidden;
-    }
-
-    footer {
-        visibility: hidden;
-    }
-
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-
-# ============================================================
-# SESSION STATE
-# ============================================================
-
-if "prediction" not in st.session_state:
-    st.session_state.prediction = None
-
-if "last_recency" not in st.session_state:
-    st.session_state.last_recency = 30
-
-if "last_frequency" not in st.session_state:
-    st.session_state.last_frequency = 5
-
-if "last_monetary" not in st.session_state:
-    st.session_state.last_monetary = 500.0
-
-if "admin" not in st.session_state:
-    st.session_state.admin = False
-
-if "attempts" not in st.session_state:
-    st.session_state.attempts = 0
-
-if "blocked" not in st.session_state:
-    st.session_state.blocked = False
-
-
-# ============================================================
-# ML MODEL
-# ============================================================
-
-@st.cache_resource
-def build_model():
-
-    df = pd.DataFrame({
-
-        "Recency": [
-            10, 20, 5, 30,
-            15, 40, 25, 8,
-            60, 12, 35, 18
-        ],
-
-        "Frequency": [
-            5, 3, 10, 2,
-            7, 1, 4, 12,
-            2, 8, 3, 6
-        ],
-
-        "Monetary": [
-            500, 300, 1000, 200,
-            700, 100, 400, 1500,
-            250, 900, 350, 650
-        ],
-
-        "CLV": [
-            1200, 700, 2500, 400,
-            1600, 200, 900, 3000,
-            500, 2000, 800, 1400
-        ]
-    })
-
-    X = df[
-        [
-            "Recency",
-            "Frequency",
-            "Monetary"
-        ]
+    possible_paths = [
+        "data.csv",
+        "dataset.csv",
+        "customer_data.csv",
+        "clv_data.csv",
+        "customers.csv",
+        "data/data.csv",
+        "data/dataset.csv",
+        "data/customer_data.csv",
+        "data/clv_data.csv",
+        "data/customers.csv",
     ]
 
-    y = df["CLV"]
+    for path in possible_paths:
+        if os.path.exists(path):
+            return path
 
-    model = GradientBoostingRegressor(
-        n_estimators=100,
-        learning_rate=0.05,
-        max_depth=2,
+    if os.path.exists(DATA_FOLDER):
+        for file in os.listdir(DATA_FOLDER):
+            if os.path.splitext(file)[1].lower() in SUPPORTED_FILES:
+                return os.path.join(DATA_FOLDER, file)
+
+    return None
+
+
+@st.cache_data
+def load_data(path):
+    extension = os.path.splitext(path)[1].lower()
+
+    if extension == ".csv":
+        return pd.read_csv(path)
+
+    if extension in [".xlsx", ".xls"]:
+        return pd.read_excel(path)
+
+    return None
+
+
+def clean_dataframe(df):
+
+    df = df.copy()
+
+    # Remove completely empty columns
+    df = df.dropna(axis=1, how="all")
+
+    # Remove duplicate rows
+    df = df.drop_duplicates()
+
+    # Strip column names
+    df.columns = [
+        str(col).strip().replace("\n", " ")
+        for col in df.columns
+    ]
+
+    return df
+
+
+def find_column(columns, keywords):
+
+    lower_columns = {
+        str(col).lower(): col
+        for col in columns
+    }
+
+    for keyword in keywords:
+
+        for lower_col, original_col in lower_columns.items():
+
+            if keyword in lower_col:
+                return original_col
+
+    return None
+
+
+def detect_columns(df):
+
+    columns = list(df.columns)
+
+    customer_id = find_column(
+        columns,
+        [
+            "customer_id",
+            "customerid",
+            "customer id",
+            "user_id",
+            "userid",
+            "client_id",
+            "id"
+        ]
+    )
+
+    recency = find_column(
+        columns,
+        [
+            "recency",
+            "days_since",
+            "days since",
+            "last_purchase_days",
+            "last purchase"
+        ]
+    )
+
+    frequency = find_column(
+        columns,
+        [
+            "frequency",
+            "purchase_frequency",
+            "purchase frequency",
+            "orders",
+            "transactions",
+            "number_of_orders",
+            "num_orders"
+        ]
+    )
+
+    monetary = find_column(
+        columns,
+        [
+            "monetary",
+            "monetary_value",
+            "monetary value",
+            "revenue",
+            "sales",
+            "spend",
+            "total_spend",
+            "total spend",
+            "amount"
+        ]
+    )
+
+    clv = find_column(
+        columns,
+        [
+            "clv",
+            "customer_lifetime_value",
+            "customer lifetime value",
+            "lifetime_value",
+            "lifetime value"
+        ]
+    )
+
+    return {
+        "customer_id": customer_id,
+        "recency": recency,
+        "frequency": frequency,
+        "monetary": monetary,
+        "clv": clv
+    }
+
+
+def numeric_columns(df):
+
+    return df.select_dtypes(
+        include=np.number
+    ).columns.tolist()
+
+
+def create_clv_features(df, detected):
+
+    work = df.copy()
+
+    numeric = numeric_columns(work)
+
+    # Recency
+    if detected["recency"] is not None:
+
+        work["CLV_Recency"] = pd.to_numeric(
+            work[detected["recency"]],
+            errors="coerce"
+        )
+
+    elif numeric:
+
+        work["CLV_Recency"] = 0
+
+    # Frequency
+    if detected["frequency"] is not None:
+
+        work["CLV_Frequency"] = pd.to_numeric(
+            work[detected["frequency"]],
+            errors="coerce"
+        )
+
+    elif len(numeric) >= 1:
+
+        work["CLV_Frequency"] = pd.to_numeric(
+            work[numeric[0]],
+            errors="coerce"
+        )
+
+    # Monetary
+    if detected["monetary"] is not None:
+
+        work["CLV_Monetary"] = pd.to_numeric(
+            work[detected["monetary"]],
+            errors="coerce"
+        )
+
+    elif len(numeric) >= 2:
+
+        work["CLV_Monetary"] = pd.to_numeric(
+            work[numeric[1]],
+            errors="coerce"
+        )
+
+    return work
+
+
+def train_model(df, detected):
+
+    features = [
+        "CLV_Recency",
+        "CLV_Frequency",
+        "CLV_Monetary"
+    ]
+
+    available_features = [
+        col for col in features
+        if col in df.columns
+    ]
+
+    if len(available_features) < 2:
+        return None
+
+    work = df[
+        available_features
+    ].copy()
+
+    work = work.replace(
+        [np.inf, -np.inf],
+        np.nan
+    )
+
+    work = work.dropna()
+
+    if len(work) < 10:
+        return None
+
+    # If actual CLV exists, use it
+    if detected["clv"] is not None:
+
+        target = pd.to_numeric(
+            df.loc[work.index, detected["clv"]],
+            errors="coerce"
+        )
+
+        valid = target.notna()
+
+        X = work.loc[valid]
+        y = target.loc[valid]
+
+    else:
+
+        # Estimated target when CLV is not available.
+        # This keeps the dashboard functional with
+        # common customer transaction datasets.
+        recency = work["CLV_Recency"].clip(lower=0)
+
+        frequency = work["CLV_Frequency"].clip(lower=0)
+
+        monetary = work["CLV_Monetary"].clip(lower=0)
+
+        y = (
+            monetary
+            * (1 + frequency)
+            / (1 + recency)
+        )
+
+        X = work
+
+    if len(X) < 10:
+        return None
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=0.2,
         random_state=42
     )
 
-    model.fit(X, y)
+    model = GradientBoostingRegressor(
+        n_estimators=150,
+        learning_rate=0.05,
+        max_depth=3,
+        random_state=42
+    )
 
-    return model
+    model.fit(X_train, y_train)
+
+    predictions = model.predict(X_test)
+
+    mae = mean_absolute_error(
+        y_test,
+        predictions
+    )
+
+    rmse = np.sqrt(
+        mean_squared_error(
+            y_test,
+            predictions
+        )
+    )
+
+    r2 = r2_score(
+        y_test,
+        predictions
+    )
+
+    return {
+        "model": model,
+        "features": available_features,
+        "X_train": X_train,
+        "X_test": X_test,
+        "y_train": y_train,
+        "y_test": y_test,
+        "predictions": predictions,
+        "mae": mae,
+        "rmse": rmse,
+        "r2": r2
+    }
 
 
-# ============================================================
-# DATA FUNCTIONS
-# ============================================================
+def create_segments(df):
 
-def load_data():
+    features = [
+        "CLV_Recency",
+        "CLV_Frequency",
+        "CLV_Monetary"
+    ]
 
-    if not os.path.exists(DATA_FILE):
-        return None
+    available = [
+        f for f in features
+        if f in df.columns
+    ]
 
-    try:
-        return pd.read_excel(DATA_FILE)
+    if len(available) < 2:
+        return df, None
 
-    except Exception:
-        return None
+    work = df[available].copy()
 
+    work = work.replace(
+        [np.inf, -np.inf],
+        np.nan
+    )
 
-def save_data(row):
+    work = work.fillna(
+        work.median(numeric_only=True)
+    )
 
-    try:
+    if len(work) < 4:
+        return df, None
 
-        if os.path.exists(DATA_FILE):
+    scaler = StandardScaler()
 
-            old = pd.read_excel(DATA_FILE)
+    scaled = scaler.fit_transform(work)
 
-            new = pd.concat(
-                [old, row],
-                ignore_index=True
-            )
+    n_clusters = min(
+        4,
+        max(2, len(work) // 10)
+    )
 
-        else:
+    n_clusters = min(
+        n_clusters,
+        len(work)
+    )
 
-            new = row
+    kmeans = KMeans(
+        n_clusters=n_clusters,
+        random_state=42,
+        n_init=10
+    )
 
-        new.to_excel(
-            DATA_FILE,
-            index=False
+    labels = kmeans.fit_predict(
+        scaled
+    )
+
+    result = df.copy()
+
+    result["Segment"] = labels + 1
+
+    # Segment naming based on average values
+    summary = result.groupby(
+        "Segment"
+    )[available].mean()
+
+    names = {}
+
+    monetary_col = "CLV_Monetary"
+
+    if monetary_col in summary.columns:
+
+        ranked = summary[
+            monetary_col
+        ].rank(
+            ascending=False
         )
 
-        return True
+        for segment, rank in ranked.items():
 
-    except Exception as e:
+            if rank <= 1:
+                names[segment] = "Premium"
+            elif rank <= 2:
+                names[segment] = "High Value"
+            elif rank >= len(ranked):
+                names[segment] = "Low Value"
+            else:
+                names[segment] = "Growing"
 
-        st.error(f"Storage error: {e}")
+    else:
 
-        return False
+        for segment in summary.index:
+            names[segment] = f"Segment {segment}"
+
+    result["Segment Name"] = result[
+        "Segment"
+    ].map(names)
+
+    return result, summary
+
+
+def currency(value):
+
+    if pd.isna(value):
+        return "₹0"
+
+    if abs(value) >= 1_000_000:
+        return f"₹{value / 1_000_000:.2f}M"
+
+    if abs(value) >= 1000:
+        return f"₹{value / 1000:.1f}K"
+
+    return f"₹{value:,.0f}"
+
+
+# ============================================================
+# LOAD DATA
+# ============================================================
+
+dataset_path = find_dataset()
+
+uploaded_file = None
 
 
 # ============================================================
@@ -259,259 +555,242 @@ def save_data(row):
 
 with st.sidebar:
 
-    st.title("🧠 NEXA CLV")
+    st.markdown("## 📊 CLV Studio")
 
-    st.caption("CUSTOMER INTELLIGENCE PLATFORM")
+    st.caption(
+        "Customer Intelligence Platform"
+    )
 
     st.divider()
 
     page = st.radio(
-        "WORKSPACE",
+        "Workspace",
         [
-            "⌂ Overview",
-            "◈ CLV Prediction",
-            "◉ Customer Segmentation",
-            "▦ Analytics",
-            "⚙ Administration"
+            "Overview",
+            "Dataset",
+            "Customer Segments",
+            "CLV Prediction",
+            "Model Performance",
+            "Business Insights"
         ]
     )
 
     st.divider()
 
-    st.caption("PLATFORM STATUS")
+    st.markdown("### Data Source")
 
-    st.success("● ML ENGINE ONLINE")
-
-    st.caption("Gradient Boosting")
-
-    st.caption("K-Means Clustering")
-
-    st.caption("RFM Analytics")
+    uploaded_file = st.file_uploader(
+        "Upload customer dataset",
+        type=[
+            "csv",
+            "xlsx",
+            "xls"
+        ]
+    )
 
     st.divider()
 
-    st.caption("NEXA CLV v2.0")
+    st.caption(
+        "Machine Learning • Customer Analytics • CLV"
+    )
+
+
+# ============================================================
+# DATA LOADING
+# ============================================================
+
+if uploaded_file is not None:
+
+    extension = os.path.splitext(
+        uploaded_file.name
+    )[1].lower()
+
+    if extension == ".csv":
+        df = pd.read_csv(uploaded_file)
+
+    else:
+        df = pd.read_excel(uploaded_file)
+
+    dataset_name = uploaded_file.name
+
+elif dataset_path is not None:
+
+    df = load_data(dataset_path)
+
+    dataset_name = os.path.basename(
+        dataset_path
+    )
+
+else:
+
+    st.title("📊 CLV Studio")
+
+    st.info(
+        "Upload your customer dataset from the sidebar "
+        "or place a CSV file inside the project folder."
+    )
+
+    st.markdown("""
+    ### Expected data
+
+    Your dataset should ideally contain columns such as:
+
+    - Customer ID
+    - Recency
+    - Frequency
+    - Monetary Value / Revenue
+    - CLV
+
+    The application automatically detects common column names.
+    """)
+
+    st.stop()
+
+
+# ============================================================
+# CLEAN DATA
+# ============================================================
+
+df = clean_dataframe(df)
+
+detected = detect_columns(df)
+
+df_features = create_clv_features(
+    df,
+    detected
+)
+
+model_result = train_model(
+    df_features,
+    detected
+)
+
+segmented_df, segment_summary = create_segments(
+    df_features
+)
+
+
+# ============================================================
+# HEADER
+# ============================================================
+
+st.title("Customer Lifetime Value")
+
+st.markdown(
+    "### Machine Learning Customer Intelligence"
+)
+
+st.caption(
+    f"Dataset: **{dataset_name}**  •  "
+    f"{len(df):,} customer records  •  "
+    f"{len(df.columns)} original features"
+)
+
+st.divider()
 
 
 # ============================================================
 # OVERVIEW
 # ============================================================
 
-if page == "⌂ Overview":
+if page == "Overview":
 
-    st.title("NEXA CLV")
+    st.subheader("Overview")
 
-    st.subheader(
-        "Customer Intelligence powered by Machine Learning"
+    total_customers = len(df)
+
+    numeric = numeric_columns(
+        df_features
     )
 
-    st.info(
-        "Transform customer behaviour into actionable intelligence "
-        "using CLV prediction, RFM analysis and customer segmentation."
-    )
+    if "CLV_Monetary" in df_features:
 
-    st.divider()
+        total_revenue = df_features[
+            "CLV_Monetary"
+        ].sum()
 
-    data = load_data()
+        avg_value = df_features[
+            "CLV_Monetary"
+        ].mean()
 
-    customers = 0
-    average = 0
-    maximum = 0
+    else:
 
-    if data is not None and not data.empty:
+        total_revenue = 0
+        avg_value = 0
 
-        customers = len(data)
+    if model_result is not None:
 
-        if "Predicted_CLV" in data.columns:
+        predicted_clv = model_result[
+            "model"
+        ].predict(
+            df_features[
+                model_result["features"]
+            ].fillna(0)
+        )
 
-            values = pd.to_numeric(
-                data["Predicted_CLV"],
-                errors="coerce"
-            ).dropna()
+        total_clv = predicted_clv.sum()
 
-            if not values.empty:
+    else:
 
-                average = values.mean()
-                maximum = values.max()
+        total_clv = 0
 
-    # ========================================================
-    # LIVE INTELLIGENCE
-    # ========================================================
+    c1, c2, c3, c4 = st.columns(4)
 
-    st.header("📊 Live Intelligence")
+    with c1:
+        st.metric(
+            "Customers",
+            f"{total_customers:,}"
+        )
 
-    a, b, c, d = st.columns(4)
+    with c2:
+        st.metric(
+            "Total Value",
+            currency(total_revenue)
+        )
 
-    a.metric(
-        "Customers Analysed",
-        f"{customers:,}"
-    )
+    with c3:
+        st.metric(
+            "Average Customer Value",
+            currency(avg_value)
+        )
 
-    b.metric(
-        "Average CLV",
-        f"${average:,.0f}"
-    )
-
-    c.metric(
-        "Highest CLV",
-        f"${maximum:,.0f}"
-    )
-
-    d.metric(
-        "ML Engine",
-        "ONLINE"
-    )
+    with c4:
+        st.metric(
+            "Predicted CLV",
+            currency(total_clv)
+        )
 
     st.write("")
 
-    # ========================================================
-    # FEATURE CARDS
-    # ========================================================
+    left, right = st.columns(
+        [1.5, 1]
+    )
 
-    st.header("🚀 Intelligence Modules")
+    with left:
 
-    f1, f2, f3 = st.columns(3)
+        st.subheader(
+            "Customer Value Distribution"
+        )
 
-    with f1:
-
-        with st.container(border=True):
-
-            st.subheader("🧠 ML Prediction")
-
-            st.write(
-                "Gradient Boosting predicts the future "
-                "Customer Lifetime Value of a customer "
-                "from RFM behaviour."
-            )
-
-            st.info("Regression Model")
-
-    with f2:
-
-        with st.container(border=True):
-
-            st.subheader("👥 Customer Segmentation")
-
-            st.write(
-                "K-Means clustering discovers behavioural "
-                "customer groups from Recency, Frequency "
-                "and Monetary values."
-            )
-
-            st.info("Unsupervised Learning")
-
-    with f3:
-
-        with st.container(border=True):
-
-            st.subheader("📈 Analytics")
-
-            st.write(
-                "Analyze predicted customer value using "
-                "charts, distributions and historical "
-                "prediction records."
-            )
-
-            st.info("Business Intelligence")
-
-    st.write("")
-
-    # ========================================================
-    # ML PIPELINE
-    # ========================================================
-
-    st.header("⚡ How NEXA CLV Works")
-
-    p1, p2, p3, p4 = st.columns(4)
-
-    with p1:
-
-        with st.container(border=True):
-
-            st.subheader("01")
-
-            st.write("📥 Data")
-
-            st.caption(
-                "Customer transaction behaviour"
-            )
-
-    with p2:
-
-        with st.container(border=True):
-
-            st.subheader("02")
-
-            st.write("📊 RFM")
-
-            st.caption(
-                "Recency • Frequency • Monetary"
-            )
-
-    with p3:
-
-        with st.container(border=True):
-
-            st.subheader("03")
-
-            st.write("🤖 Model")
-
-            st.caption(
-                "Gradient Boosting prediction"
-            )
-
-    with p4:
-
-        with st.container(border=True):
-
-            st.subheader("04")
-
-            st.write("💡 Insight")
-
-            st.caption(
-                "Customer value intelligence"
-            )
-
-    # ========================================================
-    # PREVIEW
-    # ========================================================
-
-    st.header("📈 Customer Value Preview")
-
-    if (
-        data is not None
-        and not data.empty
-        and "Predicted_CLV" in data.columns
-    ):
-
-        values = pd.to_numeric(
-            data["Predicted_CLV"],
-            errors="coerce"
-        ).dropna()
-
-        if not values.empty:
+        if "CLV_Monetary" in df_features:
 
             fig, ax = plt.subplots(
-                figsize=(12, 4)
+                figsize=(9, 4)
             )
 
-            ax.plot(
-                range(1, len(values) + 1),
-                values,
-                marker="o",
-                linewidth=2
+            ax.hist(
+                df_features[
+                    "CLV_Monetary"
+                ].dropna(),
+                bins=30
             )
 
             ax.set_xlabel(
-                "Customer"
+                "Customer Value"
             )
 
             ax.set_ylabel(
-                "Predicted CLV"
-            )
-
-            ax.set_title(
-                "Predicted Customer Lifetime Value"
+                "Customers"
             )
 
             ax.grid(
@@ -525,276 +804,219 @@ if page == "⌂ Overview":
 
             plt.close(fig)
 
-    else:
-
-        st.info(
-            "Your CLV intelligence chart will appear "
-            "after the first prediction."
-        )
-
-
-# ============================================================
-# CLV PREDICTION
-# ============================================================
-
-elif page == "◈ CLV Prediction":
-
-    st.title(
-        "◈ Customer Lifetime Value Prediction"
-    )
-
-    st.write(
-        "Enter customer behaviour and let the ML engine "
-        "estimate future customer value."
-    )
-
-    st.divider()
-
-    left, right = st.columns(
-        [1, 1.25]
-    )
-
-    # ========================================================
-    # INPUT
-    # ========================================================
-
-    with left:
-
-        with st.container(border=True):
-
-            st.subheader(
-                "👤 Customer Behaviour"
-            )
-
-            st.caption(
-                "Enter the customer's RFM information."
-            )
-
-            recency = st.number_input(
-                "Recency",
-                min_value=0,
-                max_value=365,
-                value=st.session_state.last_recency,
-                help="Days since last purchase."
-            )
-
-            frequency = st.number_input(
-                "Frequency",
-                min_value=1,
-                max_value=100,
-                value=st.session_state.last_frequency,
-                help="Number of purchases."
-            )
-
-            monetary = st.number_input(
-                "Monetary Value",
-                min_value=0.0,
-                max_value=100000.0,
-                value=st.session_state.last_monetary,
-                step=50.0,
-                help="Total amount spent."
-            )
-
-            st.write("")
-
-            predict = st.button(
-                "🚀 RUN ML PREDICTION",
-                type="primary",
-                use_container_width=True
-            )
-
-    # ========================================================
-    # CUSTOMER PROFILE
-    # ========================================================
-
     with right:
 
         st.subheader(
-            "Customer Profile"
+            "ML System Status"
         )
 
-        x1, x2, x3 = st.columns(3)
-
-        x1.metric(
-            "RECENCY",
-            f"{recency} days"
-        )
-
-        x2.metric(
-            "FREQUENCY",
-            frequency
-        )
-
-        x3.metric(
-            "MONETARY",
-            f"${monetary:,.0f}"
-        )
-
-        st.write("")
-
-        with st.container(border=True):
-
-            st.subheader("🤖 Model Information")
-
-            st.write(
-                "The NEXA CLV model uses three behavioural "
-                "signals:"
-            )
-
-            st.write(
-                "• Recency — how recently the customer purchased"
-            )
-
-            st.write(
-                "• Frequency — how often the customer purchases"
-            )
-
-            st.write(
-                "• Monetary — how much the customer spends"
-            )
-
-    # ========================================================
-    # PREDICTION
-    # ========================================================
-
-    if predict:
-
-        model = build_model()
-
-        customer = pd.DataFrame({
-
-            "Recency": [recency],
-
-            "Frequency": [frequency],
-
-            "Monetary": [monetary]
-
-        })
-
-        prediction = float(
-            model.predict(customer)[0]
-        )
-
-        customer["Predicted_CLV"] = prediction
-
-        save_data(customer)
-
-        st.session_state.prediction = prediction
-
-        st.session_state.last_recency = recency
-
-        st.session_state.last_frequency = frequency
-
-        st.session_state.last_monetary = monetary
-
-    # ========================================================
-    # RESULT
-    # ========================================================
-
-    if st.session_state.prediction is not None:
-
-        prediction = st.session_state.prediction
-
-        st.divider()
-
-        st.header(
-            "🎯 ML Prediction Result"
-        )
-
-        if prediction >= 2000:
-
-            level = "HIGH VALUE"
-            message = (
-                "This customer shows strong potential "
-                "for long-term business value."
-            )
-
-        elif prediction >= 1000:
-
-            level = "MEDIUM VALUE"
-            message = (
-                "This customer represents a valuable "
-                "relationship with growth potential."
-            )
-
-        else:
-
-            level = "STANDARD VALUE"
-            message = (
-                "This customer currently has a lower "
-                "predicted lifetime value."
-            )
-
-        r1, r2, r3 = st.columns(3)
-
-        r1.metric(
-            "PREDICTED CLV",
-            f"${prediction:,.2f}"
-        )
-
-        r2.metric(
-            "CUSTOMER SEGMENT",
-            level
-        )
-
-        r3.metric(
-            "MODEL",
-            "Gradient Boosting"
-        )
-
-        if prediction >= 2000:
+        if model_result is not None:
 
             st.success(
-                f"🟢 {message}"
+                "Model trained successfully"
             )
 
-        elif prediction >= 1000:
+            st.write(
+                f"**Algorithm:** "
+                f"Gradient Boosting Regressor"
+            )
 
-            st.warning(
-                f"🟡 {message}"
+            st.write(
+                f"**Features:** "
+                f"{len(model_result['features'])}"
+            )
+
+            st.write(
+                f"**R² Score:** "
+                f"{model_result['r2']:.3f}"
             )
 
         else:
 
-            st.info(
-                f"🔵 {message}"
+            st.warning(
+                "Not enough suitable numeric data "
+                "to train the model."
             )
 
-        # ====================================================
-        # RFM VISUALIZATION
-        # ====================================================
+    st.divider()
 
-        st.header(
-            "📊 RFM Behaviour Analysis"
+    st.subheader(
+        "Detected Dataset Features"
+    )
+
+    detection_table = pd.DataFrame({
+        "Feature": [
+            "Customer ID",
+            "Recency",
+            "Frequency",
+            "Monetary Value",
+            "CLV"
+        ],
+        "Detected Column": [
+            detected["customer_id"],
+            detected["recency"],
+            detected["frequency"],
+            detected["monetary"],
+            detected["clv"]
+        ]
+    })
+
+    st.dataframe(
+        detection_table,
+        use_container_width=True,
+        hide_index=True
+    )
+
+
+# ============================================================
+# DATASET
+# ============================================================
+
+elif page == "Dataset":
+
+    st.subheader("Dataset Explorer")
+
+    c1, c2, c3 = st.columns(3)
+
+    with c1:
+        st.metric(
+            "Rows",
+            f"{len(df):,}"
+        )
+
+    with c2:
+        st.metric(
+            "Columns",
+            len(df.columns)
+        )
+
+    with c3:
+        st.metric(
+            "Missing Values",
+            f"{df.isna().sum().sum():,}"
+        )
+
+    st.write("")
+
+    search = st.text_input(
+        "Search columns",
+        placeholder="Type a column name..."
+    )
+
+    display_df = df.copy()
+
+    if search:
+
+        matching_columns = [
+            col
+            for col in display_df.columns
+            if search.lower()
+            in str(col).lower()
+        ]
+
+        if matching_columns:
+
+            display_df = display_df[
+                matching_columns
+            ]
+
+        else:
+
+            st.warning(
+                "No matching columns found."
+            )
+
+    st.dataframe(
+        display_df.head(100),
+        use_container_width=True,
+        height=500
+    )
+
+    st.download_button(
+        "Download Dataset",
+        data=df.to_csv(
+            index=False
+        ).encode("utf-8"),
+        file_name="clv_dataset.csv",
+        mime="text/csv"
+    )
+
+
+# ============================================================
+# CUSTOMER SEGMENTS
+# ============================================================
+
+elif page == "Customer Segments":
+
+    st.subheader(
+        "Customer Segmentation"
+    )
+
+    st.caption(
+        "K-Means clustering groups customers according "
+        "to their behavioural characteristics."
+    )
+
+    if segmented_df is None or "Segment" not in segmented_df:
+
+        st.warning(
+            "Not enough numeric customer features "
+            "for segmentation."
+        )
+
+        st.stop()
+
+    segments = segmented_df[
+        "Segment Name"
+    ].value_counts()
+
+    cols = st.columns(
+        min(4, len(segments))
+    )
+
+    for i, (name, count) in enumerate(
+        segments.items()
+    ):
+
+        with cols[i % len(cols)]:
+
+            st.metric(
+                name,
+                f"{count:,} customers"
+            )
+
+    st.write("")
+
+    left, right = st.columns(
+        [1, 1]
+    )
+
+    with left:
+
+        st.subheader(
+            "Segment Distribution"
         )
 
         fig, ax = plt.subplots(
-            figsize=(10, 4)
+            figsize=(7, 5)
         )
 
-        features = [
-            "Recency",
-            "Frequency",
-            "Monetary"
-        ]
+        segments.plot(
+            kind="bar",
+            ax=ax
+        )
 
-        values = [
-            recency,
-            frequency,
-            monetary
-        ]
-
-        ax.bar(
-            features,
-            values
+        ax.set_xlabel(
+            "Customer Segment"
         )
 
         ax.set_ylabel(
-            "Value"
+            "Customers"
         )
 
-        ax.set_title(
-            "Customer Behaviour Profile"
+        ax.tick_params(
+            axis="x",
+            rotation=25
         )
 
         ax.grid(
@@ -809,652 +1031,465 @@ elif page == "◈ CLV Prediction":
 
         plt.close(fig)
 
+    with right:
 
-# ============================================================
-# CUSTOMER SEGMENTATION
-# ============================================================
-
-elif page == "◉ Customer Segmentation":
-
-    st.title(
-        "◉ Customer Segmentation"
-    )
-
-    st.write(
-        "Discover behavioural customer groups using "
-        "K-Means clustering."
-    )
-
-    st.divider()
-
-    st.info(
-        "Upload a CSV containing customer Recency, "
-        "Frequency and Monetary data."
-    )
-
-    uploaded = st.file_uploader(
-        "Upload Customer Dataset",
-        type=["csv"]
-    )
-
-    if uploaded:
-
-        try:
-
-            df = pd.read_csv(
-                uploaded
-            )
-
-            st.success(
-                f"Dataset loaded successfully • "
-                f"{len(df):,} customer records"
-            )
-
-            with st.expander(
-                "👁 Preview Dataset",
-                expanded=True
-            ):
-
-                st.dataframe(
-                    df.head(10),
-                    use_container_width=True
-                )
-
-            st.divider()
-
-            st.header(
-                "⚙ Feature Selection"
-            )
-
-            a, b, c = st.columns(3)
-
-            recency_col = a.selectbox(
-                "Recency Column",
-                df.columns
-            )
-
-            frequency_col = b.selectbox(
-                "Frequency Column",
-                df.columns
-            )
-
-            monetary_col = c.selectbox(
-                "Monetary Column",
-                df.columns
-            )
-
-            cluster_count = st.slider(
-                "Number of Customer Clusters",
-                min_value=2,
-                max_value=6,
-                value=3
-            )
-
-            run = st.button(
-                "🚀 RUN K-MEANS CLUSTERING",
-                type="primary",
-                use_container_width=True
-            )
-
-            if run:
-
-                X = df[
-                    [
-                        recency_col,
-                        frequency_col,
-                        monetary_col
-                    ]
-                ].apply(
-                    pd.to_numeric,
-                    errors="coerce"
-                )
-
-                valid = X.notna().all(
-                    axis=1
-                )
-
-                X = X.loc[valid]
-
-                result = df.loc[
-                    valid
-                ].copy()
-
-                if len(X) < cluster_count:
-
-                    st.error(
-                        "There are not enough valid records "
-                        "for the selected number of clusters."
-                    )
-
-                else:
-
-                    scaler = StandardScaler()
-
-                    scaled = scaler.fit_transform(
-                        X
-                    )
-
-                    model = KMeans(
-                        n_clusters=cluster_count,
-                        random_state=42,
-                        n_init=10
-                    )
-
-                    result["Cluster"] = model.fit_predict(
-                        scaled
-                    )
-
-                    st.success(
-                        "✓ K-Means segmentation completed successfully."
-                    )
-
-                    st.divider()
-
-                    m1, m2, m3, m4 = st.columns(4)
-
-                    m1.metric(
-                        "Customers",
-                        len(result)
-                    )
-
-                    m2.metric(
-                        "Clusters",
-                        cluster_count
-                    )
-
-                    m3.metric(
-                        "Avg Monetary",
-                        f"${X[monetary_col].mean():,.0f}"
-                    )
-
-                    m4.metric(
-                        "Avg Frequency",
-                        f"{X[frequency_col].mean():.1f}"
-                    )
-
-                    # =================================================
-                    # BEHAVIOURAL MAP
-                    # =================================================
-
-                    st.header(
-                        "🗺 Behavioural Customer Map"
-                    )
-
-                    fig, ax = plt.subplots(
-                        figsize=(11, 5)
-                    )
-
-                    points = ax.scatter(
-                        result[recency_col],
-                        result[monetary_col],
-                        c=result["Cluster"],
-                        cmap="viridis",
-                        s=80,
-                        alpha=0.85
-                    )
-
-                    ax.set_xlabel(
-                        recency_col
-                    )
-
-                    ax.set_ylabel(
-                        monetary_col
-                    )
-
-                    ax.set_title(
-                        "Customer Behaviour Clusters"
-                    )
-
-                    ax.grid(
-                        alpha=0.2
-                    )
-
-                    plt.colorbar(
-                        points,
-                        ax=ax,
-                        label="Cluster"
-                    )
-
-                    st.pyplot(
-                        fig,
-                        use_container_width=True
-                    )
-
-                    plt.close(fig)
-
-                    # =================================================
-                    # SEGMENT SUMMARY
-                    # =================================================
-
-                    st.header(
-                        "📋 Segment Intelligence"
-                    )
-
-                    summary = result.groupby(
-                        "Cluster"
-                    )[
-                        [
-                            recency_col,
-                            frequency_col,
-                            monetary_col
-                        ]
-                    ].mean().round(2)
-
-                    st.dataframe(
-                        summary,
-                        use_container_width=True
-                    )
-
-                    st.download_button(
-                        "⬇ Download Segmented Customers",
-                        result.to_csv(
-                            index=False
-                        ),
-                        "customer_segments.csv",
-                        "text/csv",
-                        use_container_width=True
-                    )
-
-        except Exception as e:
-
-            st.error(
-                f"Dataset processing failed: {e}"
-            )
-
-
-# ============================================================
-# ANALYTICS
-# ============================================================
-
-elif page == "▦ Analytics":
-
-    st.title(
-        "▦ Customer Intelligence Analytics"
-    )
-
-    st.write(
-        "Monitor the value distribution of predicted customers."
-    )
-
-    st.divider()
-
-    data = load_data()
-
-    if data is None or data.empty:
-
-        st.info(
-            "No customer predictions are available yet."
+        st.subheader(
+            "Segment Characteristics"
         )
 
-    elif "Predicted_CLV" not in data.columns:
-
-        st.warning(
-            "Stored data does not contain Predicted_CLV."
-        )
-
-    else:
-
-        values = pd.to_numeric(
-            data["Predicted_CLV"],
-            errors="coerce"
-        ).dropna()
-
-        if values.empty:
-
-            st.info(
-                "No valid CLV values are available."
-            )
-
-        else:
-
-            a, b, c, d = st.columns(4)
-
-            a.metric(
-                "Predictions",
-                len(values)
-            )
-
-            b.metric(
-                "Average CLV",
-                f"${values.mean():,.0f}"
-            )
-
-            c.metric(
-                "Maximum CLV",
-                f"${values.max():,.0f}"
-            )
-
-            d.metric(
-                "Minimum CLV",
-                f"${values.min():,.0f}"
-            )
-
-            st.divider()
-
-            left, right = st.columns(2)
-
-            # =================================================
-            # HISTOGRAM
-            # =================================================
-
-            with left:
-
-                st.subheader(
-                    "📊 CLV Distribution"
-                )
-
-                fig, ax = plt.subplots(
-                    figsize=(8, 4)
-                )
-
-                ax.hist(
-                    values,
-                    bins=min(10, max(3, len(values)))
-                )
-
-                ax.set_xlabel(
-                    "Predicted CLV"
-                )
-
-                ax.set_ylabel(
-                    "Customers"
-                )
-
-                ax.set_title(
-                    "Customer Lifetime Value Distribution"
-                )
-
-                ax.grid(
-                    alpha=0.2
-                )
-
-                st.pyplot(
-                    fig,
-                    use_container_width=True
-                )
-
-                plt.close(fig)
-
-            # =================================================
-            # TREND
-            # =================================================
-
-            with right:
-
-                st.subheader(
-                    "📈 Value Trend"
-                )
-
-                fig, ax = plt.subplots(
-                    figsize=(8, 4)
-                )
-
-                ax.plot(
-                    range(1, len(values) + 1),
-                    values,
-                    marker="o"
-                )
-
-                ax.set_xlabel(
-                    "Customer"
-                )
-
-                ax.set_ylabel(
-                    "CLV"
-                )
-
-                ax.set_title(
-                    "Predicted CLV Trend"
-                )
-
-                ax.grid(
-                    alpha=0.2
-                )
-
-                st.pyplot(
-                    fig,
-                    use_container_width=True
-                )
-
-                plt.close(fig)
-
-            st.divider()
-
-            # =================================================
-            # VALUE CATEGORIES
-            # =================================================
-
-            st.header(
-                "🎯 Customer Value Categories"
-            )
-
-            high = int(
-                (values >= 2000).sum()
-            )
-
-            medium = int(
-                (
-                    (values >= 1000)
-                    &
-                    (values < 2000)
-                ).sum()
-            )
-
-            standard = int(
-                (values < 1000).sum()
-            )
-
-            c1, c2, c3 = st.columns(3)
-
-            c1.metric(
-                "🟢 High Value",
-                high
-            )
-
-            c2.metric(
-                "🟡 Medium Value",
-                medium
-            )
-
-            c3.metric(
-                "🔵 Standard Value",
-                standard
-            )
-
-            st.divider()
-
-            st.header(
-                "📋 Prediction Records"
-            )
+        if segment_summary is not None:
 
             st.dataframe(
-                data,
+                segment_summary.round(2),
                 use_container_width=True
             )
-
-            st.download_button(
-                "⬇ Download Analytics Data",
-                data.to_csv(index=False),
-                "nexa_clv_analytics.csv",
-                "text/csv",
-                use_container_width=True
-            )
-
-
-# ============================================================
-# ADMINISTRATION
-# ============================================================
-
-elif page == "⚙ Administration":
-
-    st.title(
-        "⚙ Administration"
-    )
-
-    st.write(
-        "Secure management of stored prediction records."
-    )
 
     st.divider()
 
-    # ========================================================
-    # BLOCKED
-    # ========================================================
+    st.subheader(
+        "Customer Segment Explorer"
+    )
 
-    if st.session_state.blocked:
+    selected_segment = st.selectbox(
+        "Select segment",
+        segmented_df[
+            "Segment Name"
+        ].dropna().unique()
+    )
+
+    segment_customers = segmented_df[
+        segmented_df[
+            "Segment Name"
+        ] == selected_segment
+    ]
+
+    st.dataframe(
+        segment_customers.head(100),
+        use_container_width=True,
+        height=400
+    )
+
+
+# ============================================================
+# CLV PREDICTION
+# ============================================================
+
+elif page == "CLV Prediction":
+
+    st.subheader(
+        "Customer Lifetime Value Prediction"
+    )
+
+    if model_result is None:
 
         st.error(
-            "🔒 Access blocked after 3 incorrect attempts."
-        )
-
-        st.write(
-            "Please contact the administrator if you "
-            "need access."
-        )
-
-        st.link_button(
-            "📧 Contact Administrator",
-            "https://mail.google.com/mail/?view=cm&fs=1&to=atharavshende999@gmail.com",
-            use_container_width=True
+            "The model could not be trained. "
+            "Please provide sufficient numeric customer data."
         )
 
         st.stop()
 
-    # ========================================================
-    # LOGIN
-    # ========================================================
+    st.caption(
+        "Enter customer behaviour to estimate future customer value."
+    )
 
-    if not st.session_state.admin:
+    left, right = st.columns(
+        [1, 1]
+    )
 
-        with st.container(border=True):
+    with left:
 
-            st.subheader(
-                "🔐 Administrator Login"
-            )
-
-            st.info(
-                "Administrator authentication is required "
-                "to access stored customer records."
-            )
-
-            password = st.text_input(
-                "Admin Password",
-                type="password"
-            )
-
-            login = st.button(
-                "🔑 SIGN IN",
-                type="primary",
-                use_container_width=True
-            )
-
-            if login:
-
-                if password == "admin123":
-
-                    st.session_state.admin = True
-
-                    st.session_state.attempts = 0
-
-                    st.rerun()
-
-                else:
-
-                    st.session_state.attempts += 1
-
-                    remaining = (
-                        3 -
-                        st.session_state.attempts
-                    )
-
-                    if remaining > 0:
-
-                        st.error(
-                            f"Incorrect password. "
-                            f"{remaining} attempts remaining."
-                        )
-
-                    else:
-
-                        st.session_state.blocked = True
-
-                        st.rerun()
-
-    # ========================================================
-    # ADMIN DASHBOARD
-    # ========================================================
-
-    else:
-
-        st.success(
-            "✓ Administrator authenticated successfully."
+        st.markdown(
+            "#### Customer Behaviour"
         )
 
-        if st.button(
-            "🚪 LOG OUT",
+        recency = st.number_input(
+            "Recency",
+            min_value=0.0,
+            value=30.0,
+            step=1.0,
+            help="Days since last purchase."
+        )
+
+        frequency = st.number_input(
+            "Purchase Frequency",
+            min_value=0.0,
+            value=5.0,
+            step=1.0
+        )
+
+        monetary = st.number_input(
+            "Monetary Value",
+            min_value=0.0,
+            value=5000.0,
+            step=100.0
+        )
+
+        predict = st.button(
+            "Predict Customer CLV",
+            type="primary",
             use_container_width=True
-        ):
+        )
 
-            st.session_state.admin = False
+    with right:
 
-            st.rerun()
+        st.markdown(
+            "#### Prediction"
+        )
 
-        data = load_data()
+        if predict:
 
-        if data is not None and not data.empty:
+            input_data = pd.DataFrame({
+                "CLV_Recency": [
+                    recency
+                ],
+                "CLV_Frequency": [
+                    frequency
+                ],
+                "CLV_Monetary": [
+                    monetary
+                ]
+            })
 
-            st.divider()
+            input_data = input_data[
+                model_result["features"]
+            ]
 
-            st.header(
-                "📊 Stored Intelligence"
+            prediction = model_result[
+                "model"
+            ].predict(
+                input_data
+            )[0]
+
+            st.metric(
+                "Estimated Customer Lifetime Value",
+                currency(prediction)
             )
 
-            a, b, c = st.columns(3)
+            if prediction > monetary:
 
-            a.metric(
-                "Records",
-                len(data)
-            )
+                st.success(
+                    "High potential customer. "
+                    "Consider retention and loyalty strategies."
+                )
 
-            if "Predicted_CLV" in data.columns:
+            else:
 
-                values = pd.to_numeric(
-                    data["Predicted_CLV"],
-                    errors="coerce"
-                ).dropna()
-
-                if not values.empty:
-
-                    b.metric(
-                        "Average CLV",
-                        f"${values.mean():,.0f}"
-                    )
-
-                    c.metric(
-                        "Highest CLV",
-                        f"${values.max():,.0f}"
-                    )
-
-            st.divider()
-
-            st.dataframe(
-                data,
-                use_container_width=True
-            )
-
-            st.download_button(
-                "⬇ Download Prediction Records",
-                data.to_csv(index=False),
-                "clv_records.csv",
-                "text/csv",
-                use_container_width=True
-            )
+                st.info(
+                    "Focus on increasing engagement, "
+                    "purchase frequency and retention."
+                )
 
         else:
 
             st.info(
-                "No prediction records have been stored yet."
+                "Enter customer information and "
+                "click Predict Customer CLV."
             )
+
+
+# ============================================================
+# MODEL PERFORMANCE
+# ============================================================
+
+elif page == "Model Performance":
+
+    st.subheader(
+        "Model Performance"
+    )
+
+    if model_result is None:
+
+        st.warning(
+            "Model performance is unavailable."
+        )
+
+        st.stop()
+
+    c1, c2, c3 = st.columns(3)
+
+    with c1:
+
+        st.metric(
+            "R² Score",
+            f"{model_result['r2']:.3f}"
+        )
+
+    with c2:
+
+        st.metric(
+            "MAE",
+            f"{model_result['mae']:.2f}"
+        )
+
+    with c3:
+
+        st.metric(
+            "RMSE",
+            f"{model_result['rmse']:.2f}"
+        )
+
+    st.write("")
+
+    left, right = st.columns(
+        [1.2, 1]
+    )
+
+    with left:
+
+        st.subheader(
+            "Actual vs Predicted"
+        )
+
+        fig, ax = plt.subplots(
+            figsize=(8, 5)
+        )
+
+        ax.scatter(
+            model_result["y_test"],
+            model_result["predictions"],
+            alpha=0.6
+        )
+
+        min_value = min(
+            model_result["y_test"].min(),
+            model_result["predictions"].min()
+        )
+
+        max_value = max(
+            model_result["y_test"].max(),
+            model_result["predictions"].max()
+        )
+
+        ax.plot(
+            [min_value, max_value],
+            [min_value, max_value]
+        )
+
+        ax.set_xlabel(
+            "Actual CLV"
+        )
+
+        ax.set_ylabel(
+            "Predicted CLV"
+        )
+
+        ax.grid(
+            alpha=0.2
+        )
+
+        st.pyplot(
+            fig,
+            use_container_width=True
+        )
+
+        plt.close(fig)
+
+    with right:
+
+        st.subheader(
+            "Model Information"
+        )
+
+        st.write(
+            "**Algorithm**"
+        )
+
+        st.write(
+            "Gradient Boosting Regressor"
+        )
+
+        st.write(
+            "**Training samples**"
+        )
+
+        st.write(
+            f"{len(model_result['X_train']):,}"
+        )
+
+        st.write(
+            "**Testing samples**"
+        )
+
+        st.write(
+            f"{len(model_result['X_test']):,}"
+        )
+
+        st.write(
+            "**Features used**"
+        )
+
+        for feature in model_result[
+            "features"
+        ]:
+
+            st.write(
+                f"• {feature}"
+            )
+
+    st.divider()
+
+    st.subheader(
+        "Feature Importance"
+    )
+
+    importance = pd.DataFrame({
+        "Feature": model_result[
+            "features"
+        ],
+        "Importance": model_result[
+            "model"
+        ].feature_importances_
+    }).sort_values(
+        "Importance",
+        ascending=False
+    )
+
+    fig, ax = plt.subplots(
+        figsize=(9, 4)
+    )
+
+    ax.bar(
+        importance["Feature"],
+        importance["Importance"]
+    )
+
+    ax.set_ylabel(
+        "Importance"
+    )
+
+    ax.set_xlabel(
+        "Feature"
+    )
+
+    ax.tick_params(
+        axis="x",
+        rotation=20
+    )
+
+    ax.grid(
+        axis="y",
+        alpha=0.2
+    )
+
+    st.pyplot(
+        fig,
+        use_container_width=True
+    )
+
+    plt.close(fig)
+
+
+# ============================================================
+# BUSINESS INSIGHTS
+# ============================================================
+
+elif page == "Business Insights":
+
+    st.subheader(
+        "Business Intelligence"
+    )
+
+    st.caption(
+        "Translate customer data into actionable insights."
+    )
+
+    if "CLV_Monetary" in segmented_df:
+
+        avg_value = segmented_df[
+            "CLV_Monetary"
+        ].mean()
+
+        high_value = segmented_df[
+            segmented_df[
+                "CLV_Monetary"
+            ] >= avg_value
+        ]
+
+        low_value = segmented_df[
+            segmented_df[
+                "CLV_Monetary"
+            ] < avg_value
+        ]
+
+        c1, c2 = st.columns(2)
+
+        with c1:
+
+            st.markdown(
+                "### 💎 High-Value Customers"
+            )
+
+            st.metric(
+                "Customers",
+                f"{len(high_value):,}"
+            )
+
+            st.write(
+                "Customers whose monetary value is "
+                "above the dataset average."
+            )
+
+            st.success(
+                "Recommended: loyalty programs, "
+                "personalized offers and retention campaigns."
+            )
+
+        with c2:
+
+            st.markdown(
+                "### 📈 Growth Opportunity"
+            )
+
+            st.metric(
+                "Customers",
+                f"{len(low_value):,}"
+            )
+
+            st.write(
+                "Customers currently below the average "
+                "monetary value."
+            )
+
+            st.info(
+                "Recommended: targeted campaigns, "
+                "cross-selling and engagement strategies."
+            )
+
+    st.divider()
+
+    st.subheader(
+        "Recommended Actions"
+    )
+
+    actions = [
+        (
+            "Retain Premium Customers",
+            "Identify high-value customers and prioritize retention."
+        ),
+        (
+            "Increase Purchase Frequency",
+            "Use personalized campaigns to encourage repeat purchases."
+        ),
+        (
+            "Monitor Customer Recency",
+            "Customers with increasing recency may require re-engagement."
+        ),
+        (
+            "Segment Marketing Campaigns",
+            "Use K-Means segments to create targeted customer campaigns."
+        ),
+        (
+            "Use CLV for Decision Making",
+            "Prioritize marketing resources based on predicted customer value."
+        )
+    ]
+
+    for title, description in actions:
+
+        with st.expander(title):
+
+            st.write(description)
 
 
 # ============================================================
@@ -1464,6 +1499,6 @@ elif page == "⚙ Administration":
 st.divider()
 
 st.caption(
-    "NEXA CLV • Machine Learning Customer Intelligence • "
-    "Gradient Boosting • K-Means • RFM Analytics"
+    "CLV Studio • Machine Learning Customer Intelligence • "
+    "Built with Python, Streamlit & Scikit-learn"
 )
