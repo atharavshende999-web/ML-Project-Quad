@@ -1,7 +1,4 @@
-# ============================================================
-# CUSTOMER LIFETIME VALUE - ML DASHBOARD
-# Professional Streamlit UI
-# ============================================================
+
 
 import streamlit as st
 import pandas as pd
@@ -27,161 +24,207 @@ st.set_page_config(
 
 
 # ============================================================
+# CURRENCY CONVERSION
+# ============================================================
+
+# 1 USD = 87 INR
+# Change this value if you want to use another exchange rate.
+USD_TO_INR = 87
+
+
+def usd_to_inr(value):
+    """Convert USD value to Indian Rupees."""
+    return value * USD_TO_INR
+
+
+def format_inr(value):
+    """Format value as Indian Rupees."""
+    return f"₹{value:,.2f}"
+
+
+# ============================================================
 # CUSTOM CSS
 # ============================================================
 
-st.markdown("""
-<style>
+st.markdown(
+    """
+    <style>
 
-.block-container {
-    padding-top: 2rem;
-    padding-bottom: 3rem;
-    max-width: 1450px;
-}
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 3rem;
+        max-width: 1450px;
+    }
 
-section[data-testid="stSidebar"] {
-    border-right: 1px solid rgba(128,128,128,0.18);
-}
+    /* SIDEBAR */
 
-.sidebar-title {
-    font-size: 25px;
-    font-weight: 800;
-}
+    section[data-testid="stSidebar"] {
+        border-right: 1px solid rgba(128,128,128,0.18);
+    }
 
-.sidebar-subtitle {
-    font-size: 12px;
-    opacity: 0.55;
-}
+    .sidebar-title {
+        font-size: 25px;
+        font-weight: 800;
+    }
 
-.main-title {
-    font-size: 44px;
-    font-weight: 800;
-    letter-spacing: -1.5px;
-    margin-bottom: 4px;
-}
+    .sidebar-subtitle {
+        font-size: 12px;
+        opacity: 0.55;
+    }
 
-.main-subtitle {
-    font-size: 16px;
-    opacity: 0.60;
-    margin-bottom: 25px;
-}
+    /* MAIN HEADER */
 
-.hero {
-    padding: 28px;
-    border-radius: 22px;
-    border: 1px solid rgba(128,128,128,0.18);
-    background: rgba(128,128,128,0.05);
-    margin-bottom: 25px;
-}
+    .main-title {
+        font-size: 44px;
+        font-weight: 800;
+        letter-spacing: -1.5px;
+        margin-bottom: 4px;
+    }
 
-.hero-title {
-    font-size: 28px;
-    font-weight: 800;
-}
+    .main-subtitle {
+        font-size: 16px;
+        opacity: 0.60;
+        margin-bottom: 25px;
+    }
 
-.hero-text {
-    margin-top: 8px;
-    font-size: 14px;
-    line-height: 1.7;
-    opacity: 0.65;
-}
+    /* HERO */
 
-.kpi {
-    padding: 22px;
-    border-radius: 18px;
-    border: 1px solid rgba(128,128,128,0.18);
-    background: rgba(128,128,128,0.05);
-    min-height: 130px;
-}
+    .hero {
+        padding: 28px;
+        border-radius: 22px;
+        border: 1px solid rgba(128,128,128,0.18);
+        background: rgba(128,128,128,0.05);
+        margin-bottom: 25px;
+    }
 
-.kpi-label {
-    font-size: 12px;
-    font-weight: 700;
-    opacity: 0.55;
-    letter-spacing: 0.7px;
-}
+    .hero-title {
+        font-size: 28px;
+        font-weight: 800;
+    }
 
-.kpi-value {
-    font-size: 30px;
-    font-weight: 800;
-    margin-top: 8px;
-}
+    .hero-text {
+        margin-top: 8px;
+        font-size: 14px;
+        line-height: 1.7;
+        opacity: 0.65;
+    }
 
-.kpi-text {
-    font-size: 12px;
-    opacity: 0.50;
-    margin-top: 5px;
-}
+    /* KPI */
 
-.section-title {
-    font-size: 25px;
-    font-weight: 750;
-    margin-top: 28px;
-    margin-bottom: 15px;
-}
+    .kpi {
+        padding: 22px;
+        border-radius: 18px;
+        border: 1px solid rgba(128,128,128,0.18);
+        background: rgba(128,128,128,0.05);
+        min-height: 130px;
+    }
 
-.info-card {
-    padding: 22px;
-    border-radius: 17px;
-    border: 1px solid rgba(128,128,128,0.18);
-    background: rgba(128,128,128,0.04);
-    min-height: 160px;
-}
+    .kpi-label {
+        font-size: 12px;
+        font-weight: 700;
+        opacity: 0.55;
+        letter-spacing: 0.7px;
+    }
 
-.info-title {
-    font-size: 18px;
-    font-weight: 750;
-    margin-bottom: 8px;
-}
+    .kpi-value {
+        font-size: 30px;
+        font-weight: 800;
+        margin-top: 8px;
+    }
 
-.info-text {
-    font-size: 13px;
-    opacity: 0.62;
-    line-height: 1.6;
-}
+    .kpi-text {
+        font-size: 12px;
+        opacity: 0.50;
+        margin-top: 5px;
+    }
 
-.prediction-box {
-    padding: 28px;
-    border-radius: 20px;
-    border: 1px solid rgba(128,128,128,0.20);
-    background: rgba(128,128,128,0.05);
-    text-align: center;
-}
+    /* SECTION */
 
-.prediction-label {
-    font-size: 13px;
-    opacity: 0.55;
-}
+    .section-title {
+        font-size: 25px;
+        font-weight: 750;
+        margin-top: 28px;
+        margin-bottom: 15px;
+    }
 
-.prediction-value {
-    font-size: 42px;
-    font-weight: 850;
-    margin-top: 5px;
-}
+    /* INFO CARDS */
 
-.stButton > button {
-    border-radius: 11px;
-    min-height: 45px;
-    font-weight: 700;
-}
+    .info-card {
+        padding: 22px;
+        border-radius: 17px;
+        border: 1px solid rgba(128,128,128,0.18);
+        background: rgba(128,128,128,0.04);
+        min-height: 160px;
+    }
 
-.footer {
-    text-align: center;
-    font-size: 12px;
-    opacity: 0.45;
-    padding: 15px;
-}
+    .info-title {
+        font-size: 18px;
+        font-weight: 750;
+        margin-bottom: 8px;
+    }
 
-#MainMenu {
-    visibility: hidden;
-}
+    .info-text {
+        font-size: 13px;
+        opacity: 0.62;
+        line-height: 1.6;
+    }
 
-footer {
-    visibility: hidden;
-}
+    /* PREDICTION */
 
-</style>
-""", unsafe_allow_html=True)
+    .prediction-box {
+        padding: 28px;
+        border-radius: 20px;
+        border: 1px solid rgba(128,128,128,0.20);
+        background: rgba(128,128,128,0.05);
+        text-align: center;
+    }
+
+    .prediction-label {
+        font-size: 13px;
+        opacity: 0.55;
+    }
+
+    .prediction-value {
+        font-size: 42px;
+        font-weight: 850;
+        margin-top: 5px;
+    }
+
+    .prediction-usd {
+        font-size: 15px;
+        opacity: 0.55;
+        margin-top: 5px;
+    }
+
+    /* BUTTON */
+
+    .stButton > button {
+        border-radius: 11px;
+        min-height: 45px;
+        font-weight: 700;
+    }
+
+    /* FOOTER */
+
+    .footer {
+        text-align: center;
+        font-size: 12px;
+        opacity: 0.45;
+        padding: 15px;
+    }
+
+    #MainMenu {
+        visibility: hidden;
+    }
+
+    footer {
+        visibility: hidden;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 
 # ============================================================
@@ -189,6 +232,7 @@ footer {
 # ============================================================
 
 data = {
+
     "Recency": [
         10, 20, 5, 30, 15, 40,
         25, 8, 60, 12, 35, 18
@@ -205,6 +249,7 @@ data = {
         250, 900, 350, 650
     ],
 
+    # Original model target is in USD
     "CLV": [
         1200, 700, 2500, 400,
         1600, 200, 900, 3000,
@@ -245,7 +290,10 @@ model = GradientBoostingRegressor(
     random_state=42
 )
 
-model.fit(X_train, y_train)
+model.fit(
+    X_train,
+    y_train
+)
 
 
 # ============================================================
@@ -291,8 +339,11 @@ with st.sidebar:
     st.caption("SEGMENTATION")
     st.write("K-Means Clustering")
 
-    st.caption("DATA")
-    st.write("Built-in Customer Dataset")
+    st.caption("CURRENCY")
+    st.write("🇮🇳 Indian Rupee (INR)")
+
+    st.caption("EXCHANGE RATE")
+    st.write(f"1 USD = ₹{USD_TO_INR}")
 
     st.divider()
 
@@ -302,7 +353,7 @@ with st.sidebar:
 
 
 # ============================================================
-# HEADER
+# MAIN HEADER
 # ============================================================
 
 st.markdown(
@@ -351,6 +402,7 @@ if menu == "🏠 Home":
         unsafe_allow_html=True
     )
 
+
     # ========================================================
     # KPI
     # ========================================================
@@ -361,6 +413,7 @@ if menu == "🏠 Home":
     )
 
     c1, c2, c3, c4 = st.columns(4)
+
 
     with c1:
 
@@ -385,7 +438,12 @@ if menu == "🏠 Home":
             unsafe_allow_html=True
         )
 
+
     with c2:
+
+        avg_clv_inr = usd_to_inr(
+            df["CLV"].mean()
+        )
 
         st.markdown(
             f"""
@@ -396,7 +454,7 @@ if menu == "🏠 Home":
             </div>
 
             <div class="kpi-value">
-            ${df["CLV"].mean():,.0f}
+            ₹{avg_clv_inr:,.0f}
             </div>
 
             <div class="kpi-text">
@@ -408,7 +466,12 @@ if menu == "🏠 Home":
             unsafe_allow_html=True
         )
 
+
     with c3:
+
+        max_clv_inr = usd_to_inr(
+            df["CLV"].max()
+        )
 
         st.markdown(
             f"""
@@ -419,7 +482,7 @@ if menu == "🏠 Home":
             </div>
 
             <div class="kpi-value">
-            ${df["CLV"].max():,.0f}
+            ₹{max_clv_inr:,.0f}
             </div>
 
             <div class="kpi-text">
@@ -430,6 +493,7 @@ if menu == "🏠 Home":
             """,
             unsafe_allow_html=True
         )
+
 
     with c4:
 
@@ -454,8 +518,9 @@ if menu == "🏠 Home":
             unsafe_allow_html=True
         )
 
+
     # ========================================================
-    # CLV CHART
+    # CUSTOMER VALUE ANALYSIS
     # ========================================================
 
     st.markdown(
@@ -465,6 +530,11 @@ if menu == "🏠 Home":
 
     chart1, chart2 = st.columns(2)
 
+
+    # --------------------------------------------------------
+    # CLV DISTRIBUTION
+    # --------------------------------------------------------
+
     with chart1:
 
         st.markdown("### 📈 CLV Distribution")
@@ -473,20 +543,29 @@ if menu == "🏠 Home":
             figsize=(8, 4)
         )
 
+        clv_inr = df["CLV"] * USD_TO_INR
+
         ax.hist(
-            df["CLV"],
+            clv_inr,
             bins=7,
             alpha=0.75
         )
 
-        ax.set_xlabel("Customer Lifetime Value")
-        ax.set_ylabel("Customers")
+        ax.set_xlabel(
+            "Customer Lifetime Value (₹)"
+        )
+
+        ax.set_ylabel(
+            "Number of Customers"
+        )
 
         ax.set_title(
             "Distribution of Customer Value"
         )
 
-        ax.grid(alpha=0.2)
+        ax.grid(
+            alpha=0.2
+        )
 
         st.pyplot(
             fig,
@@ -495,21 +574,33 @@ if menu == "🏠 Home":
 
         plt.close(fig)
 
+
+    # --------------------------------------------------------
+    # CUSTOMER CLV
+    # --------------------------------------------------------
+
     with chart2:
 
-        st.markdown("### 💰 Customer Value")
+        st.markdown("### 💰 Customer CLV")
 
         fig, ax = plt.subplots(
             figsize=(8, 4)
         )
 
+        customer_values = df["CLV"] * USD_TO_INR
+
         ax.bar(
             range(1, len(df) + 1),
-            df["CLV"]
+            customer_values
         )
 
-        ax.set_xlabel("Customer")
-        ax.set_ylabel("CLV")
+        ax.set_xlabel(
+            "Customer"
+        )
+
+        ax.set_ylabel(
+            "CLV (₹)"
+        )
 
         ax.set_title(
             "Customer Lifetime Value"
@@ -527,8 +618,9 @@ if menu == "🏠 Home":
 
         plt.close(fig)
 
+
     # ========================================================
-    # FEATURES
+    # PLATFORM CAPABILITIES
     # ========================================================
 
     st.markdown(
@@ -537,6 +629,7 @@ if menu == "🏠 Home":
     )
 
     a, b, c = st.columns(3)
+
 
     with a:
 
@@ -559,6 +652,7 @@ if menu == "🏠 Home":
             unsafe_allow_html=True
         )
 
+
     with b:
 
         st.markdown(
@@ -579,6 +673,7 @@ if menu == "🏠 Home":
             unsafe_allow_html=True
         )
 
+
     with c:
 
         st.markdown(
@@ -586,12 +681,13 @@ if menu == "🏠 Home":
             <div class="info-card">
 
             <div class="info-title">
-            🔐 Admin Management
+            🇮🇳 INR Conversion
             </div>
 
             <div class="info-text">
-            Protected administration section for
-            accessing customer information.
+            Predicted customer lifetime value is
+            presented in Indian Rupees for easier
+            business interpretation.
             </div>
 
             </div>
@@ -617,6 +713,7 @@ elif menu == "🔮 CLV Predictor":
         <div class="hero-text">
         Enter customer purchase behavior and let the
         Machine Learning model estimate future customer value.
+        The final result is displayed in Indian Rupees.
         </div>
 
         </div>
@@ -624,7 +721,9 @@ elif menu == "🔮 CLV Predictor":
         unsafe_allow_html=True
     )
 
+
     c1, c2, c3 = st.columns(3)
+
 
     with c1:
 
@@ -635,6 +734,7 @@ elif menu == "🔮 CLV Predictor":
             value=30
         )
 
+
     with c2:
 
         frequency = st.number_input(
@@ -644,37 +744,66 @@ elif menu == "🔮 CLV Predictor":
             value=5
         )
 
+
     with c3:
 
         monetary = st.number_input(
-            "💰 Monetary Value",
+            "💰 Monetary Value (USD)",
             min_value=0.0,
             max_value=10000.0,
             value=500.0,
             step=50.0
         )
 
+
+    # Show INR equivalent of input monetary value
+
+    monetary_inr = usd_to_inr(
+        monetary
+    )
+
+    st.info(
+        f"💱 Monetary Value: ${monetary:,.2f} "
+        f"≈ ₹{monetary_inr:,.2f}"
+    )
+
+
     st.write("")
+
 
     if st.button(
         "🚀 Predict Customer Lifetime Value",
         use_container_width=True
     ):
 
-        user_data = pd.DataFrame({
-            "Recency": [recency],
-            "Frequency": [frequency],
-            "Monetary": [monetary]
-        })
+        user_data = pd.DataFrame(
+            {
+                "Recency": [recency],
+                "Frequency": [frequency],
+                "Monetary": [monetary]
+            }
+        )
 
-        prediction = model.predict(
+
+        # ML prediction in USD
+
+        prediction_usd = model.predict(
             user_data
         )[0]
+
+
+        # Convert prediction to INR
+
+        prediction_inr = usd_to_inr(
+            prediction_usd
+        )
+
 
         st.markdown(
             '<div class="section-title">Prediction Result</div>',
             unsafe_allow_html=True
         )
+
 
         st.markdown(
             f"""
@@ -685,7 +814,11 @@ elif menu == "🔮 CLV Predictor":
             </div>
 
             <div class="prediction-value">
-            ${prediction:,.2f}
+            ₹{prediction_inr:,.2f}
+            </div>
+
+            <div class="prediction-usd">
+            Original ML Prediction: ${prediction_usd:,.2f}
             </div>
 
             </div>
@@ -693,16 +826,29 @@ elif menu == "🔮 CLV Predictor":
             unsafe_allow_html=True
         )
 
+
         st.write("")
 
-        if prediction >= df["CLV"].quantile(0.75):
+
+        # ----------------------------------------------------
+        # CUSTOMER VALUE CATEGORY
+        # ----------------------------------------------------
+
+        q75 = df["CLV"].quantile(
+            0.75
+        )
+
+        median = df["CLV"].median()
+
+
+        if prediction_usd >= q75:
 
             st.success(
                 "⭐ HIGH-VALUE CUSTOMER\n\n"
                 "Recommended for premium retention and loyalty campaigns."
             )
 
-        elif prediction >= df["CLV"].median():
+        elif prediction_usd >= median:
 
             st.info(
                 "📈 MEDIUM-VALUE CUSTOMER\n\n"
@@ -716,26 +862,37 @@ elif menu == "🔮 CLV Predictor":
                 "Consider targeted marketing strategies."
             )
 
-        st.markdown("### Customer Input")
 
-        result = pd.DataFrame({
-            "Parameter": [
-                "Recency",
-                "Frequency",
-                "Monetary",
-                "Predicted CLV"
-            ],
+        # ----------------------------------------------------
+        # INPUT SUMMARY
+        # ----------------------------------------------------
 
-            "Value": [
-                f"{recency} days",
-                frequency,
-                f"${monetary:,.2f}",
-                f"${prediction:,.2f}"
-            ]
-        })
+        st.markdown(
+            "### 📋 Prediction Summary"
+        )
+
+
+        result_table = pd.DataFrame(
+            {
+                "Parameter": [
+                    "Recency",
+                    "Frequency",
+                    "Monetary Value",
+                    "Predicted CLV"
+                ],
+
+                "Value": [
+                    f"{recency} days",
+                    frequency,
+                    f"${monetary:,.2f} / ₹{monetary_inr:,.2f}",
+                    f"₹{prediction_inr:,.2f}"
+                ]
+            }
+        )
+
 
         st.dataframe(
-            result,
+            result_table,
             use_container_width=True,
             hide_index=True
         )
@@ -766,12 +923,14 @@ elif menu == "📊 Segmentation Dashboard":
         unsafe_allow_html=True
     )
 
+
     clusters = st.slider(
         "Number of Customer Segments",
         2,
         5,
         3
     )
+
 
     if st.button(
         "🚀 Run Segmentation",
@@ -786,11 +945,14 @@ elif menu == "📊 Segmentation Dashboard":
             ]
         ]
 
+
         scaler = StandardScaler()
+
 
         scaled = scaler.fit_transform(
             segment_features
         )
+
 
         kmeans = KMeans(
             n_clusters=clusters,
@@ -798,51 +960,79 @@ elif menu == "📊 Segmentation Dashboard":
             n_init=10
         )
 
+
         segmented = df.copy()
 
+
         segmented["Cluster"] = (
-            kmeans.fit_predict(scaled) + 1
+            kmeans.fit_predict(
+                scaled
+            ) + 1
         )
+
 
         st.success(
             f"Successfully created {clusters} customer segments."
         )
 
+
+        # ----------------------------------------------------
+        # CHART
+        # ----------------------------------------------------
+
         st.markdown(
             "### 📊 Customer Segment Map"
         )
+
 
         fig, ax = plt.subplots(
             figsize=(10, 5)
         )
 
+
         ax.scatter(
             segmented["Recency"],
-            segmented["Monetary"],
+            segmented["Monetary"] * USD_TO_INR,
             c=segmented["Cluster"],
             s=130,
             alpha=0.8
         )
 
-        ax.set_xlabel("Recency")
-        ax.set_ylabel("Monetary Value")
+
+        ax.set_xlabel(
+            "Recency (Days)"
+        )
+
+        ax.set_ylabel(
+            "Monetary Value (₹)"
+        )
 
         ax.set_title(
             "Customer Segmentation using K-Means"
         )
 
-        ax.grid(alpha=0.2)
+        ax.grid(
+            alpha=0.2
+        )
+
 
         st.pyplot(
             fig,
             use_container_width=True
         )
 
+
         plt.close(fig)
+
+
+        # ----------------------------------------------------
+        # SUMMARY
+        # ----------------------------------------------------
 
         st.markdown(
             "### 📋 Segment Summary"
         )
+
 
         summary = (
             segmented
@@ -850,35 +1040,103 @@ elif menu == "📊 Segmentation Dashboard":
             .agg(
                 Customers=("CLV", "count"),
                 Average_CLV=("CLV", "mean"),
-                Average_Frequency=("Frequency", "mean"),
-                Average_Monetary=("Monetary", "mean")
+                Average_Frequency=(
+                    "Frequency",
+                    "mean"
+                ),
+                Average_Monetary=(
+                    "Monetary",
+                    "mean"
+                )
             )
             .reset_index()
         )
 
+
+        # Convert CLV and Monetary to INR
+
+        summary["Average_CLV"] = (
+            summary["Average_CLV"]
+            * USD_TO_INR
+        )
+
+
+        summary["Average_Monetary"] = (
+            summary["Average_Monetary"]
+            * USD_TO_INR
+        )
+
+
+        summary = summary.rename(
+            columns={
+                "Average_CLV":
+                    "Average_CLV_INR",
+
+                "Average_Monetary":
+                    "Average_Monetary_INR"
+            }
+        )
+
+
         st.dataframe(
-            summary.style.format({
-                "Average_CLV": "${:,.2f}",
-                "Average_Frequency": "{:.2f}",
-                "Average_Monetary": "${:,.2f}"
-            }),
+            summary.style.format(
+                {
+                    "Average_CLV_INR":
+                        "₹{:,.2f}",
+
+                    "Average_Frequency":
+                        "{:.2f}",
+
+                    "Average_Monetary_INR":
+                        "₹{:,.2f}"
+                }
+            ),
             use_container_width=True,
             hide_index=True
         )
+
+
+        # ----------------------------------------------------
+        # SEGMENT INSIGHTS
+        # ----------------------------------------------------
 
         st.markdown(
-            "### 👥 Segmented Customers"
+            "### 💡 Segment Interpretation"
         )
 
-        st.dataframe(
-            segmented,
-            use_container_width=True,
-            hide_index=True
-        )
+
+        insight1, insight2, insight3 = st.columns(3)
+
+
+        with insight1:
+
+            st.info(
+                "⭐ **High-value segment**\n\n"
+                "Customers with higher purchase "
+                "frequency and monetary value."
+            )
+
+
+        with insight2:
+
+            st.warning(
+                "📈 **Growth segment**\n\n"
+                "Customers who may have potential "
+                "for increased engagement."
+            )
+
+
+        with insight3:
+
+            st.success(
+                "🎯 **Business Strategy**\n\n"
+                "Use segments for personalized "
+                "marketing and retention campaigns."
+            )
 
 
 # ============================================================
-# ADMIN
+# ADMIN PANEL
 # ============================================================
 
 elif menu == "🔐 Admin Panel":
@@ -900,11 +1158,16 @@ elif menu == "🔐 Admin Panel":
         unsafe_allow_html=True
     )
 
+
     if "attempts" not in st.session_state:
+
         st.session_state.attempts = 0
 
+
     if "blocked" not in st.session_state:
+
         st.session_state.blocked = False
+
 
     # --------------------------------------------------------
     # BLOCKED
@@ -916,40 +1179,14 @@ elif menu == "🔐 Admin Panel":
             "🚫 Access blocked after 3 incorrect attempts."
         )
 
-        email = "atharavshende999@gmail.com"
-        subject = "Access Request for CLV App"
 
-        gmail_link = (
-            "https://mail.google.com/mail/"
-            "?view=cm&fs=1"
-            f"&to={email}"
-            f"&su={subject}"
+        st.info(
+            "Please contact the administrator for access."
         )
 
-        st.markdown(
-            f"""
-            <a href="{gmail_link}" target="_blank">
-
-            <div style="
-                display:inline-block;
-                padding:13px 25px;
-                background:#ff4b4b;
-                color:white;
-                font-weight:bold;
-                border-radius:10px;
-                text-decoration:none;
-            ">
-
-            📧 Contact Admin
-
-            </div>
-
-            </a>
-            """,
-            unsafe_allow_html=True
-        )
 
         st.stop()
+
 
     # --------------------------------------------------------
     # LOGIN
@@ -959,29 +1196,36 @@ elif menu == "🔐 Admin Panel":
         "### 🔑 Secure Login"
     )
 
+
     password = st.text_input(
         "Enter Administrator Password",
         type="password"
     )
+
 
     if st.button(
         "🔓 Login",
         use_container_width=True
     ):
 
+
         if password.strip() == "admin123":
 
             st.session_state.attempts = 0
+
 
             st.success(
                 "✅ Access Granted"
             )
 
+
             st.markdown(
                 "### 📊 Admin Dashboard"
             )
 
+
             c1, c2, c3 = st.columns(3)
+
 
             with c1:
 
@@ -990,35 +1234,68 @@ elif menu == "🔐 Admin Panel":
                     len(df)
                 )
 
+
             with c2:
 
                 st.metric(
                     "Average CLV",
-                    f"${df['CLV'].mean():,.0f}"
+                    format_inr(
+                        usd_to_inr(
+                            df["CLV"].mean()
+                        )
+                    )
                 )
+
 
             with c3:
 
                 st.metric(
                     "Maximum CLV",
-                    f"${df['CLV'].max():,.0f}"
+                    format_inr(
+                        usd_to_inr(
+                            df["CLV"].max()
+                        )
+                    )
                 )
 
+
             st.divider()
+
 
             st.markdown(
                 "### 📄 Customer Records"
             )
 
+
+            admin_df = df.copy()
+
+
+            # Add INR CLV for admin
+
+            admin_df["CLV_INR"] = (
+                admin_df["CLV"]
+                * USD_TO_INR
+            )
+
+
+            admin_df = admin_df.rename(
+                columns={
+                    "CLV": "CLV_USD"
+                }
+            )
+
+
             st.dataframe(
-                df,
+                admin_df,
                 use_container_width=True,
                 hide_index=True
             )
 
-            csv = df.to_csv(
+
+            csv = admin_df.to_csv(
                 index=False
             )
+
 
             st.download_button(
                 "📥 Download Customer Data",
@@ -1028,14 +1305,17 @@ elif menu == "🔐 Admin Panel":
                 use_container_width=True
             )
 
+
         else:
 
             st.session_state.attempts += 1
+
 
             remaining = (
                 3 -
                 st.session_state.attempts
             )
+
 
             if remaining > 0:
 
@@ -1044,13 +1324,16 @@ elif menu == "🔐 Admin Panel":
                     f"Attempts remaining: {remaining}"
                 )
 
+
             else:
 
                 st.session_state.blocked = True
 
+
                 st.error(
                     "🚫 You are blocked after 3 wrong attempts."
                 )
+
 
                 st.rerun()
 
@@ -1061,6 +1344,7 @@ elif menu == "🔐 Admin Panel":
 
 st.divider()
 
+
 st.markdown(
     """
     <div class="footer">
@@ -1068,6 +1352,8 @@ st.markdown(
     📊 Customer Lifetime Value Prediction
     &nbsp; • &nbsp;
     Machine Learning Project
+    &nbsp; • &nbsp;
+    🇮🇳 Indian Rupee (INR)
     &nbsp; • &nbsp;
     Python + Scikit-learn + Streamlit
 
