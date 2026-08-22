@@ -261,9 +261,7 @@ training_data = {
 }
 
 
-training_df = pd.DataFrame(
-    training_data
-)
+training_df = pd.DataFrame(training_data)
 
 
 # ============================================================
@@ -431,33 +429,16 @@ with st.sidebar:
     st.divider()
 
     # ========================================================
-    # RESET
+    # IMPORTANT
+    # NO RESET BUTTON IN SIDEBAR
+    #
+    # Clear All Customer Records is available ONLY
+    # inside Admin Panel after successful login.
     # ========================================================
 
-    if st.button(
-        "🔄 Clear All Customer Records",
-        use_container_width=True
-    ):
-
-        st.session_state.customers = pd.DataFrame(
-            columns=[
-                "Customer_ID",
-                "Customer_Name",
-                "Recency",
-                "Frequency",
-                "Monetary",
-                "CLV",
-                "Source"
-            ]
-        )
-
-        st.session_state.last_prediction = None
-
-        st.success(
-            "All customer records cleared."
-        )
-
-        st.rerun()
+    st.caption(
+        "🔐 Record management is available only to Admin."
+    )
 
     st.divider()
 
@@ -1433,6 +1414,7 @@ elif menu == "📊 Segmentation Dashboard":
                 "are required for segmentation."
             )
 
+
         else:
 
             max_clusters = min(
@@ -1849,6 +1831,10 @@ elif menu == "🔐 Admin Panel":
         )
 
 
+        # ====================================================
+        # LOGOUT
+        # ====================================================
+
         if st.button(
             "🔒 Logout"
         ):
@@ -1942,6 +1928,56 @@ elif menu == "🔐 Admin Panel":
                     )
                 )
             )
+
+
+        st.divider()
+
+
+        # ====================================================
+        # ADMIN CONTROLS
+        # ONLY LOGGED-IN ADMIN CAN REACH THIS SECTION
+        # ====================================================
+
+        st.markdown(
+            "### 🛠️ Admin Controls"
+        )
+
+
+        st.warning(
+            "⚠️ The following action permanently clears "
+            "all saved customer prediction records from "
+            "the current application session."
+        )
+
+
+        if st.button(
+            "🔄 Clear All Customer Records",
+            use_container_width=True
+        ):
+
+            st.session_state.customers = pd.DataFrame(
+                columns=[
+                    "Customer_ID",
+                    "Customer_Name",
+                    "Recency",
+                    "Frequency",
+                    "Monetary",
+                    "CLV",
+                    "Source"
+                ]
+            )
+
+
+            st.session_state.last_prediction = None
+
+
+            st.success(
+                "✅ All customer records have been "
+                "cleared successfully."
+            )
+
+
+            st.rerun()
 
 
         st.divider()
