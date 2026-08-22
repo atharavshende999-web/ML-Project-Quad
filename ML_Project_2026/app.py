@@ -21,17 +21,20 @@ st.set_page_config(
 
 
 # ============================================================
-# CURRENCY
+# CURRENCY CONVERSION
 # ============================================================
 
+# 1 USD = 95.70 INR
 USD_TO_INR = 95.70
 
 
 def usd_to_inr(value):
+    """Convert USD to INR."""
     return float(value) * USD_TO_INR
 
 
 def format_inr(value):
+    """Format value as Indian Rupees."""
     return f"₹{float(value):,.2f}"
 
 
@@ -49,6 +52,8 @@ st.markdown(
         max-width: 1450px;
     }
 
+    /* SIDEBAR */
+
     section[data-testid="stSidebar"] {
         border-right: 1px solid rgba(128,128,128,0.18);
     }
@@ -63,6 +68,8 @@ st.markdown(
         opacity: 0.55;
     }
 
+    /* MAIN HEADER */
+
     .main-title {
         font-size: 44px;
         font-weight: 800;
@@ -75,6 +82,8 @@ st.markdown(
         opacity: 0.60;
         margin-bottom: 25px;
     }
+
+    /* HERO */
 
     .hero {
         padding: 28px;
@@ -95,6 +104,8 @@ st.markdown(
         line-height: 1.7;
         opacity: 0.65;
     }
+
+    /* KPI */
 
     .kpi {
         padding: 22px;
@@ -123,12 +134,16 @@ st.markdown(
         margin-top: 5px;
     }
 
+    /* SECTION */
+
     .section-title {
         font-size: 25px;
         font-weight: 750;
         margin-top: 28px;
         margin-bottom: 15px;
     }
+
+    /* INFO CARDS */
 
     .info-card {
         padding: 22px;
@@ -149,6 +164,8 @@ st.markdown(
         opacity: 0.62;
         line-height: 1.6;
     }
+
+    /* PREDICTION */
 
     .prediction-box {
         padding: 28px;
@@ -175,11 +192,15 @@ st.markdown(
         margin-top: 5px;
     }
 
+    /* BUTTON */
+
     .stButton > button {
         border-radius: 11px;
         min-height: 45px;
         font-weight: 700;
     }
+
+    /* FOOTER */
 
     .footer {
         text-align: center;
@@ -203,25 +224,18 @@ st.markdown(
 
 
 # ============================================================
-# ORIGINAL 12 CUSTOMER DATA
+# INTERNAL ML TRAINING DATA
+# ============================================================
+#
+# IMPORTANT:
+# These records are ONLY used for training the ML model.
+# They are NOT dashboard customers.
+# They are NOT shown in Admin Panel.
+# They are NOT included in customer count.
+#
 # ============================================================
 
-data = {
-
-    "Customer_Name": [
-        "Aarav Sharma",
-        "Priya Patil",
-        "Rahul Kumar",
-        "Sneha Joshi",
-        "Amit Shah",
-        "Neha Singh",
-        "Rohan Deshmukh",
-        "Anjali Verma",
-        "Vikram More",
-        "Pooja Kulkarni",
-        "Aditya Jadhav",
-        "Kavya Pawar"
-    ],
+training_data = {
 
     "Recency": [
         10, 20, 5, 30, 15, 40,
@@ -247,32 +261,69 @@ data = {
 }
 
 
-base_df = pd.DataFrame(data)
-
-
-# ============================================================
-# CUSTOMER IDS
-# ============================================================
-
-base_df.insert(
-    0,
-    "Customer_ID",
-    [
-        f"CUST-{i:04d}"
-        for i in range(1, len(base_df) + 1)
-    ]
+training_df = pd.DataFrame(
+    training_data
 )
 
-base_df["Source"] = "Original Dataset"
+
+# ============================================================
+# TRAIN ML MODEL
+# ============================================================
+
+X = training_df[
+    [
+        "Recency",
+        "Frequency",
+        "Monetary"
+    ]
+]
+
+y = training_df["CLV"]
+
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.20,
+    random_state=42
+)
+
+
+model = GradientBoostingRegressor(
+    n_estimators=150,
+    learning_rate=0.05,
+    max_depth=3,
+    random_state=42
+)
+
+
+model.fit(
+    X_train,
+    y_train
+)
 
 
 # ============================================================
 # SESSION STATE
 # ============================================================
 
+# IMPORTANT:
+# Start with ZERO customer records.
+# Training data is completely separate.
+
 if "customers" not in st.session_state:
 
-    st.session_state.customers = base_df.copy()
+    st.session_state.customers = pd.DataFrame(
+        columns=[
+            "Customer_ID",
+            "Customer_Name",
+            "Recency",
+            "Frequency",
+            "Monetary",
+            "CLV",
+            "Source"
+        ]
+    )
 
 
 if "admin_logged_in" not in st.session_state:
@@ -296,47 +347,10 @@ if "last_prediction" not in st.session_state:
 
 
 # ============================================================
-# CURRENT CUSTOMER DATA
+# GET CURRENT SAVED CUSTOMERS
 # ============================================================
 
 df = st.session_state.customers.copy()
-
-
-# ============================================================
-# TRAIN MODEL
-# ============================================================
-
-X = base_df[
-    [
-        "Recency",
-        "Frequency",
-        "Monetary"
-    ]
-]
-
-y = base_df["CLV"]
-
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.20,
-    random_state=42
-)
-
-
-model = GradientBoostingRegressor(
-    n_estimators=150,
-    learning_rate=0.05,
-    max_depth=3,
-    random_state=42
-)
-
-
-model.fit(
-    X_train,
-    y_train
-)
 
 
 # ============================================================
@@ -376,20 +390,24 @@ with st.sidebar:
 
     st.divider()
 
+    # ========================================================
+    # REAL CUSTOMER COUNT
+    # ========================================================
+
     st.caption("CUSTOMER RECORDS")
 
     st.write(
         f"👥 **{len(df)} Customers**"
     )
 
-    predicted_count = len(
-        df[df["Source"] == "Predicted"]
-    )
+    # ========================================================
+    # PREDICTED COUNT
+    # ========================================================
 
-    st.caption("NEW PREDICTIONS")
+    st.caption("PREDICTED CUSTOMERS")
 
     st.write(
-        f"🔮 **{predicted_count} Predicted**"
+        f"🔮 **{len(df)} Predicted**"
     )
 
     st.caption("MACHINE LEARNING")
@@ -412,17 +430,31 @@ with st.sidebar:
 
     st.divider()
 
+    # ========================================================
+    # RESET
+    # ========================================================
+
     if st.button(
-        "🔄 Reset Customer Records",
+        "🔄 Clear All Customer Records",
         use_container_width=True
     ):
 
-        st.session_state.customers = base_df.copy()
+        st.session_state.customers = pd.DataFrame(
+            columns=[
+                "Customer_ID",
+                "Customer_Name",
+                "Recency",
+                "Frequency",
+                "Monetary",
+                "CLV",
+                "Source"
+            ]
+        )
 
         st.session_state.last_prediction = None
 
         st.success(
-            "Customer records reset to 12."
+            "All customer records cleared."
         )
 
         st.rerun()
@@ -497,6 +529,10 @@ if menu == "🏠 Home":
     c1, c2, c3, c4 = st.columns(4)
 
 
+    # ========================================================
+    # CUSTOMER COUNT
+    # ========================================================
+
     with c1:
 
         st.markdown(
@@ -512,7 +548,7 @@ if menu == "🏠 Home":
             </div>
 
             <div class="kpi-text">
-            Customer records analyzed
+            Customers actually predicted
             </div>
 
             </div>
@@ -521,11 +557,25 @@ if menu == "🏠 Home":
         )
 
 
+    # ========================================================
+    # AVERAGE CLV
+    # ========================================================
+
     with c2:
 
+        if len(df) > 0:
+
+            avg_clv = df["CLV"].mean()
+
+        else:
+
+            avg_clv = 0
+
+
         avg_clv_inr = usd_to_inr(
-            df["CLV"].mean()
+            avg_clv
         )
+
 
         st.markdown(
             f"""
@@ -540,7 +590,7 @@ if menu == "🏠 Home":
             </div>
 
             <div class="kpi-text">
-            Average customer value
+            Average predicted customer value
             </div>
 
             </div>
@@ -549,11 +599,25 @@ if menu == "🏠 Home":
         )
 
 
+    # ========================================================
+    # HIGHEST CLV
+    # ========================================================
+
     with c3:
 
+        if len(df) > 0:
+
+            max_clv = df["CLV"].max()
+
+        else:
+
+            max_clv = 0
+
+
         max_clv_inr = usd_to_inr(
-            df["CLV"].max()
+            max_clv
         )
+
 
         st.markdown(
             f"""
@@ -568,7 +632,7 @@ if menu == "🏠 Home":
             </div>
 
             <div class="kpi-text">
-            Maximum customer value
+            Highest predicted customer value
             </div>
 
             </div>
@@ -576,6 +640,10 @@ if menu == "🏠 Home":
             unsafe_allow_html=True
         )
 
+
+    # ========================================================
+    # ML ALGORITHM
+    # ========================================================
 
     with c4:
 
@@ -602,192 +670,183 @@ if menu == "🏠 Home":
 
 
     # ========================================================
-    # PREDICTION ACTIVITY
+    # IF NO CUSTOMERS
     # ========================================================
 
-    predicted_customers = df[
-        df["Source"] == "Predicted"
-    ]
+    if len(df) == 0:
 
-
-    if len(predicted_customers) > 0:
-
-        st.markdown(
-            '<div class="section-title">Prediction Activity</div>',
-            unsafe_allow_html=True
+        st.info(
+            "👥 No customer records yet. "
+            "Go to **🔮 CLV Predictor**, enter a customer name "
+            "and predict their CLV."
         )
-
-        p1, p2, p3 = st.columns(3)
-
-        with p1:
-
-            st.metric(
-                "Predicted Customers",
-                len(predicted_customers)
-            )
-
-        with p2:
-
-            latest_clv = predicted_customers[
-                "CLV"
-            ].iloc[-1]
-
-            st.metric(
-                "Latest Predicted CLV",
-                format_inr(
-                    usd_to_inr(latest_clv)
-                )
-            )
-
-        with p3:
-
-            total_predicted = (
-                predicted_customers["CLV"].sum()
-            )
-
-            st.metric(
-                "Total Predicted CLV",
-                format_inr(
-                    usd_to_inr(total_predicted)
-                )
-            )
 
 
     # ========================================================
     # CUSTOMER VALUE ANALYSIS
     # ========================================================
 
-    st.markdown(
-        '<div class="section-title">Customer Value Analysis</div>',
-        unsafe_allow_html=True
-    )
-
-    chart1, chart2 = st.columns(2)
-
-
-    with chart1:
-
-        st.markdown("### 📈 CLV Distribution")
-
-        fig, ax = plt.subplots(
-            figsize=(8, 4)
-        )
-
-        clv_inr = (
-            df["CLV"] *
-            USD_TO_INR
-        )
-
-        ax.hist(
-            clv_inr,
-            bins=min(
-                10,
-                max(
-                    5,
-                    len(df) // 2
-                )
-            ),
-            alpha=0.75
-        )
-
-        ax.set_xlabel(
-            "Customer Lifetime Value (₹)"
-        )
-
-        ax.set_ylabel(
-            "Number of Customers"
-        )
-
-        ax.set_title(
-            "Distribution of Customer Value"
-        )
-
-        ax.grid(
-            alpha=0.2
-        )
-
-        st.pyplot(
-            fig,
-            use_container_width=True
-        )
-
-        plt.close(fig)
-
-
-    with chart2:
-
-        st.markdown("### 💰 Customer CLV")
-
-        fig, ax = plt.subplots(
-            figsize=(8, 4)
-        )
-
-        customer_values = (
-            df["CLV"] *
-            USD_TO_INR
-        )
-
-        ax.bar(
-            range(
-                1,
-                len(df) + 1
-            ),
-            customer_values
-        )
-
-        ax.set_xlabel(
-            "Customer Number"
-        )
-
-        ax.set_ylabel(
-            "CLV (₹)"
-        )
-
-        ax.set_title(
-            "Customer Lifetime Value"
-        )
-
-        ax.grid(
-            axis="y",
-            alpha=0.2
-        )
-
-        st.pyplot(
-            fig,
-            use_container_width=True
-        )
-
-        plt.close(fig)
-
-
-    # ========================================================
-    # RECENT PREDICTED CUSTOMERS
-    # ========================================================
-
-    if len(predicted_customers) > 0:
+    if len(df) > 0:
 
         st.markdown(
-            '<div class="section-title">Recently Predicted Customers</div>',
+            '<div class="section-title">Customer Value Analysis</div>',
             unsafe_allow_html=True
         )
 
-        recent = (
-            predicted_customers
-            .tail(10)
-            .copy()
+        chart1, chart2 = st.columns(2)
+
+
+        # ----------------------------------------------------
+        # CLV DISTRIBUTION
+        # ----------------------------------------------------
+
+        with chart1:
+
+            st.markdown(
+                "### 📈 CLV Distribution"
+            )
+
+
+            fig, ax = plt.subplots(
+                figsize=(8, 4)
+            )
+
+
+            clv_inr = (
+                df["CLV"] *
+                USD_TO_INR
+            )
+
+
+            ax.hist(
+                clv_inr,
+                bins=min(
+                    10,
+                    max(
+                        5,
+                        len(df)
+                    )
+                ),
+                alpha=0.75
+            )
+
+
+            ax.set_xlabel(
+                "Customer Lifetime Value (₹)"
+            )
+
+
+            ax.set_ylabel(
+                "Number of Customers"
+            )
+
+
+            ax.set_title(
+                "Distribution of Customer Value"
+            )
+
+
+            ax.grid(
+                alpha=0.2
+            )
+
+
+            st.pyplot(
+                fig,
+                use_container_width=True
+            )
+
+
+            plt.close(fig)
+
+
+        # ----------------------------------------------------
+        # CUSTOMER CLV
+        # ----------------------------------------------------
+
+        with chart2:
+
+            st.markdown(
+                "### 💰 Customer CLV"
+            )
+
+
+            fig, ax = plt.subplots(
+                figsize=(8, 4)
+            )
+
+
+            customer_values = (
+                df["CLV"] *
+                USD_TO_INR
+            )
+
+
+            ax.bar(
+                range(
+                    1,
+                    len(df) + 1
+                ),
+                customer_values
+            )
+
+
+            ax.set_xlabel(
+                "Customer Number"
+            )
+
+
+            ax.set_ylabel(
+                "CLV (₹)"
+            )
+
+
+            ax.set_title(
+                "Customer Lifetime Value"
+            )
+
+
+            ax.grid(
+                axis="y",
+                alpha=0.2
+            )
+
+
+            st.pyplot(
+                fig,
+                use_container_width=True
+            )
+
+
+            plt.close(fig)
+
+
+        # ====================================================
+        # CUSTOMER RECORDS
+        # ====================================================
+
+        st.markdown(
+            '<div class="section-title">Saved Customer Records</div>',
+            unsafe_allow_html=True
         )
 
-        recent["Monetary_INR"] = (
-            recent["Monetary"] *
+
+        display_df = df.copy()
+
+
+        display_df["Monetary_INR"] = (
+            display_df["Monetary"] *
             USD_TO_INR
         )
 
-        recent["CLV_INR"] = (
-            recent["CLV"] *
+
+        display_df["CLV_INR"] = (
+            display_df["CLV"] *
             USD_TO_INR
         )
 
-        recent = recent.rename(
+
+        display_df = display_df.rename(
             columns={
                 "Monetary":
                     "Monetary_USD",
@@ -797,8 +856,9 @@ if menu == "🏠 Home":
             }
         )
 
+
         st.dataframe(
-            recent,
+            display_df,
             use_container_width=True,
             hide_index=True
         )
@@ -812,6 +872,7 @@ if menu == "🏠 Home":
         '<div class="section-title">Platform Capabilities</div>',
         unsafe_allow_html=True
     )
+
 
     a, b, c = st.columns(3)
 
@@ -897,8 +958,9 @@ elif menu == "🔮 CLV Predictor":
 
         <div class="hero-text">
         Enter the customer's name and purchase behavior.
-        After prediction, the customer record is permanently
-        added to the current application session.
+        After prediction, the customer is saved as a new
+        customer record. Every prediction increases the
+        customer count by one.
         </div>
 
         </div>
@@ -915,12 +977,17 @@ elif menu == "🔮 CLV Predictor":
         "### 👤 Customer Information"
     )
 
+
     customer_name = st.text_input(
         "Customer Name *",
         placeholder="Enter customer name",
         max_chars=100
     )
 
+
+    # ========================================================
+    # RFM INPUT
+    # ========================================================
 
     st.markdown(
         "### 📋 Customer Purchase Behavior"
@@ -935,7 +1002,7 @@ elif menu == "🔮 CLV Predictor":
         recency = st.number_input(
             "🕒 Recency (Days)",
             min_value=0,
-            max_value=365,
+            max_value=3650,
             value=30
         )
 
@@ -945,7 +1012,7 @@ elif menu == "🔮 CLV Predictor":
         frequency = st.number_input(
             "🔄 Purchase Frequency",
             min_value=1,
-            max_value=100,
+            max_value=10000,
             value=5
         )
 
@@ -955,11 +1022,15 @@ elif menu == "🔮 CLV Predictor":
         monetary = st.number_input(
             "💰 Monetary Value (USD)",
             min_value=0.0,
-            max_value=10000.0,
+            max_value=1000000.0,
             value=500.0,
             step=50.0
         )
 
+
+    # ========================================================
+    # INR EQUIVALENT
+    # ========================================================
 
     monetary_inr = usd_to_inr(
         monetary
@@ -967,7 +1038,8 @@ elif menu == "🔮 CLV Predictor":
 
 
     st.info(
-        f"💱 Monetary Value: ${monetary:,.2f} "
+        f"💱 Monetary Value: "
+        f"${monetary:,.2f} "
         f"≈ ₹{monetary_inr:,.2f}"
     )
 
@@ -976,7 +1048,7 @@ elif menu == "🔮 CLV Predictor":
 
 
     # ========================================================
-    # PREDICT
+    # PREDICT BUTTON
     # ========================================================
 
     if st.button(
@@ -984,11 +1056,14 @@ elif menu == "🔮 CLV Predictor":
         use_container_width=True
     ):
 
-        # ----------------------------------------------------
-        # Validate name
-        # ----------------------------------------------------
+        # ====================================================
+        # VALIDATE CUSTOMER NAME
+        # ====================================================
 
-        if not customer_name.strip():
+        clean_name = customer_name.strip()
+
+
+        if not clean_name:
 
             st.error(
                 "⚠️ Please enter the customer name before prediction."
@@ -997,9 +1072,37 @@ elif menu == "🔮 CLV Predictor":
             st.stop()
 
 
-        # ----------------------------------------------------
-        # Prepare data
-        # ----------------------------------------------------
+        # ====================================================
+        # CHECK DUPLICATE NAME
+        # ====================================================
+
+        if len(
+            st.session_state.customers
+        ) > 0:
+
+            existing_names = (
+                st.session_state
+                .customers["Customer_Name"]
+                .astype(str)
+                .str.strip()
+                .str.lower()
+                .tolist()
+            )
+
+
+            if clean_name.lower() in existing_names:
+
+                st.warning(
+                    "⚠️ This customer name already exists. "
+                    "Please enter a different customer name."
+                )
+
+                st.stop()
+
+
+        # ====================================================
+        # USER DATA
+        # ====================================================
 
         user_data = pd.DataFrame(
             {
@@ -1018,9 +1121,9 @@ elif menu == "🔮 CLV Predictor":
         )
 
 
-        # ----------------------------------------------------
-        # Predict
-        # ----------------------------------------------------
+        # ====================================================
+        # ML PREDICTION
+        # ====================================================
 
         prediction_usd = model.predict(
             user_data
@@ -1038,11 +1141,11 @@ elif menu == "🔮 CLV Predictor":
         )
 
 
-        # ----------------------------------------------------
-        # Generate ID
-        # ----------------------------------------------------
+        # ====================================================
+        # CREATE CUSTOMER ID
+        # ====================================================
 
-        new_number = (
+        customer_number = (
             len(
                 st.session_state.customers
             ) + 1
@@ -1050,12 +1153,12 @@ elif menu == "🔮 CLV Predictor":
 
 
         new_customer_id = (
-            f"CUST-{new_number:04d}"
+            f"CUST-{customer_number:04d}"
         )
 
 
         # ====================================================
-        # CREATE CUSTOMER RECORD WITH NAME
+        # CREATE NEW RECORD
         # ====================================================
 
         new_customer = pd.DataFrame(
@@ -1065,7 +1168,7 @@ elif menu == "🔮 CLV Predictor":
                 ],
 
                 "Customer_Name": [
-                    customer_name.strip()
+                    clean_name
                 ],
 
                 "Recency": [
@@ -1092,7 +1195,7 @@ elif menu == "🔮 CLV Predictor":
 
 
         # ====================================================
-        # SAVE CUSTOMER RECORD
+        # SAVE RECORD
         # ====================================================
 
         st.session_state.customers = pd.concat(
@@ -1104,14 +1207,16 @@ elif menu == "🔮 CLV Predictor":
         )
 
 
-        # Save last prediction
+        # ====================================================
+        # SAVE LAST PREDICTION
+        # ====================================================
 
         st.session_state.last_prediction = {
             "Customer_ID":
                 new_customer_id,
 
             "Customer_Name":
-                customer_name.strip(),
+                clean_name,
 
             "Recency":
                 recency,
@@ -1128,28 +1233,22 @@ elif menu == "🔮 CLV Predictor":
 
 
         # ====================================================
-        # UPDATE DATA
-        # ====================================================
-
-        df = (
-            st.session_state
-            .customers
-            .copy()
-        )
-
-
-        # ====================================================
         # SUCCESS
         # ====================================================
 
+        total_customers = len(
+            st.session_state.customers
+        )
+
+
         st.success(
-            f"✅ Record saved successfully for "
-            f"**{customer_name.strip()}**!"
+            f"✅ Customer **{clean_name}** saved successfully!"
         )
 
 
         st.info(
-            f"👥 Total Customers: **{len(df)}**"
+            f"👥 Total predicted customers: "
+            f"**{total_customers}**"
         )
 
 
@@ -1168,7 +1267,7 @@ elif menu == "🔮 CLV Predictor":
             <div class="prediction-box">
 
             <div class="prediction-label">
-            CUSTOMER: {customer_name.strip()}
+            CUSTOMER: {clean_name}
             </div>
 
             <div class="prediction-value">
@@ -1176,7 +1275,8 @@ elif menu == "🔮 CLV Predictor":
             </div>
 
             <div class="prediction-usd">
-            Original ML Prediction: ${prediction_usd:,.2f}
+            Original ML Prediction:
+            ${prediction_usd:,.2f}
             </div>
 
             </div>
@@ -1186,36 +1286,39 @@ elif menu == "🔮 CLV Predictor":
 
 
         # ====================================================
-        # CATEGORY
+        # CUSTOMER CATEGORY
         # ====================================================
 
-        q75 = base_df["CLV"].quantile(
+        q75 = training_df["CLV"].quantile(
             0.75
         )
 
-        median = base_df["CLV"].median()
+
+        median = training_df["CLV"].median()
 
 
         if prediction_usd >= q75:
 
             st.success(
-                "⭐ HIGH-VALUE CUSTOMER\n\n"
+                "⭐ **HIGH-VALUE CUSTOMER**\n\n"
                 "Recommended for premium retention "
                 "and loyalty campaigns."
             )
 
+
         elif prediction_usd >= median:
 
             st.info(
-                "📈 MEDIUM-VALUE CUSTOMER\n\n"
+                "📈 **MEDIUM-VALUE CUSTOMER**\n\n"
                 "Suitable for engagement and "
                 "personalized campaigns."
             )
 
+
         else:
 
             st.warning(
-                "📌 LOWER-VALUE CUSTOMER\n\n"
+                "📌 **LOWER-VALUE CUSTOMER**\n\n"
                 "Consider targeted marketing strategies."
             )
 
@@ -1262,14 +1365,8 @@ elif menu == "🔮 CLV Predictor":
         )
 
 
-        st.success(
-            f"🎯 {customer_name.strip()} is now customer "
-            f"number {len(df)}."
-        )
-
-
 # ============================================================
-# SEGMENTATION
+# SEGMENTATION DASHBOARD
 # ============================================================
 
 elif menu == "📊 Segmentation Dashboard":
@@ -1291,7 +1388,8 @@ elif menu == "📊 Segmentation Dashboard":
 
         <div class="hero-text">
         Discover customer groups using K-Means clustering.
-        All original and newly predicted customers are included.
+        Only customers actually predicted and saved in the
+        application are included.
         </div>
 
         </div>
@@ -1300,292 +1398,327 @@ elif menu == "📊 Segmentation Dashboard":
     )
 
 
-    st.info(
-        f"👥 Customers available for segmentation: **{len(df)}**"
-    )
+    # ========================================================
+    # NO CUSTOMERS
+    # ========================================================
 
+    if len(df) == 0:
 
-    if len(df) < 2:
-
-        st.warning(
-            "At least 2 customers are required."
+        st.info(
+            "👥 No predicted customers available yet."
         )
+
+        st.write(
+            "Go to **🔮 CLV Predictor** and predict "
+            "at least 2 customers first."
+        )
+
 
     else:
 
-        max_clusters = min(
-            12,
-            len(df)
-        )
-
-        default_clusters = min(
-            3,
-            max_clusters
+        st.info(
+            f"👥 Customers available for segmentation: "
+            f"**{len(df)}**"
         )
 
 
-        clusters = st.slider(
-            "Number of Customer Segments",
-            min_value=2,
-            max_value=max_clusters,
-            value=default_clusters
-        )
+        # ====================================================
+        # CLUSTER LIMIT
+        # ====================================================
 
+        if len(df) < 2:
 
-        if st.button(
-            "🚀 Run Segmentation",
-            use_container_width=True
-        ):
+            st.warning(
+                "At least 2 predicted customers "
+                "are required for segmentation."
+            )
 
-            features = df[
-                [
-                    "Recency",
-                    "Frequency",
-                    "Monetary"
-                ]
-            ]
+        else:
 
-
-            scaler = StandardScaler()
-
-
-            scaled = scaler.fit_transform(
-                features
+            max_clusters = min(
+                12,
+                len(df)
             )
 
 
-            kmeans = KMeans(
-                n_clusters=clusters,
-                random_state=42,
-                n_init=10
+            default_clusters = min(
+                3,
+                max_clusters
             )
 
 
-            segmented = df.copy()
-
-
-            segmented["Cluster"] = (
-                kmeans.fit_predict(
-                    scaled
-                ) + 1
-            )
-
-
-            st.success(
-                f"Successfully created {clusters} "
-                f"segments from {len(df)} customers."
+            clusters = st.slider(
+                "Number of Customer Segments",
+                min_value=2,
+                max_value=max_clusters,
+                value=default_clusters
             )
 
 
             # =================================================
-            # CHART
+            # RUN SEGMENTATION
             # =================================================
 
-            st.markdown(
-                "### 📊 Customer Segment Map"
-            )
-
-
-            fig, ax = plt.subplots(
-                figsize=(10, 5)
-            )
-
-
-            ax.scatter(
-                segmented["Recency"],
-                segmented["Monetary"] *
-                USD_TO_INR,
-                c=segmented["Cluster"],
-                s=130,
-                alpha=0.8
-            )
-
-
-            ax.set_xlabel(
-                "Recency (Days)"
-            )
-
-            ax.set_ylabel(
-                "Monetary Value (₹)"
-            )
-
-            ax.set_title(
-                "Customer Segmentation using K-Means"
-            )
-
-            ax.grid(
-                alpha=0.2
-            )
-
-
-            st.pyplot(
-                fig,
+            if st.button(
+                "🚀 Run Segmentation",
                 use_container_width=True
-            )
+            ):
 
-
-            plt.close(fig)
-
-
-            # =================================================
-            # SUMMARY
-            # =================================================
-
-            st.markdown(
-                "### 📋 Segment Summary"
-            )
-
-
-            summary = (
-                segmented
-                .groupby("Cluster")
-                .agg(
-                    Customers=(
-                        "CLV",
-                        "count"
-                    ),
-
-                    Average_CLV=(
-                        "CLV",
-                        "mean"
-                    ),
-
-                    Average_Frequency=(
+                segment_features = df[
+                    [
+                        "Recency",
                         "Frequency",
-                        "mean"
-                    ),
-
-                    Average_Monetary=(
-                        "Monetary",
-                        "mean"
-                    )
-                )
-                .reset_index()
-            )
+                        "Monetary"
+                    ]
+                ]
 
 
-            summary["Average_CLV"] = (
-                summary["Average_CLV"] *
-                USD_TO_INR
-            )
+                scaler = StandardScaler()
 
 
-            summary["Average_Monetary"] = (
-                summary["Average_Monetary"] *
-                USD_TO_INR
-            )
-
-
-            summary = summary.rename(
-                columns={
-                    "Average_CLV":
-                        "Average_CLV_INR",
-
-                    "Average_Monetary":
-                        "Average_Monetary_INR"
-                }
-            )
-
-
-            st.dataframe(
-                summary.style.format(
-                    {
-                        "Average_CLV_INR":
-                            "₹{:,.2f}",
-
-                        "Average_Frequency":
-                            "{:.2f}",
-
-                        "Average_Monetary_INR":
-                            "₹{:,.2f}"
-                    }
-                ),
-                use_container_width=True,
-                hide_index=True
-            )
-
-
-            # =================================================
-            # ALL CUSTOMERS
-            # =================================================
-
-            st.markdown(
-                "### 👥 All Customers by Segment"
-            )
-
-
-            segmented_display = (
-                segmented.copy()
-            )
-
-
-            segmented_display["Monetary_INR"] = (
-                segmented_display["Monetary"] *
-                USD_TO_INR
-            )
-
-
-            segmented_display["CLV_INR"] = (
-                segmented_display["CLV"] *
-                USD_TO_INR
-            )
-
-
-            segmented_display = segmented_display.rename(
-                columns={
-                    "Monetary":
-                        "Monetary_USD",
-
-                    "CLV":
-                        "CLV_USD"
-                }
-            )
-
-
-            st.dataframe(
-                segmented_display,
-                use_container_width=True,
-                hide_index=True
-            )
-
-
-            # =================================================
-            # INSIGHTS
-            # =================================================
-
-            st.markdown(
-                "### 💡 Segment Interpretation"
-            )
-
-
-            insight1, insight2, insight3 = st.columns(3)
-
-
-            with insight1:
-
-                st.info(
-                    "⭐ **High-value segment**\n\n"
-                    "Customers with higher purchase "
-                    "frequency and monetary value."
+                scaled = scaler.fit_transform(
+                    segment_features
                 )
 
 
-            with insight2:
-
-                st.warning(
-                    "📈 **Growth segment**\n\n"
-                    "Customers who may have potential "
-                    "for increased engagement."
+                kmeans = KMeans(
+                    n_clusters=clusters,
+                    random_state=42,
+                    n_init=10
                 )
 
 
-            with insight3:
+                segmented = df.copy()
+
+
+                segmented["Cluster"] = (
+                    kmeans.fit_predict(
+                        scaled
+                    ) + 1
+                )
+
 
                 st.success(
-                    "🎯 **Business Strategy**\n\n"
-                    "Use segments for personalized "
-                    "marketing and retention campaigns."
+                    f"Successfully created "
+                    f"{clusters} customer segments "
+                    f"from {len(df)} customers."
                 )
+
+
+                # =================================================
+                # CHART
+                # =================================================
+
+                st.markdown(
+                    "### 📊 Customer Segment Map"
+                )
+
+
+                fig, ax = plt.subplots(
+                    figsize=(10, 5)
+                )
+
+
+                ax.scatter(
+                    segmented["Recency"],
+                    segmented["Monetary"] *
+                    USD_TO_INR,
+                    c=segmented["Cluster"],
+                    s=130,
+                    alpha=0.8
+                )
+
+
+                ax.set_xlabel(
+                    "Recency (Days)"
+                )
+
+
+                ax.set_ylabel(
+                    "Monetary Value (₹)"
+                )
+
+
+                ax.set_title(
+                    "Customer Segmentation using K-Means"
+                )
+
+
+                ax.grid(
+                    alpha=0.2
+                )
+
+
+                st.pyplot(
+                    fig,
+                    use_container_width=True
+                )
+
+
+                plt.close(fig)
+
+
+                # =================================================
+                # SUMMARY
+                # =================================================
+
+                st.markdown(
+                    "### 📋 Segment Summary"
+                )
+
+
+                summary = (
+                    segmented
+                    .groupby("Cluster")
+                    .agg(
+                        Customers=(
+                            "CLV",
+                            "count"
+                        ),
+
+                        Average_CLV=(
+                            "CLV",
+                            "mean"
+                        ),
+
+                        Average_Frequency=(
+                            "Frequency",
+                            "mean"
+                        ),
+
+                        Average_Monetary=(
+                            "Monetary",
+                            "mean"
+                        )
+                    )
+                    .reset_index()
+                )
+
+
+                summary["Average_CLV"] = (
+                    summary["Average_CLV"] *
+                    USD_TO_INR
+                )
+
+
+                summary["Average_Monetary"] = (
+                    summary["Average_Monetary"] *
+                    USD_TO_INR
+                )
+
+
+                summary = summary.rename(
+                    columns={
+                        "Average_CLV":
+                            "Average_CLV_INR",
+
+                        "Average_Monetary":
+                            "Average_Monetary_INR"
+                    }
+                )
+
+
+                st.dataframe(
+                    summary.style.format(
+                        {
+                            "Average_CLV_INR":
+                                "₹{:,.2f}",
+
+                            "Average_Frequency":
+                                "{:.2f}",
+
+                            "Average_Monetary_INR":
+                                "₹{:,.2f}"
+                        }
+                    ),
+                    use_container_width=True,
+                    hide_index=True
+                )
+
+
+                # =================================================
+                # CUSTOMER SEGMENT RECORDS
+                # =================================================
+
+                st.markdown(
+                    "### 👥 Customers by Segment"
+                )
+
+
+                segmented_display = (
+                    segmented.copy()
+                )
+
+
+                segmented_display["Monetary_INR"] = (
+                    segmented_display["Monetary"] *
+                    USD_TO_INR
+                )
+
+
+                segmented_display["CLV_INR"] = (
+                    segmented_display["CLV"] *
+                    USD_TO_INR
+                )
+
+
+                segmented_display = (
+                    segmented_display.rename(
+                        columns={
+                            "Monetary":
+                                "Monetary_USD",
+
+                            "CLV":
+                                "CLV_USD"
+                        }
+                    )
+                )
+
+
+                st.dataframe(
+                    segmented_display,
+                    use_container_width=True,
+                    hide_index=True
+                )
+
+
+                # =================================================
+                # INSIGHTS
+                # =================================================
+
+                st.markdown(
+                    "### 💡 Segment Interpretation"
+                )
+
+
+                insight1, insight2, insight3 = st.columns(3)
+
+
+                with insight1:
+
+                    st.info(
+                        "⭐ **High-value segment**\n\n"
+                        "Customers with higher purchase "
+                        "frequency and monetary value."
+                    )
+
+
+                with insight2:
+
+                    st.warning(
+                        "📈 **Growth segment**\n\n"
+                        "Customers who may have potential "
+                        "for increased engagement."
+                    )
+
+
+                with insight3:
+
+                    st.success(
+                        "🎯 **Business Strategy**\n\n"
+                        "Use segments for personalized "
+                        "marketing and retention campaigns."
+                    )
 
 
 # ============================================================
@@ -1622,9 +1755,11 @@ elif menu == "🔐 Admin Panel":
             "🚫 Access blocked after 3 incorrect attempts."
         )
 
+
         st.info(
             "Please contact the administrator for access."
         )
+
 
         st.stop()
 
@@ -1663,9 +1798,11 @@ elif menu == "🔐 Admin Panel":
 
                 st.rerun()
 
+
             else:
 
                 st.session_state.attempts += 1
+
 
                 remaining = (
                     3 -
@@ -1677,8 +1814,10 @@ elif menu == "🔐 Admin Panel":
 
                     st.error(
                         f"❌ Wrong password! "
-                        f"Attempts remaining: {remaining}"
+                        f"Attempts remaining: "
+                        f"{remaining}"
                     )
+
 
                 else:
 
@@ -1727,6 +1866,10 @@ elif menu == "🔐 Admin Panel":
         c1, c2, c3, c4 = st.columns(4)
 
 
+        # ====================================================
+        # TOTAL CUSTOMERS
+        # ====================================================
+
         with c1:
 
             st.metric(
@@ -1735,38 +1878,67 @@ elif menu == "🔐 Admin Panel":
             )
 
 
+        # ====================================================
+        # PREDICTED
+        # ====================================================
+
         with c2:
 
             st.metric(
                 "Predicted Customers",
-                len(
-                    df[
-                        df["Source"] ==
-                        "Predicted"
-                    ]
-                )
+                len(df)
             )
 
 
+        # ====================================================
+        # AVERAGE
+        # ====================================================
+
         with c3:
+
+            if len(df) > 0:
+
+                average_clv = (
+                    df["CLV"].mean()
+                )
+
+            else:
+
+                average_clv = 0
+
 
             st.metric(
                 "Average CLV",
                 format_inr(
                     usd_to_inr(
-                        df["CLV"].mean()
+                        average_clv
                     )
                 )
             )
 
 
+        # ====================================================
+        # MAXIMUM
+        # ====================================================
+
         with c4:
+
+            if len(df) > 0:
+
+                maximum_clv = (
+                    df["CLV"].max()
+                )
+
+            else:
+
+                maximum_clv = 0
+
 
             st.metric(
                 "Maximum CLV",
                 format_inr(
                     usd_to_inr(
-                        df["CLV"].max()
+                        maximum_clv
                     )
                 )
             )
@@ -1776,78 +1948,84 @@ elif menu == "🔐 Admin Panel":
 
 
         # ====================================================
-        # CUSTOMER RECORDS
+        # NO RECORDS
         # ====================================================
 
-        st.markdown(
-            "### 📄 Customer Records"
-        )
+        if len(df) == 0:
+
+            st.info(
+                "No customer records have been predicted yet."
+            )
 
 
-        admin_df = df.copy()
+        else:
+
+            # =================================================
+            # CUSTOMER RECORDS
+            # =================================================
+
+            st.markdown(
+                "### 📄 Customer Records"
+            )
 
 
-        admin_df["Monetary_INR"] = (
-            admin_df["Monetary"] *
-            USD_TO_INR
-        )
+            admin_df = df.copy()
 
 
-        admin_df["CLV_INR"] = (
-            admin_df["CLV"] *
-            USD_TO_INR
-        )
+            admin_df["Monetary_INR"] = (
+                admin_df["Monetary"] *
+                USD_TO_INR
+            )
 
 
-        admin_df = admin_df.rename(
-            columns={
-                "Monetary":
-                    "Monetary_USD",
-
-                "CLV":
-                    "CLV_USD"
-            }
-        )
+            admin_df["CLV_INR"] = (
+                admin_df["CLV"] *
+                USD_TO_INR
+            )
 
 
-        st.dataframe(
-            admin_df,
-            use_container_width=True,
-            hide_index=True
-        )
+            admin_df = admin_df.rename(
+                columns={
+                    "Monetary":
+                        "Monetary_USD",
+
+                    "CLV":
+                        "CLV_USD"
+                }
+            )
 
 
-        # ====================================================
-        # DOWNLOAD
-        # ====================================================
-
-        csv = admin_df.to_csv(
-            index=False
-        )
+            st.dataframe(
+                admin_df,
+                use_container_width=True,
+                hide_index=True
+            )
 
 
-        st.download_button(
-            "📥 Download Customer Data",
-            csv,
-            "customer_clv_data.csv",
-            "text/csv",
-            use_container_width=True
-        )
+            # =================================================
+            # DOWNLOAD CSV
+            # =================================================
+
+            csv = admin_df.to_csv(
+                index=False
+            )
 
 
-        # ====================================================
-        # PREDICTED CUSTOMERS
-        # ====================================================
+            st.download_button(
+                "📥 Download Customer Data",
+                csv,
+                "customer_clv_data.csv",
+                "text/csv",
+                use_container_width=True
+            )
 
-        predicted_df = df[
-            df["Source"] ==
-            "Predicted"
-        ]
 
-
-        if len(predicted_df) > 0:
+            # =================================================
+            # PREDICTED CUSTOMER RECORDS
+            # =================================================
 
             st.divider()
+
 
             st.markdown(
                 "### 🔮 Predicted Customer Records"
@@ -1855,43 +2033,13 @@ elif menu == "🔐 Admin Panel":
 
 
             st.success(
-                f"{len(predicted_df)} newly predicted "
-                f"customer records are saved."
-            )
-
-
-            predicted_display = (
-                predicted_df.copy()
-            )
-
-
-            predicted_display["Monetary_INR"] = (
-                predicted_display["Monetary"] *
-                USD_TO_INR
-            )
-
-
-            predicted_display["CLV_INR"] = (
-                predicted_display["CLV"] *
-                USD_TO_INR
-            )
-
-
-            predicted_display = (
-                predicted_display.rename(
-                    columns={
-                        "Monetary":
-                            "Monetary_USD",
-
-                        "CLV":
-                            "CLV_USD"
-                    }
-                )
+                f"{len(df)} customer records "
+                f"are currently saved."
             )
 
 
             st.dataframe(
-                predicted_display,
+                admin_df,
                 use_container_width=True,
                 hide_index=True
             )
