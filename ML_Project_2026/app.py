@@ -27,9 +27,9 @@ st.set_page_config(
 # CURRENCY CONVERSION
 # ============================================================
 
-# 1 USD = 87 INR
+# 1 USD = 95.70 INR
 # Change this value if you want to use another exchange rate.
-USD_TO_INR = 87
+USD_TO_INR = 95.70
 
 
 def usd_to_inr(value):
