@@ -926,9 +926,9 @@ elif menu == "📊 Segmentation Dashboard":
 
     clusters = st.slider(
         "Number of Customer Segments",
-        2,
-        5,
-        3
+        0,
+        1000,
+        2
     )
 
 
