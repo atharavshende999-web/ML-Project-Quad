@@ -1417,24 +1417,35 @@ elif menu == "📊 Segmentation Dashboard":
 
         else:
 
+            # Streamlit slider requires min_value < max_value.
+            # When exactly 2 customers exist, max_clusters becomes 2,
+            # which makes a 2-to-2 slider invalid. Handle that case
+            # separately and use exactly 2 clusters.
             max_clusters = min(
                 12,
                 len(df)
             )
 
+            if max_clusters == 2:
+                clusters = 2
+                st.info(
+                    "ℹ️ Only 2 customers are available, so the "
+                    "number of segments is fixed at 2."
+                )
+            else:
+                default_clusters = min(
+                    3,
+                    max_clusters
+                )
 
-            default_clusters = min(
-                3,
-                max_clusters
-            )
-
-
-            clusters = st.slider(
-                "Number of Customer Segments",
-                min_value=2,
-                max_value=max_clusters,
-                value=default_clusters
-            )
+                clusters = st.slider(
+                    "Number of Customer Segments",
+                    min_value=2,
+                    max_value=max_clusters,
+                    value=default_clusters,
+                    step=1,
+                    key="cluster_slider"
+                )
 
 
             # =================================================
